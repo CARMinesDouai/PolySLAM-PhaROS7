@@ -26,6 +26,6 @@ BaselineOfPolySLAM >> baseline: spec [
 			group: 'extra' with: #('PolySLAM-Core' 'PolySLAM-Extra');
 			group: 'test'  with: #('PolySLAM-Core' 'PolySLAM-Tests');
 			group: 'full'  with: #('PolySLAM-Core' 'PolySLAM-Extra' 'PolySLAM-Tests').
-		spec load: #dep 
+		spec loads: #dep 
 		]
 ]

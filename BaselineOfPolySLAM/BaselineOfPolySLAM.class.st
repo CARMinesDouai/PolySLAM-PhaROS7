@@ -22,14 +22,6 @@ BaselineOfPolySLAM >> baseline: spec [
 				versionString: #'stable';
 				repository: 'http://smalltalkhub.com/mc/CAR/PhaROS/main'
 		].
-		"This package is required for the extra package, that use os subprocess for gnuplot.
-		The package only works on 32bit version"
-		spec project: 'OSSubprocess' with: [ 
-			spec
-				configuration: 'OSSubprocess';
- 				repository: 'github://marianopeck/OSSubprocess:master/repository';
-				version: #stable
-		].
 		
 		spec
 			package: 'PolySLAM-FixDep';

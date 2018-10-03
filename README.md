@@ -9,7 +9,7 @@ Metacello new
 	baseline:'PolySLAM';
 	load: #pharos
   "
-  Change #pharos to load other group of package
+  Change #pharos with other group name:
   - #core: load only the core package of PolySLAM
   - #extra: load the core classes and extra utility classes
   - #test: load the core and test classes

@@ -23,17 +23,9 @@ BaselineOfPolySLAM >> baseline: spec [
 			package: 'PolySLAM-Tests' with: [ spec requires: #('PolySLAM-Core') ];
 			package: 'PolySLAM-Extra' with: [ spec requires: #('PolySLAM-Core') ];
 			"groups"
-			group: 'core' with: #('PolySLAM-Core' 'SciSmalltalk')
-			"group: 'minimal' with: #(
-				'Iceberg'
-				'Iceberg-Libgit' 
-				'Iceberg-Libgit-Tonel'
-				'Iceberg-Libgit-Filetree');
-			group: 'allTests' with: #(
-				'Iceberg-Tests' 
-				'Iceberg-Tests-MetacelloIntegration'
-				'LibGit-Tests' 
-				'Iceberg-UI-Tests'
-				'Iceberg-Plugin-Migration-Tests' );
-			group: 'development' with: #(default allTests)" ].
+			group: 'core' with: #('PolySLAM-Core' 'SciSmalltalk');
+			group: 'extra' with: #('core' 'PolySLAM-Extra');
+			group: 'test' with: #('core' 'PolySLAM-Tests');
+			group: 'full' with: #('core' 'PolySLAM-Extra' 'PolySLAM-Tests')
+		]
 ]

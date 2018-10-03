@@ -10,12 +10,18 @@ BaselineOfPolySLAM >> baseline: spec [
 	
 	spec for: #common do: [ 
 		spec preLoadDoIt: #preload.
-		
 		spec project: 'SciSmalltalk' with: [
 				spec
 					className: #ConfigurationOfSciSmalltalk;
 					versionString: #'stable';
 					repository: 'http://smalltalkhub.com/mc/Pharo/MetaRepoForPharo50/main/' ].
+		
+		spec project: 'PhaROS' with: [ 
+			 spec
+				className: #ConfigurationOfPhaROS;
+				versionString: #'stable';
+				repository: 'http://smalltalkhub.com/mc/CAR/PhaROS/main'
+		].
 		
 		spec
 			package: 'PolySLAM-FixDep';
@@ -26,11 +32,12 @@ BaselineOfPolySLAM >> baseline: spec [
 			group: 'core'  with: #('PolySLAM-Core');
 			group: 'extra' with: #('PolySLAM-Core' 'PolySLAM-Extra');
 			group: 'test'  with: #('PolySLAM-Core' 'PolySLAM-Tests');
-			group: 'full'  with: #('PolySLAM-Core' 'PolySLAM-Extra' 'PolySLAM-Tests').
+			group: 'full'  with: #('PolySLAM-Core' 'PolySLAM-Extra' 'PolySLAM-Tests');
+			group: 'pharos' with: #('core' 'PhaROS').
 		]
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #preload }
 BaselineOfPolySLAM >> preload [
 
 	(Object lookupSelector: #ifNotNilDo:) ifNotNil: [ ^self ].

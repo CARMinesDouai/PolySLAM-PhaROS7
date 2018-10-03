@@ -17,7 +17,7 @@ BaselineOfPolySLAM >> baseline: spec [
 		
 		spec
 			package: 'PolySLAM-FixDep';
-			package: 'SciSmalltalk' with: [ spec requires: #('PolySLAM-FixDep') ];
+			project: 'SciSmalltalk' with: [ spec requires: #('PolySLAM-FixDep') ];
 			package: 'PolySLAM-Core' with: [ spec requires: #('SciSmalltalk') ];
 			package: 'PolySLAM-Tests' with: [ spec requires: #('PolySLAM-Core') ];
 			package: 'PolySLAM-Extra' with: [ spec requires: #('PolySLAM-Core') ];

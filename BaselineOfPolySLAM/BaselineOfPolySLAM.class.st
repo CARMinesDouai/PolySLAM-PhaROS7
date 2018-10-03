@@ -10,6 +10,7 @@ BaselineOfPolySLAM >> baseline: spec [
 	
 	spec for: #common do: [ 
 		spec project: 'SciSmalltalk' with: [
+				spec requires: #('PolySLAM-FixDep').
 				spec
 					className: #ConfigurationOfSciSmalltalk;
 					versionString: #'stable';
@@ -19,11 +20,11 @@ BaselineOfPolySLAM >> baseline: spec [
 			"iceberg"
 			
 			package: 'PolySLAM-FixDep';
-			package: 'PolySLAM-Core' with: [ spec requires: #('PolySLAM-FixDep') ];
+			package: 'PolySLAM-Core' with: [ spec requires: #('SciSmalltalk') ];
 			package: 'PolySLAM-Tests' with: [ spec requires: #('PolySLAM-Core') ];
 			package: 'PolySLAM-Extra' with: [ spec requires: #('PolySLAM-Core') ];
 			"groups"
-			group: 'core' with: #('PolySLAM-Core' 'SciSmalltalk');
+			group: 'core' with: #('PolySLAM-Core');
 			group: 'extra' with: #('core' 'PolySLAM-Extra');
 			group: 'test' with: #('core' 'PolySLAM-Tests');
 			group: 'full' with: #('core' 'PolySLAM-Extra' 'PolySLAM-Tests')

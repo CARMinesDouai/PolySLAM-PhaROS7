@@ -16,8 +16,8 @@ BaselineOfPolySLAM >> baseline: spec [
 					repository: 'http://smalltalkhub.com/mc/Pharo/MetaRepoForPharo50/main/' ].
 		
 		spec
-			package: 'PolySLAM-FixDep' with: [ spec requires: #('SciSmalltalk') ];
-			package: 'PolySLAM-Core' with: [ spec requires: #('PolySLAM-FixDep') ];
+			package: 'PolySLAM-FixDep';
+			package: 'PolySLAM-Core' with: [ spec requires: #('PolySLAM-FixDep' 'SciSmalltalk') ];
 			package: 'PolySLAM-Tests';
 			package: 'PolySLAM-Extra';
 			"groups"

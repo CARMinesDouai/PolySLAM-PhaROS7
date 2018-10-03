@@ -33,12 +33,14 @@ BaselineOfPolySLAM >> baseline: spec [
 			package: 'PolySLAM-Core' with: [ spec requires: #('PolySLAM-FixDep' 'SciSmalltalk') ];
 			package: 'PolySLAM-Tests';
 			package: 'PolySLAM-Extra' with:[ spec requires: #('OSSubprocess') ];
+			package: 'PolySLAM-PhaROS-Examples';
 			"groups"
 			group: 'core'  with: #('PolySLAM-Core');
 			group: 'extra' with: #('PolySLAM-Core' 'PolySLAM-Extra');
 			group: 'test'  with: #('PolySLAM-Core' 'PolySLAM-Tests');
 			group: 'full'  with: #('PolySLAM-Core' 'PolySLAM-Extra' 'PolySLAM-Tests');
-			group: 'pharos' with: #('core' 'PhaROS').
+			group: 'pharos' with: #('core' 'PhaROS');
+			group: 'pharosfull' with: #('pharos' 'PolySLAM-PhaROS-Examples').
 		]
 ]
 

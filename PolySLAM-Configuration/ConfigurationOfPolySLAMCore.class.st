@@ -1,5 +1,5 @@
 Class {
-	#name : #ConfigurationOfPolySLAM,
+	#name : #ConfigurationOfPolySLAMCore,
 	#superclass : #Object,
 	#instVars : [
 		'project'
@@ -11,14 +11,14 @@ Class {
 }
 
 { #category : #'development support' }
-ConfigurationOfPolySLAM class >> DevelopmentSupport [
+ConfigurationOfPolySLAMCore class >> DevelopmentSupport [
 
 "See the methods in the 'development support' category on the class-side of MetacelloBaseConfiguration. Decide what development support methods you would like to use and copy them the the class-side of your configuration."
 	<apiDocumentation>
 ]
 
 { #category : #private }
-ConfigurationOfPolySLAM class >> baseConfigurationClassIfAbsent: aBlock [
+ConfigurationOfPolySLAMCore class >> baseConfigurationClassIfAbsent: aBlock [
 
 	^Smalltalk
 		at: #'ConfigurationOf'
@@ -28,13 +28,13 @@ ConfigurationOfPolySLAM class >> baseConfigurationClassIfAbsent: aBlock [
 ]
 
 { #category : #private }
-ConfigurationOfPolySLAM class >> ensureMetacello [
+ConfigurationOfPolySLAMCore class >> ensureMetacello [
 
 	(self baseConfigurationClassIfAbsent: []) ensureMetacello
 ]
 
 { #category : #private }
-ConfigurationOfPolySLAM class >> ensureMetacelloBaseConfiguration [
+ConfigurationOfPolySLAMCore class >> ensureMetacelloBaseConfiguration [
   Smalltalk
     at: #'ConfigurationOf'
     ifAbsent: [ 
@@ -52,14 +52,14 @@ ConfigurationOfPolySLAM class >> ensureMetacelloBaseConfiguration [
 ]
 
 { #category : #'metacello tool support' }
-ConfigurationOfPolySLAM class >> isMetacelloConfig [
+ConfigurationOfPolySLAMCore class >> isMetacelloConfig [
 	"Answer true and the Metacello tools will operate on you"
 	
 	^true
 ]
 
 { #category : #loading }
-ConfigurationOfPolySLAM class >> load [
+ConfigurationOfPolySLAMCore class >> load [
 	"Load the #stable version defined for this platform. The #stable version is the version that is recommended to be used on this platform."
 
 	"self load"
@@ -69,7 +69,7 @@ ConfigurationOfPolySLAM class >> load [
 ]
 
 { #category : #loading }
-ConfigurationOfPolySLAM class >> loadBleedingEdge [
+ConfigurationOfPolySLAMCore class >> loadBleedingEdge [
 	"Load the latest versions of the mcz files defined for this project. It is not likely that the #bleedingEdge has been tested."
 
 	"self loadBleedingEdge"
@@ -79,7 +79,7 @@ ConfigurationOfPolySLAM class >> loadBleedingEdge [
 ]
 
 { #category : #loading }
-ConfigurationOfPolySLAM class >> loadDevelopment [
+ConfigurationOfPolySLAMCore class >> loadDevelopment [
 	"Load the #development version defined for this platform. The #development version will change over time and is not expected to be stable."
 
 	"self loadDevelopment"
@@ -89,13 +89,13 @@ ConfigurationOfPolySLAM class >> loadDevelopment [
 ]
 
 { #category : #accessing }
-ConfigurationOfPolySLAM class >> project [
+ConfigurationOfPolySLAMCore class >> project [
 
 	^self new project
 ]
 
 { #category : #'development support' }
-ConfigurationOfPolySLAM class >> validate [
+ConfigurationOfPolySLAMCore class >> validate [
 	"Check the configuration for Errors, Critical Warnings, and Warnings (see class comment for MetacelloMCVersionValidator for more information). 
 	Errors identify specification issues that will result in unexpected behaviour when you load the configuration. 
 	Critical Warnings identify specification issues that may result in unexpected behavior when you load the configuration.
@@ -109,23 +109,23 @@ ConfigurationOfPolySLAM class >> validate [
 ]
 
 { #category : #baselines }
-ConfigurationOfPolySLAM >> baseline01: spec [
+ConfigurationOfPolySLAMCore >> baseline01: spec [
 	<version: '0.1-baseline'>
 
 	spec for: #'common' do: [
 		spec blessing: #'baseline'.
-		spec repository: '/opt/shared/developer/pharo-local-repos/VectorMaps'.
+		spec repository: 'https://github.com/CARMinesDouai/PolySLAM-PhaROS7'.
 		spec project: 'SciSmalltalk' with: [
 				spec
 					className: #ConfigurationOfSciSmalltalk;
 					versionString: #'stable';
 					repository: 'http://smalltalkhub.com/mc/Pharo/MetaRepoForPharo50/main/' ].
-		spec package: 'VectorMaps'. ].
+		spec package: 'PolySLAM-Core'. ].
 
 ]
 
 { #category : #accessing }
-ConfigurationOfPolySLAM >> customProjectAttributes [
+ConfigurationOfPolySLAMCore >> customProjectAttributes [
     "Edit to return a collection of any custom attributes e.g. for conditional loading: Array with: #'Condition1' with: #'Condition2.
 	For more information see: http://code.google.com/p/metacello/wiki/CustomProjectAttrributes "
 
@@ -133,7 +133,7 @@ ConfigurationOfPolySLAM >> customProjectAttributes [
 ]
 
 { #category : #'symbolic versions' }
-ConfigurationOfPolySLAM >> development: spec [
+ConfigurationOfPolySLAMCore >> development: spec [
 	<symbolicVersion: #'development'>
 
 	spec for: #'common' version: '0.1-baseline'.
@@ -141,7 +141,7 @@ ConfigurationOfPolySLAM >> development: spec [
 ]
 
 { #category : #accessing }
-ConfigurationOfPolySLAM >> project [
+ConfigurationOfPolySLAMCore >> project [
     ^ project
         ifNil: [ 
             "Bootstrap Metacello if it is not already loaded"

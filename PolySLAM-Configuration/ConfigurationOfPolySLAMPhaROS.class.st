@@ -117,7 +117,7 @@ ConfigurationOfPolySLAMPhaROS >> baseline01: spec [
 		spec repository: '/opt/shared/developer/pharo-local-repos/VectorMaps'.
 		spec project: 'VectorMaps' with: [
 				spec
-					className: #ConfigurationOfPolySLAM;
+					className: #ConfigurationOfPolySLAMCore;
 					versionString: #'bleedingEdge';
 					repository: '/opt/shared/developer/pharo-local-repos/VectorMaps' ].
 		spec package: 'VectorMaps_PhaROS'. ].

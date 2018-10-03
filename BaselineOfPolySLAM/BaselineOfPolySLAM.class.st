@@ -21,9 +21,11 @@ BaselineOfPolySLAM >> baseline: spec [
 			package: 'PolySLAM-Tests';
 			package: 'PolySLAM-Extra';
 			"groups"
-			group: 'core' with: #('PolySLAM-Core');
+			group: 'dep' with: #('PolySLAM-FixDep');
+			group: 'core'  with: #('PolySLAM-Core');
 			group: 'extra' with: #('PolySLAM-Core' 'PolySLAM-Extra');
-			group: 'test' with: #('PolySLAM-Core' 'PolySLAM-Tests');
-			group: 'full' with: #('PolySLAM-Core' 'PolySLAM-Extra' 'PolySLAM-Tests')
+			group: 'test'  with: #('PolySLAM-Core' 'PolySLAM-Tests');
+			group: 'full'  with: #('PolySLAM-Core' 'PolySLAM-Extra' 'PolySLAM-Tests').
+		spec load: #dep 
 		]
 ]

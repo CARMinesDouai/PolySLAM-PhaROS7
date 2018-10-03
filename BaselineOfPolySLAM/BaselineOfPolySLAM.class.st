@@ -9,6 +9,8 @@ BaselineOfPolySLAM >> baseline: spec [
 	<baseline>
 	
 	spec for: #common do: [ 
+		spec preLoadDoIt: #preload.
+		
 		spec project: 'SciSmalltalk' with: [
 				spec
 					className: #ConfigurationOfSciSmalltalk;
@@ -21,11 +23,17 @@ BaselineOfPolySLAM >> baseline: spec [
 			package: 'PolySLAM-Tests';
 			package: 'PolySLAM-Extra';
 			"groups"
-			group: 'dep' with: #('PolySLAM-FixDep');
 			group: 'core'  with: #('PolySLAM-Core');
 			group: 'extra' with: #('PolySLAM-Core' 'PolySLAM-Extra');
 			group: 'test'  with: #('PolySLAM-Core' 'PolySLAM-Tests');
 			group: 'full'  with: #('PolySLAM-Core' 'PolySLAM-Extra' 'PolySLAM-Tests').
-		spec loads: #dep 
 		]
+]
+
+{ #category : #'as yet unclassified' }
+BaselineOfPolySLAM >> preload [
+
+	(Object lookupSelector: #ifNotNilDo:) ifNotNil: [ ^self ].
+	Object compile: 'ifNotNilDo: ablock
+	^ self ifNotNil: ablock'.
 ]

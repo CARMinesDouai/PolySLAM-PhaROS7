@@ -40,8 +40,7 @@ BaselineOfPolySLAM >> baseline: spec [
 			group: 'test'  with: #('PolySLAM-Core' 'PolySLAM-Tests');
 			group: 'full'  with: #('PolySLAM-Core' 'PolySLAM-Extra' 'PolySLAM-Tests');
 			group: 'pharos' with: #('core' 'PhaROS');
-			group: 'pharosfull' with: #('pharos' 'PolySLAM-PhaROS-Examples');
-			group: 'all' with: #( 'full' 'PhaROS' 'PolySLAM-PhaROS-Examples' ).
+			group: 'pharosfull' with: #('pharos' 'PolySLAM-PhaROS-Examples')
 		]
 ]
 

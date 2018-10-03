@@ -17,14 +17,13 @@ BaselineOfPolySLAM >> baseline: spec [
 		
 		spec
 			"iceberg"
-			package: 'PolySLAM-Core';
-			package: 'PolySLAM-Tests';
-			package: 'PolySLAM-Extra';
+			
 			package: 'PolySLAM-FixDep';
+			package: 'PolySLAM-Core' with: [ spec requires: #('PolySLAM-FixDep' 'SciSmalltalk') ];
+			package: 'PolySLAM-Tests' with: [ spec requires: #('PolySLAM-Core') ];
+			package: 'PolySLAM-Extra' with: [ spec requires: #('PolySLAM-Core') ];
 			"groups"
-			group: 'default' with: #(
-				'PolySLAM-Core' 
-				'SciSmalltalk')
+			group: 'core' with: #('PolySLAM-Core')
 			"group: 'minimal' with: #(
 				'Iceberg'
 				'Iceberg-Libgit' 

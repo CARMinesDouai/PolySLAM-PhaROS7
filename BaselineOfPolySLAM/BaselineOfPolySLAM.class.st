@@ -10,14 +10,13 @@ BaselineOfPolySLAM >> baseline: spec [
 	
 	spec for: #common do: [ 
 		spec project: 'SciSmalltalk' with: [
-				spec requires: #('PolySLAM-FixDep').
 				spec
+					requires: #('PolySLAM-FixDep');
 					className: #ConfigurationOfSciSmalltalk;
 					versionString: #'stable';
 					repository: 'http://smalltalkhub.com/mc/Pharo/MetaRepoForPharo50/main/' ].
 		
 		spec
-			"iceberg"
 			
 			package: 'PolySLAM-FixDep';
 			package: 'PolySLAM-Core' with: [ spec requires: #('SciSmalltalk') ];

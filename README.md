@@ -1,7 +1,7 @@
 # PolySLAM-PhaROS7
 PolySLAM packages for PhaROS 7.0
 
-To load the packages, use the following snippet in an playground
+To load the packages, use following snippet in an playground
 
 ```Smalltalk
 Metacello new

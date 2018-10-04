@@ -305,6 +305,12 @@ VMBSPLeaf >> createPlaneForPolygon: aSectorOrPolygon ifNoneDo: aBlock [
 
 ]
 
+{ #category : #accessing }
+VMBSPLeaf >> findHyperplaneFor: aLineSeg [
+	parent ifNil: [ ^ nil ].
+	^ parent hyperplane
+]
+
 { #category : #operations }
 VMBSPLeaf >> findNearest: aPoint [
 	sector ifNil: [ ^nil ].

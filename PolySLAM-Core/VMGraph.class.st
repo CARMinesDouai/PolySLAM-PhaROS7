@@ -9,12 +9,25 @@ VMGraph class >> rendererClass [
 	^VMGraphRenderer
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #converting }
 VMGraph >> asRenderableElement [
 	^ self class rendererClass new model: self
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
+VMGraph >> atSector: aPolygon [
+	| index start |
+	index := start := aPolygon hash \\ array size + 1.
+	[ 
+		| element |
+		((element := array at: index) == nil) ifTrue: [ self error: 'not found'. ^ nil ].
+		(element enclosedSetElement sector = aPolygon) ifTrue: [ ^ array at: index ].
+		(index := index \\ array size + 1) = start ] whileFalse.
+	
+	self errorNoFreeSpace
+]
+
+{ #category : #accessing }
 VMGraph >> bounds [
 	| rect anyOne |
 	

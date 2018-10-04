@@ -41,6 +41,11 @@ VMBSPBase >> bounds [
 	self subclassResponsibility
 ]
 
+{ #category : #accessing }
+VMBSPBase >> findHyperplaneFor: aLineSeg [
+	self subclassResponsibility.
+]
+
 { #category : #operations }
 VMBSPBase >> findNearest: aPoint [
 	self subclassResponsibility.

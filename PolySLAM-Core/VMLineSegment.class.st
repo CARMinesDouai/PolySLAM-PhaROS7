@@ -823,8 +823,8 @@ VMLineSegment >> myIntersectsWith: aLineSeg ifTurnsLeft: leftBlock ifTurnsRight:
 
 { #category : #printing }
 VMLineSegment >> printString [
-	"returns a string with the coordinates of the start and end point of the line segment"
-	^('VMLineSegment from:',(pointA printString),' to:',(pointB printString)), ' type: ', type asInteger printString.
+	"^('VMLineSegment from:',(pointA printString),' to:',(pointB printString)), ' type: ', type asInteger printString"
+	^ pointA printString, ' vectorTo: ', pointB printString, ' type: ', type asInteger printString
 ]
 
 { #category : #tranformation }

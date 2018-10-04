@@ -73,6 +73,30 @@ VMBSPNode >> bounds [
 	^ leftChild bounds merge: rightChild bounds
 ]
 
+{ #category : #accessing }
+VMBSPNode >> findHyperplaneFor: aLineSeg [
+	
+	hyperplane fuzzyPoint: aLineSeg pointA
+		ifOnLeftSideDo: [
+			hyperplane fuzzyPoint: aLineSeg pointB
+				ifOnLeftSideDo: [ ^ leftChild findHyperplaneFor: aLineSeg ]
+				ifOnRightSideDo: [ ^ hyperplane ]
+				ifOnLineDo: [ ^ leftChild findHyperplaneFor: aLineSeg ]
+		]
+		ifOnRightSideDo: [
+			hyperplane fuzzyPoint: aLineSeg pointB
+				ifOnLeftSideDo: [ ^ hyperplane ]
+				ifOnRightSideDo: [ ^ rightChild findHyperplaneFor: aLineSeg ]
+				ifOnLineDo: [ ^ rightChild findHyperplaneFor: aLineSeg ]
+		]
+		ifOnLineDo: [
+			hyperplane fuzzyPoint: aLineSeg pointB
+				ifOnLeftSideDo: [ ^ leftChild findHyperplaneFor: aLineSeg ]
+				ifOnRightSideDo: [ ^ rightChild findHyperplaneFor: aLineSeg ]
+				ifOnLineDo: [ ^ hyperplane ]
+		].
+]
+
 { #category : #operations }
 VMBSPNode >> findNearest: aPoint [
 	"returns the closest point to 'aPoint' in a point-to-line segment manner.

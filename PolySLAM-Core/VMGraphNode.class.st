@@ -16,33 +16,38 @@ VMGraphNode class >> sector: aSector [
 		yourself.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #comparing }
+VMGraphNode >> = aNode [
+	^ sector = aNode sector
+]
+
+{ #category : #accessing }
 VMGraphNode >> center [
 	^center
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #comparing }
 VMGraphNode >> hash [
 	^ sector hash
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #initialization }
 VMGraphNode >> initialize [
 	super initialize.
 	neighbors := Set new.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
 VMGraphNode >> neighbors [
 	^neighbors
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
 VMGraphNode >> sector [
 	^ sector
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
 VMGraphNode >> sector: aSector [
 	sector := aSector.
 	center := sector centroid.

@@ -1,3 +1,6 @@
+"
+This class represents a node in a graph. The node represents a sector/polygon and contains a collection of accessable neighbors (i.e. all polygons that share a sector border). note that 'neighbors' is a Set instance, to prevent the same neighbor being added multiple times.
+"
 Class {
 	#name : #VMGraphNode,
 	#superclass : #Object,
@@ -6,7 +9,7 @@ Class {
 		'center',
 		'neighbors'
 	],
-	#category : #'PolySLAM-Core-Collections, Trees & Graphs'
+	#category : #'PolySLAM-Core-Top. Graph'
 }
 
 { #category : #'as yet unclassified' }

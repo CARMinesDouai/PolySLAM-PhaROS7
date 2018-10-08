@@ -4,7 +4,7 @@ This class is similar to a closed polygon, but the start and end vertices are no
 Class {
 	#name : #VMPolygonChain,
 	#superclass : #VMVerticesPolygon,
-	#category : #'PolySLAM-Core-kernel'
+	#category : #'PolySLAM-Extra-Deprecated'
 }
 
 { #category : #expanding }

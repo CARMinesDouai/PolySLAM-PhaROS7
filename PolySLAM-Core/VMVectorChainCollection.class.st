@@ -1,7 +1,7 @@
 Class {
 	#name : #VMVectorChainCollection,
 	#superclass : #OrderedCollection,
-	#category : #'PolySLAM-Core-temp'
+	#category : #'PolySLAM-Core-Line- & Vector Approximation'
 }
 
 { #category : #'as yet unclassified' }

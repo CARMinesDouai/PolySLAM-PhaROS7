@@ -18,7 +18,7 @@ messages:
 Class {
 	#name : #VMClosedPolygon,
 	#superclass : #VMVerticesPolygon,
-	#category : #'PolySLAM-Core-kernel'
+	#category : #'PolySLAM-Extra-Deprecated'
 }
 
 { #category : #merging }

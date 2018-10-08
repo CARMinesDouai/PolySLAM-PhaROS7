@@ -103,7 +103,7 @@ VMNNVectorGridTest >> testFindNearest2 [
 	
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #tests }
 VMNNVectorGridTest >> testFindNearest3 [
 	| vector grid searchPoints result expectedResults |
 
@@ -115,7 +115,7 @@ VMNNVectorGridTest >> testFindNearest3 [
 	
 	searchPoints with: expectedResults do: [ :sp :er |
 		result := grid findNearest: sp.
-		self assert: result object equals: er.
+		self assert: (result object dist: er) < 0.00000001.
 	].
 	
 ]

@@ -9,7 +9,7 @@ Class {
 		'left',
 		'right'
 	],
-	#category : #'PolySLAM-Core-Collections, Trees & Graphs'
+	#category : #'PolySLAM-Core-Collections'
 }
 
 { #category : #copying }

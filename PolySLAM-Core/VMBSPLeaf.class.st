@@ -78,7 +78,7 @@ VMBSPLeaf >> checkLineTypes: aSectorOrPolygon [
 	| maxDist |
 	
 	maxDist := 0.00001.
-	
+	Transcript show: 'checkLineTypes'; cr.
 	aSectorOrPolygon do: [ :lineSeg |
 		lineSeg type isFrontier ifFalse: [ "frontiers never change the type of other line segments"
 			sector do: [ :sectorLineSeg |
@@ -114,6 +114,7 @@ VMBSPLeaf >> checkVector: v type: type [
 
 { #category : #'as yet unclassified' }
 VMBSPLeaf >> checkVectorType: aSector [
+	Transcript show: 'checkVectorType'; cr.
 	aSector do: [ :vec |
 		(vectorDB findSimilarVectors: vec) do: [ :v |
 			v == vec ifFalse: [

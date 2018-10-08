@@ -6,7 +6,7 @@ A vector chain is a collection of vectors where each vector is connected to its 
 Class {
 	#name : #VMVectorChain,
 	#superclass : #OrderedCollection,
-	#category : #'PolySLAM-Core-temp'
+	#category : #'PolySLAM-Core-Line- & Vector Approximation'
 }
 
 { #category : #'instance creation' }

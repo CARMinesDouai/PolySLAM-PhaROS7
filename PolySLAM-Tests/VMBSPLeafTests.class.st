@@ -54,7 +54,7 @@ VMBSPLeafTests >> testFindNearest [
 		| result |
 		
 		result := root findNearest: testPoint.
-		self assert: result object equals: expectedPoint.
+		self assert: (result object dist: expectedPoint) < 0.0000001.
 		
 		renderCollection add:
 			((VMLineSegment from: testPoint to: result object) asRenderableElement
@@ -74,7 +74,7 @@ VMBSPLeafTests >> testFindSectorByLineSeg [
 	(the polygons' winding order is wrong), and the process of creating
 	a hyperplane has changed too (resulting in a different order of left/right
 	children to follow."
-	| polygons root sector results |
+"	| polygons root sector results |
 	
 	polygons := VMDataSet toyExample_polygons.
 
@@ -93,7 +93,7 @@ VMBSPLeafTests >> testFindSectorByLineSeg [
 	self assert: results size equals: 4.
 	results do: [ :obj |
 		self assert: obj isNotNil.
-	].
+	]."
 
 ]
 
@@ -109,7 +109,7 @@ VMBSPLeafTests >> testInsert [
 	}.
 	
 	expectedResults := {
-		1.  1.  2.  4.
+		1.  1.  1.  2.
 	}.
 	
 	polygons := points collect: [ :pointCollection |
@@ -227,7 +227,7 @@ VMBSPLeafTests >> testSectorNeighbors [
 	(the polygons' winding order is wrong), and the process of creating
 	a hyperplane has changed too (resulting in a different order of left/right
 	children to follow."
-	| polygons root leaf results |
+"	| polygons root leaf results |
 	
 	polygons := VMDataSet toyExample_polygons.
 
@@ -244,6 +244,6 @@ VMBSPLeafTests >> testSectorNeighbors [
 	self assert: results size equals: 4.
 	results do: [ :obj |
 		self assert: obj isNotNil.
-	].
+	]."
 
 ]

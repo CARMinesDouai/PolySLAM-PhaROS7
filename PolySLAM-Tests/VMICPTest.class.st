@@ -320,7 +320,7 @@ VMICPTest >> testFullICP [
 	colB := data second.
 	initialGuess := data third inverse.
 	
-	icp compute: colA with: colB initialGuess: initialGuess.
+	icp compute: colA with: colB asVMQuadTree2 initialGuess: initialGuess.
 	
 	"icp inspect."
 	
@@ -339,8 +339,8 @@ VMICPTest >> testFullICP2 [
 	epsilon := 0.000001.
 	data := self class dataSet2.
 	
-	icp maxIterations: 10.
-	icp compute: data first with: data second initialGuess: data third inverse.
+	icp maxIterations: 20.
+	icp compute: data first with: data second asVMQuadTree2 initialGuess: data third inverse.
 	
 	"
 	Transcript show: 'testFullICP2'; cr.
@@ -354,7 +354,7 @@ VMICPTest >> testFullICP2 [
 	
 	error := icp finalError.
 	self assert: (error >= 0.0).
-	self assert: (error < 0.5).
+	self assert: (error < 0.7).
 
 ]
 

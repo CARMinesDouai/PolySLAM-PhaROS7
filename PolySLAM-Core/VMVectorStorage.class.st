@@ -35,7 +35,7 @@ Class {
 	#instVars : [
 		'container'
 	],
-	#category : #'PolySLAM-Core-Collections, Trees & Graphs'
+	#category : #'PolySLAM-Core-Collections'
 }
 
 { #category : #adding }

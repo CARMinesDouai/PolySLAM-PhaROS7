@@ -1,10 +1,23 @@
+"
+This is an OrderedCollection-based collection that can grow in both sides, allowing negative indices.
+
+note: newly created entries duo to growth are initialized to contain a new OrderedCollection instance instead of nil.
+this is for convenience at the class that employs VMDoubleEndedCollection: the VMNNVectorGrid class
+
+
+Instance Variables
+	offset: <Number>
+		this is the offset to translate from external index to internal index.
+		for example, with offset := 4, a ""at: 1"" call would translate to an internal index of 1 + 4 = 5
+
+"
 Class {
 	#name : #VMDoubleEndedCollection,
 	#superclass : #OrderedCollection,
 	#instVars : [
 		'offset'
 	],
-	#category : #'PolySLAM-Core-Collections, Trees & Graphs'
+	#category : #'PolySLAM-Core-Collections'
 }
 
 { #category : #'as yet unclassified' }

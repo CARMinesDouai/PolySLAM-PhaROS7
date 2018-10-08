@@ -4,7 +4,7 @@ Class {
 	#category : #'PolySLAM-Extra-GUI-Athens'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #rendering }
 VMGraphRenderer >> renderOn: aCanvas [
 	| sectorsCovered |
 	
@@ -17,12 +17,13 @@ VMGraphRenderer >> renderOn: aCanvas [
 		sectorsCovered add: aNode sector.
 		aNode neighbors do: [ :sector |
 			sector ifNotNil: [
-				(sectorsCovered includes: sector) ifFalse: [
-					self renderStyledLineSegFrom: aNode center to: sector centroid on: aCanvas color: color
+				| s |
+				s := sector asPolygon.
+				(sectorsCovered includes: s) ifFalse: [
+					self renderStyledLineSegFrom: aNode center to: s centroid on: aCanvas color: color
 				].
 			].
 		].
 	].
-	
-	
+
 ]

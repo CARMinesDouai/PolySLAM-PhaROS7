@@ -9,7 +9,7 @@ Class {
 		'polygons',
 		'area'
 	],
-	#category : #'PolySLAM-Core-temp'
+	#category : #'PolySLAM-Core-SLAM - Maps'
 }
 
 { #category : #accessing }

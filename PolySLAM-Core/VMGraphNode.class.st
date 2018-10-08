@@ -31,6 +31,8 @@ VMGraphNode >> asPolygon [
 
 { #category : #accessing }
 VMGraphNode >> center [
+	"returns the center of the sector, i.e. 'self sector centroid'. the value
+	is casehed to speed up computations that use this method."
 	^center
 ]
 

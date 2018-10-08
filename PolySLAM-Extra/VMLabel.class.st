@@ -6,7 +6,7 @@ Class {
 		'bounds',
 		'color'
 	],
-	#category : #'PolySLAM-Core-temp'
+	#category : #'PolySLAM-Extra-GUI-Athens'
 }
 
 { #category : #'as yet unclassified' }

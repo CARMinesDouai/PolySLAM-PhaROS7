@@ -71,7 +71,7 @@ VMPolygonTest >> testFindClosest [
 		| result |
 		result := polygon findNearest: testPoint.
 		self assert: result object isNotNil.
-		self assert: result object equals: expectedPoint.
+		self assert: (result object dist: expectedPoint) < 0.0000001.
 	].
 ]
 
@@ -92,7 +92,7 @@ VMPolygonTest >> testFindClosestObstacle [
 		| result |
 		result := polygon findNearestObstacle: testPoint.
 		self assert: result object isNotNil.
-		self assert: result object equals: expectedPoint.
+		self assert: (result object dist: expectedPoint) < 0.0000001.
 		
 		renderCollection add: "a line, connecting the test point to the expected result. color: purple"
 			((VMLineSegment from: testPoint to: expectedPoint)

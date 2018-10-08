@@ -28,7 +28,7 @@ Class {
 		'maxY',
 		'cw'
 	],
-	#category : #'PolySLAM-Core-kernel'
+	#category : #'PolySLAM-Extra-Deprecated'
 }
 
 { #category : #'instance creation' }

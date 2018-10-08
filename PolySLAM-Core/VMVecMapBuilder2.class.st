@@ -55,7 +55,7 @@ Class {
 		'freeThreshold',
 		'dict'
 	],
-	#category : #'PolySLAM-Core-temp'
+	#category : #'PolySLAM-Core-SLAM - Maps'
 }
 
 { #category : #'adding and merging' }

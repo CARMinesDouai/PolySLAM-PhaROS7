@@ -1,3 +1,27 @@
+"
+The VMGraphBuilder creates a topological graph from a BSP tree.
+
+
+Public API and Key Messages
+- buildGraph: <VMBSPLeaf/Node>
+	primary public interface. takes a BSP tree as argument and returns the corresponding graph
+- buildHyperplaneDictionary
+	takes the content from 'storage' and places it in 'hyperplaneDict', using the hyperplane as the dictionary key
+- connectSectors
+	iterates over all entries of 'hyperplaneDict' and creates the actual graph with all the nodes and edges
+-findHyperplaneVector: <aVector> node: <VMBSPLeaf/Node>
+	returns the hyperplane of the node, if it is collinear with the vector. otherwise recursively does the same
+	with the parent node. returns nil if the recursive call fails due the parent being nil.
+- findMatches: <VMSectorVector>
+	returns a collection of all VMSectorVector instances that overlap with the provided VMSectorVector's vector and have the oposite direction. hence collecting all sectors that are reachable through this vector.
+-storeVector: <aVector> node: <VMBSPLeaf/Node>
+	creates a VMSectorVector instance for the vector and node, finds the correct hyperplane for it too, and adds the new instance to 'storage'
+-traverseTree: <VMBSPLeaf/Node>
+	recusively collects all sector-typed vectors and calls #storeVector:node: on them.
+
+
+
+"
 Class {
 	#name : #VMGraphBuilder,
 	#superclass : #Object,
@@ -5,7 +29,7 @@ Class {
 		'storage',
 		'hyperplaneDict'
 	],
-	#category : #'PolySLAM-Core-Collections, Trees & Graphs'
+	#category : #'PolySLAM-Core-Top. Graph'
 }
 
 { #category : #'helper methods' }
@@ -15,6 +39,10 @@ VMGraphBuilder >> buildGraph: aBspTree [
 	self traverseTree: aBspTree.
 	self buildHyperplaneDictionary.
 	graph := self connectSectors.
+	
+	"workaround to add missing edges"
+	graph checkEdges.
+	
 	^ graph
 
 ]
@@ -137,6 +165,7 @@ VMGraphBuilder >> storeVector: aVector node: aNode [
 VMGraphBuilder >> traverseTree: aNode [
 	aNode isLeaf
 		ifTrue: [
+			aNode sector ifNil: [ ^self ].
 			aNode sector do: [ :v | v isSector
 				ifTrue: [ self storeVector: v node: aNode]. ]
 		] ifFalse: [

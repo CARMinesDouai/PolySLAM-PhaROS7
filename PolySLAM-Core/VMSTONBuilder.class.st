@@ -1,5 +1,5 @@
 "
-This class is responsible for saving and loading class instances in the STON format. it provides default paths for convinience
+This class is responsible for saving and loading class instances in the STON format. it provides default paths for convinience. We now mostly use FUEL (FLSerializer & FLMaterializer) for faster save/load operations and smaller files. STON still has the advantage that it can be opened and modifie with a simple text editor though.
 "
 Class {
 	#name : #VMSTONBuilder,

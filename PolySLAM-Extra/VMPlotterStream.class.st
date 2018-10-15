@@ -54,7 +54,8 @@ VMPlotterStream >> lib [
 
 { #category : #accessing }
 VMPlotterStream >> master [
-	^ master
+	master ifNil: [ master := self lib master ].
+	^master
 ]
 
 { #category : #shell }
@@ -75,16 +76,12 @@ VMPlotterStream >> nextPut: data [
 	|buff |
 	buff := ExternalAddress fromString: data.
 	self lib write: self master buffer: buff  size: data size.
+	self lib fsync: self master
 ]
 
 { #category : #shell }
 VMPlotterStream >> nextPutAll: text [
-	|  subs|
-	subs := text substrings: Character lf asString.
-	subs do: [ :data|
-		Transcript show:data.
-		self nextPut: data, Character cr asString.
-	 ].
+	self nextPut: text
 ]
 
 { #category : #accessing }
@@ -96,7 +93,7 @@ VMPlotterStream >> pid [
 VMPlotterStream >> shellCommand:cmd [
 	| status  fname fileaction xargv env|
 	"spawn a subprocess"
-	master := self lib master.
+	master := self master.
 	status := FFIUInt32  newBuffer.
 	xargv := (self lib stringArrayOf: cmd) getHandle.
 	env := (self lib stringArrayOf: self environ ) getHandle.
@@ -124,5 +121,7 @@ VMPlotterStream >> waitForExit [
 	|status|
 	self pid ifNil: [ ^self ].
 	status := FFIUInt32  newBuffer.
-	"^self lib waitpid: self pid status: status  noHang: 0."
+	self nextPutAll: 'exit'; crlf.
+	"self lib kill: self pid signal: self lib class SIGKILL." 
+	^self lib waitpid: self pid status: status  noHang: 0.
 ]

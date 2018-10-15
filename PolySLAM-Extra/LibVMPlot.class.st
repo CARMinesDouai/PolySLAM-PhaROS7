@@ -96,6 +96,11 @@ LibVMPlot >> fnctl: fd action: action flag: flag [
  	^ self ffiCall: #(int fcntl(int fd, int action, int flag)) module: LibC 
 ]
 
+{ #category : #lib }
+LibVMPlot >> fsync: fd [
+	^ self ffiCall: #(int fsync(int fd)) module: LibC 
+]
+
 { #category : #writing }
 LibVMPlot >> getReadWriteBufferOf: size [
 	^(FFIExternalArray externalNewType: 'char' size: size) getHandle
@@ -114,7 +119,7 @@ LibVMPlot >> kill: pid signal: sig [
 { #category : #accessing }
 LibVMPlot >> master [
 	|fd st|
-	fd := self openpt: (self class O_RDWR bitOr: self class O_NONBLOCK).
+	fd := self openpt: (self class O_RDWR).
 	fd < 0 ifTrue:[^self error:'Error on on posix_openpt()'].
 	st := self grantpt: fd.
 	st ~= 0 ifTrue: [ self closept: fd. ^ self error: 'Error on grantpt()' ].

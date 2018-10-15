@@ -141,12 +141,9 @@ VMPlotter >> initialize [
 	
 	plotInitStream
 		nextPutAll: 'set encoding utf8';
-		nextPutAll: crlf;
-		nextPutAll: 'set lable size 14';
 		nextPutAll: crlf.
-	
-
-
+		"nextPutAll: 'set lable size 14';
+		nextPutAll: crlf."
 ]
 
 { #category : #accessing }

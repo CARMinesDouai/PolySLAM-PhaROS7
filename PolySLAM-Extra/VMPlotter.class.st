@@ -350,7 +350,7 @@ VMPlotter >> plotFilledPolygon: polygon extra: extraString [
 
 { #category : #'plotting - execution' }
 VMPlotter >> plotFinish: process [
-	process stdinStream close.
+"	process stdinStream close."
 	process waitForExit.
 	process closeAndCleanStreams.
 
@@ -493,13 +493,10 @@ VMPlotter >> plotHeadlessArrowCollection: aCollection [
 { #category : #'plotting - execution' }
 VMPlotter >> plotInit [
 	| cmd process |
-	cmd := 'gnuplot -p'.
+	cmd := {'/usr/bin/gnuplot'. '-p'}.
 	
-	process := OSSUnixSubprocess new
-		shellCommand: cmd;
-		redirectStdin;
-		redirectStdout;
-		run.
+	process := VMPlotterStream  new
+		shellCommand: cmd.
 	
 "	process stdinStream
 		nextPutAll: plotInitStream contents.

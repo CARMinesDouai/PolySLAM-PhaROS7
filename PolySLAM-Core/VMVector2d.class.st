@@ -1,6 +1,6 @@
 Class {
 	#name : #VMVector2d,
-	#superclass : #DhbVector,
+	#superclass : #PMDhbVector,
 	#type : #variable,
 	#category : #'PolySLAM-Core-LinAlgebra'
 }

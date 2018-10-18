@@ -17,7 +17,7 @@ class-side methods:
 "
 Class {
 	#name : #VMTFMatrix,
-	#superclass : #DhbMatrix,
+	#superclass : #PMDhbMatrix,
 	#category : #'PolySLAM-Core-LinAlgebra'
 }
 

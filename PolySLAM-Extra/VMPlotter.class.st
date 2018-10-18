@@ -347,9 +347,10 @@ VMPlotter >> plotFilledPolygon: polygon extra: extraString [
 
 { #category : #'plotting - execution' }
 VMPlotter >> plotFinish: process [
+	process stdinStream nextPutAll: 'exit', crlf.
 "	process stdinStream close."
-	process waitForExit.
-	process closeAndCleanStreams.
+	"process waitForExit.
+	process closeAndCleanStreams."
 
 ]
 
@@ -492,12 +493,11 @@ VMPlotter >> plotInit [
 	| cmd process |
 	cmd := {'/usr/bin/gnuplot'. '-p'}.
 	
-	process := VMPlotterStream  new
-		shellCommand: cmd.
+	process := SystemProcess  new.
+	process redirectStdin.
+	process onFinishDo: [ process cleanup  ].
+	process shellCommand: cmd.
 	
-"	process stdinStream
-		nextPutAll: plotInitStream contents.
-"	
 	^process
 ]
 

@@ -1,5 +1,5 @@
 Class {
-	#name : #PMDhbLUPDecomposition,
+	#name : #DhbLUPDecomposition,
 	#superclass : #Object,
 	#instVars : [
 		'rows',
@@ -10,20 +10,20 @@ Class {
 }
 
 { #category : #creation }
-PMDhbLUPDecomposition class >> direct: anArrayOfArrays [
+DhbLUPDecomposition class >> direct: anArrayOfArrays [
 	
 	^ self basicNew initialize: anArrayOfArrays.
 ]
 
 { #category : #creation }
-PMDhbLUPDecomposition class >> equations: anArrayOfArrays [
+DhbLUPDecomposition class >> equations: anArrayOfArrays [
 		"(c) Copyrights Didier BESSET, 1999, all rights reserved.
 		 Initial code: 30/3/99 "
 		^self new initialize: ( anArrayOfArrays collect: [ :each | each copy]).
 ]
 
 { #category : #private }
-PMDhbLUPDecomposition >> backwardSubstitution: anArray [
+DhbLUPDecomposition >> backwardSubstitution: anArray [
 	"Private"
 	| n sum answer |
 	n := rows size.
@@ -38,7 +38,7 @@ PMDhbLUPDecomposition >> backwardSubstitution: anArray [
 ]
 
 { #category : #private }
-PMDhbLUPDecomposition >> decompose [
+DhbLUPDecomposition >> decompose [
 	"Private"
 	| n |
 	n := rows size.
@@ -51,7 +51,7 @@ PMDhbLUPDecomposition >> decompose [
 ]
 
 { #category : #operations }
-PMDhbLUPDecomposition >> determinant [
+DhbLUPDecomposition >> determinant [
 	| n |
 	permutation isNil
 		ifTrue: [ self protectedDecomposition ].
@@ -63,7 +63,7 @@ PMDhbLUPDecomposition >> determinant [
 ]
 
 { #category : #private }
-PMDhbLUPDecomposition >> forwardSubstitution: anArray [
+DhbLUPDecomposition >> forwardSubstitution: anArray [
 	"Private"
 	| n sum answer|
 	answer := permutation collect: [ :each | anArray at: each].
@@ -78,14 +78,14 @@ PMDhbLUPDecomposition >> forwardSubstitution: anArray [
 ]
 
 { #category : #initialization }
-PMDhbLUPDecomposition >> initialize: anArrayOfArrays [
+DhbLUPDecomposition >> initialize: anArrayOfArrays [
 	rows := anArrayOfArrays.
 	parity := 1.
 	^ self
 ]
 
 { #category : #operations }
-PMDhbLUPDecomposition >> inverseMatrixComponents [
+DhbLUPDecomposition >> inverseMatrixComponents [
 	| n inverseRows column |
 	permutation isNil
 		ifTrue: [ self protectedDecomposition].
@@ -103,7 +103,7 @@ PMDhbLUPDecomposition >> inverseMatrixComponents [
 ]
 
 { #category : #operations }
-PMDhbLUPDecomposition >> largestPivotFrom: anInteger [
+DhbLUPDecomposition >> largestPivotFrom: anInteger [
 	"Private - Answers the largest pivot element in column anInteger, from position anInteger upward."
 	| valueOfMaximum indexOfMaximum value |
 	valueOfMaximum := ((rows at: anInteger) at: anInteger) abs.
@@ -119,7 +119,7 @@ PMDhbLUPDecomposition >> largestPivotFrom: anInteger [
 ]
 
 { #category : #private }
-PMDhbLUPDecomposition >> pivotAt: anInteger [
+DhbLUPDecomposition >> pivotAt: anInteger [
 	"Private"
 	| inversePivot size k |
 	inversePivot := 1 / ((rows at: anInteger) at: anInteger).
@@ -136,7 +136,7 @@ PMDhbLUPDecomposition >> pivotAt: anInteger [
 ]
 
 { #category : #printing }
-PMDhbLUPDecomposition >> printOn: aStream [
+DhbLUPDecomposition >> printOn: aStream [
 	
 	| delimitingString |
 	rows do:
@@ -153,13 +153,13 @@ PMDhbLUPDecomposition >> printOn: aStream [
 ]
 
 { #category : #private }
-PMDhbLUPDecomposition >> protectedDecomposition [
+DhbLUPDecomposition >> protectedDecomposition [
 	"Private - If decomposition fails, set permutation to 0."
 	[ self decompose] on: Error do: [ :signal | permutation := 0. signal return: nil].
 ]
 
 { #category : #private }
-PMDhbLUPDecomposition >> solve: anArrayOrVector [
+DhbLUPDecomposition >> solve: anArrayOrVector [
 	permutation isNil
 		ifTrue: [ self protectedDecomposition ].
 	^ permutation = 0
@@ -169,7 +169,7 @@ PMDhbLUPDecomposition >> solve: anArrayOrVector [
 ]
 
 { #category : #private }
-PMDhbLUPDecomposition >> swapRow: anInteger1 withRow: anInteger2 [
+DhbLUPDecomposition >> swapRow: anInteger1 withRow: anInteger2 [
 	"Private - Swap the rows indexed by the given integers."
 	| swappedRow |
 	anInteger1 = anInteger2 ifTrue: [ ^ self ].

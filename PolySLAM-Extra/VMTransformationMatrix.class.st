@@ -1,6 +1,6 @@
 Class {
 	#name : #VMTransformationMatrix,
-	#superclass : #PMDhbMatrix,
+	#superclass : #DhbMatrix,
 	#category : #'PolySLAM-Extra-Simulator'
 }
 

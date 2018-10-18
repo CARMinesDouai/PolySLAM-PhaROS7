@@ -1,18 +1,18 @@
 Class {
-	#name : #PMDhbVector,
+	#name : #DhbVector,
 	#superclass : #Array,
 	#type : #variable,
 	#category : #'PolySLAM-Core-LinAlgebra'
 }
 
 { #category : #operation }
-PMDhbVector >> * aNumberOrMatrixOrVector [
+DhbVector >> * aNumberOrMatrixOrVector [
 		"Answers the product of the receiver with the argument. The argument can be a number, matrix or vector. "
 	^ aNumberOrMatrixOrVector productWithVector: self
 ]
 
 { #category : #operation }
-PMDhbVector >> + aVector [
+DhbVector >> + aVector [
 	"Answers the sum of the receiver with aVector."
 	| answer n |
 	answer := self class new: self size.
@@ -26,7 +26,7 @@ PMDhbVector >> + aVector [
 ]
 
 { #category : #operation }
-PMDhbVector >> - aVector [
+DhbVector >> - aVector [
 	"Answers the difference of the receiver with aVector."
 	| answer n |
 	answer := self class new: self size.
@@ -40,29 +40,29 @@ PMDhbVector >> - aVector [
 ]
 
 { #category : #transformation }
-PMDhbVector >> accumulate: aVectorOrAnArray [
+DhbVector >> accumulate: aVectorOrAnArray [
 	"Modify the receiver adding the contents of the argument to the receiver."
 	1 to: self size do: [ :n | self at: n put: ((self at: n) + (aVectorOrAnArray at: n))].
 ]
 
 { #category : #transformation }
-PMDhbVector >> accumulateNegated: aVectorOrAnArray [
+DhbVector >> accumulateNegated: aVectorOrAnArray [
 	"Modify the receiver adding the negated contents of the argument to the receiver."
 	1 to: self size do: [ :n | self at: n put: ((self at: n) - (aVectorOrAnArray at: n))].
 ]
 
 { #category : #complex }
-PMDhbVector >> adaptToComplex: rcvr andSend: selector [
+DhbVector >> adaptToComplex: rcvr andSend: selector [
 	^ self collect: [:ea | rcvr perform: selector  with: ea].
 ]
 
 { #category : #quad }
-PMDhbVector >> adaptToQuaternion: aQuaternion andSend: aByteSymbol [ 
+DhbVector >> adaptToQuaternion: aQuaternion andSend: aByteSymbol [ 
 	^ self collect: [:ea | aQuaternion perform: aByteSymbol  with: ea].
 ]
 
 { #category : #'as yet unclassified' }
-PMDhbVector >> asArray [
+DhbVector >> asArray [
 	
 	| array i|
 	array := Array new: self size.
@@ -72,18 +72,18 @@ PMDhbVector >> asArray [
 ]
 
 { #category : #creation }
-PMDhbVector >> asDhbVector [
+DhbVector >> asDhbVector [
 	"Answer self since the receiver is a vector."
 	^ self
 ]
 
 { #category : #'as yet unclassified' }
-PMDhbVector >> asPoint [
+DhbVector >> asPoint [
 	^Point x: (self at: 1) y: (self at: 2).
 ]
 
 { #category : #dhb }
-PMDhbVector >> householder [
+DhbVector >> householder [
 	"returns a collection of the skalar beta and the housholder vector"
 	|s v b u x |
 	s :=self allButFirst.
@@ -103,35 +103,35 @@ PMDhbVector >> householder [
 ]
 
 { #category : #transformation }
-PMDhbVector >> negate [
+DhbVector >> negate [
 	"Inverse the sign of all components of the receiver."
 	1 to: self size do: [ :n | self at: n put: (self at: n) negated].
 ]
 
 { #category : #operation }
-PMDhbVector >> negated [
+DhbVector >> negated [
 	^ self * -1
 ]
 
 { #category : #operation }
-PMDhbVector >> norm [
+DhbVector >> norm [
 	"Answer the norm of the receiver."
 	^(self * self) sqrt
 ]
 
 { #category : #creation }
-PMDhbVector >> normalized [
+DhbVector >> normalized [
 	^ (1 / self norm) * self
 ]
 
 { #category : #operation }
-PMDhbVector >> productWithMatrix: aMatrix [
+DhbVector >> productWithMatrix: aMatrix [
 	"Answers the product of aMatrix with the receiver."
 	^aMatrix rowsCollect: [ :each | each * self]
 ]
 
 { #category : #operation }
-PMDhbVector >> productWithVector: aVector [
+DhbVector >> productWithVector: aVector [
 	"Answers the scalar product of aVector with the receiver."
 	| n |
 	n := 0.
@@ -140,7 +140,7 @@ PMDhbVector >> productWithVector: aVector [
 ]
 
 { #category : #operation }
-PMDhbVector >> scalarProduct: aVector [
+DhbVector >> scalarProduct: aVector [
 	
 	| product n |
 	n := 0.
@@ -161,13 +161,13 @@ PMDhbVector >> scalarProduct: aVector [
 ]
 
 { #category : #transformation }
-PMDhbVector >> scaleBy: aNumber [
+DhbVector >> scaleBy: aNumber [
 	"Modify the receiver elements by a multiplicating factor."
 	1 to: self size do: [ :n | self at: n put: ((self at: n) * aNumber)].
 ]
 
 { #category : #operation }
-PMDhbVector >> tensorProduct: aVector [
+DhbVector >> tensorProduct: aVector [
 	"Answers the tensor product of the receiver with aVector."
 	^self == aVector "dont use #="
 			ifTrue: [DhbSymmetricMatrix new: self size function:[:x :y|x*y]] 

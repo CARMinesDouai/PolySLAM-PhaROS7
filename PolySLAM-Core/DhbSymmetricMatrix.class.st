@@ -1,17 +1,17 @@
 Class {
-	#name : #PMDhbSymmetricMatrix,
-	#superclass : #PMDhbMatrix,
+	#name : #DhbSymmetricMatrix,
+	#superclass : #DhbMatrix,
 	#category : #'PolySLAM-Core-LinAlgebra'
 }
 
 { #category : #'instance creation' }
-PMDhbSymmetricMatrix class >> identity: anInteger [
+DhbSymmetricMatrix class >> identity: anInteger [
 		"Create an identity matrix of dimension anInteger"
 	^self new initializeIdentity: anInteger
 ]
 
 { #category : #'instance creation' }
-PMDhbSymmetricMatrix class >> join: anArrayOfMatrices [
+DhbSymmetricMatrix class >> join: anArrayOfMatrices [
 		"Inverse of the split operation"
 	| rows n |
 	rows := OrderedCollection new.
@@ -31,12 +31,12 @@ PMDhbSymmetricMatrix class >> join: anArrayOfMatrices [
 ]
 
 { #category : #information }
-PMDhbSymmetricMatrix class >> lupCRLCriticalDimension [
+DhbSymmetricMatrix class >> lupCRLCriticalDimension [
 	^36
 ]
 
 { #category : #'instance creation' }
-PMDhbSymmetricMatrix class >> new: dim function: aBlock [
+DhbSymmetricMatrix class >> new: dim function: aBlock [
 "Answer a new symmetric matrix with dimensions dim filled with 
 aBlock value: RowposRespectivelyColpos value: ColposRespectivelyRowpos"
 	|a aRow|
@@ -53,19 +53,19 @@ aBlock value: RowposRespectivelyColpos value: ColposRespectivelyRowpos"
 ]
 
 { #category : #operation }
-PMDhbSymmetricMatrix >> + aMatrix [
+DhbSymmetricMatrix >> + aMatrix [
 	"Answers the sum of the receiver with aMatrix."
 	^ aMatrix addWithSymmetricMatrix: self
 ]
 
 { #category : #operation }
-PMDhbSymmetricMatrix >> - aMatrix [
+DhbSymmetricMatrix >> - aMatrix [
 	"Answers the difference between the receiver and aMatrix"
 	^ aMatrix subtractWithSymmetricMatrix: self
 ]
 
 { #category : #'double dispatching' }
-PMDhbSymmetricMatrix >> addWithSymmetricMatrix: aMatrix [
+DhbSymmetricMatrix >> addWithSymmetricMatrix: aMatrix [
 	^self class 
 		new: aMatrix numberOfRows 
 		function: [ :x :y|((rows at:x)at:y)+((aMatrix rows at:x)at:y) ]
@@ -73,50 +73,50 @@ PMDhbSymmetricMatrix >> addWithSymmetricMatrix: aMatrix [
 ]
 
 { #category : #transformation }
-PMDhbSymmetricMatrix >> asSymmetricMatrix [
+DhbSymmetricMatrix >> asSymmetricMatrix [
 "simple speed up"
 ^self
 ]
 
 { #category : #information }
-PMDhbSymmetricMatrix >> atColumn: aColumnIndex put: aCollection [
+DhbSymmetricMatrix >> atColumn: aColumnIndex put: aCollection [
 	self shouldNotImplement 
 ]
 
 { #category : #information }
-PMDhbSymmetricMatrix >> atRow: aRowIndex put: aCollection [
+DhbSymmetricMatrix >> atRow: aRowIndex put: aCollection [
 	self shouldNotImplement 
 ]
 
 { #category : #initialization }
-PMDhbSymmetricMatrix >> basicInitialize: anInteger [
+DhbSymmetricMatrix >> basicInitialize: anInteger [
 	"private"
 	rows := DhbVector new: anInteger.
 ]
 
 { #category : #initialization }
-PMDhbSymmetricMatrix >> clear [
+DhbSymmetricMatrix >> clear [
 	
 	rows do: [ :each | each atAllPut: 0].
 ]
 
 { #category : #information }
-PMDhbSymmetricMatrix >> columnAt: anInteger [
+DhbSymmetricMatrix >> columnAt: anInteger [
 	^ rows at: anInteger   
 ]
 
 { #category : #iterators }
-PMDhbSymmetricMatrix >> columnsCollect: aBlock [
+DhbSymmetricMatrix >> columnsCollect: aBlock [
 	^ rows collect: aBlock 
 ]
 
 { #category : #iterators }
-PMDhbSymmetricMatrix >> columnsDo: aBlock [
+DhbSymmetricMatrix >> columnsDo: aBlock [
 	^ rows do: aBlock 
 ]
 
 { #category : #operation }
-PMDhbSymmetricMatrix >> crlInverse [
+DhbSymmetricMatrix >> crlInverse [
 	"corrected sequence of calcs; s1in matrices at:2 has to be calced first (split returns matrices in this order: b, d, c).
 and taken care of degenerate cases (which is unnecessary, if this method is not called outside of inverse)"
 	| matrices b1 cb1ct cb1 |
@@ -136,13 +136,13 @@ and taken care of degenerate cases (which is unnecessary, if this method is not 
 ]
 
 { #category : #initialization }
-PMDhbSymmetricMatrix >> initializeIdentity: anInteger [
+DhbSymmetricMatrix >> initializeIdentity: anInteger [
 	"Build components for an identity matrix."
 	rows := ( 1 to: anInteger) asDhbVector collect: [ :n | (DhbVector new: anInteger) atAllPut: 0; at: n put: 1; yourself].
 ]
 
 { #category : #operation }
-PMDhbSymmetricMatrix >> inverse [
+DhbSymmetricMatrix >> inverse [
 	"Answer the inverse of the receiver"
 
 	^(rows size < self class lupCRLCriticalDimension or: [lupDecomposition notNil]) 
@@ -151,13 +151,13 @@ PMDhbSymmetricMatrix >> inverse [
 ]
 
 { #category : #operation }
-PMDhbSymmetricMatrix >> inverse1By1 [
+DhbSymmetricMatrix >> inverse1By1 [
 	"Private - Answer the inverse of the receiver when it is a 1x1 matrix (no check is made)."
 	^ self class rows: ( DhbVector with: ( DhbVector with: ( 1/ ((rows at: 1) at: 1))))
 ]
 
 { #category : #operation }
-PMDhbSymmetricMatrix >> inverse2By2 [
+DhbSymmetricMatrix >> inverse2By2 [
 	"Private - Answer the inverse of the receiver when it is a 2x2 matrix (no check is made)."
 	| line1 line2 |
 	line1 := DhbVector with: ((rows at: 2) at: 2) with: ((rows at: 1) at: 2) negated.
@@ -166,11 +166,11 @@ PMDhbSymmetricMatrix >> inverse2By2 [
 ]
 
 { #category : #operation }
-PMDhbSymmetricMatrix >> inversePureCRL [
+DhbSymmetricMatrix >> inversePureCRL [
 	"Answer the inverse of the receiver."
 	| matrices b1 cb1 cb1ct |
 	[rows size = 1
-		ifTrue: [ ^self inverse1By1]]on: ZeroDivide do: [:e| SingularMatrixError new signal].
+		ifTrue: [ ^self inverse1By1]]on: ZeroDivide do: [:e| e signal "SingularMatrixError new signal"].
 	rows size = 2
 		ifTrue: [ ^ self inverse2By2].
 	matrices := self split.
@@ -185,40 +185,40 @@ PMDhbSymmetricMatrix >> inversePureCRL [
 ]
 
 { #category : #operation }
-PMDhbSymmetricMatrix >> inversePureLUP [
+DhbSymmetricMatrix >> inversePureLUP [
 	"Answer the inverse of the receiver."
 	lupDecomposition := nil.
 	self lupDecomposition inverseMatrixComponents 
-		ifNil: [ SingularMatrixError new signal ] 
+		ifNil: [ self error: 'singular matrix error'"SingularMatrixError new signal" ] 
 		ifNotNilDo: [ :i| ^self class rows: i ].
 
 ]
 
 { #category : #testing }
-PMDhbSymmetricMatrix >> isSquare [
+DhbSymmetricMatrix >> isSquare [
 	"Answers true because a symmetric matrix is square."
 	^true
 ]
 
 { #category : #testing }
-PMDhbSymmetricMatrix >> isSymmetric [
+DhbSymmetricMatrix >> isSymmetric [
 		"Answers true because the receiver is a symmetric matrix"
 	^true
 ]
 
 { #category : #information }
-PMDhbSymmetricMatrix >> numberOfColumns [
+DhbSymmetricMatrix >> numberOfColumns [
 	"Answer the number of columns of the receiver."
 	^rows size
 ]
 
 { #category : #'private ' }
-PMDhbSymmetricMatrix >> privateTranspose [ 
+DhbSymmetricMatrix >> privateTranspose [ 
 	^ self 
 ]
 
 { #category : #transformation }
-PMDhbSymmetricMatrix >> split [
+DhbSymmetricMatrix >> split [
 	"Private - 
 	Answers an array of 3 matrices split from the receiver"
 
@@ -234,14 +234,14 @@ PMDhbSymmetricMatrix >> split [
 ]
 
 { #category : #'double dispatching' }
-PMDhbSymmetricMatrix >> subtractWithSymmetricMatrix: aMatrix [
+DhbSymmetricMatrix >> subtractWithSymmetricMatrix: aMatrix [
 	^ self class 
 		new: aMatrix numberOfRows 
 		function: [ :x :y|((aMatrix rows at:x)at:y)-(( rows at:x)at:y) ]
 ]
 
 { #category : #information }
-PMDhbSymmetricMatrix >> transpose [
+DhbSymmetricMatrix >> transpose [
 	"Answer a new matrix, transpose of the receiver. optimized"
 	^self deepCopy
 ]

@@ -7,7 +7,7 @@ Collection >> asDhbVector [
 	Initial code: 11/2/99"
 
 	| aVector index |
-	aVector := PMDhbVector new: self size.
+	aVector := DhbVector new: self size.
 	index := 0.
 	self do: [ :each | aVector at: (index := index + 1) put: each ].
 	^ aVector

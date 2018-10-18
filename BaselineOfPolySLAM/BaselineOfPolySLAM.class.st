@@ -16,12 +16,12 @@ BaselineOfPolySLAM >> baseline: spec [
 						className: #ConfigurationOfSciSmalltalk;
 						versionString: #stable;
 						repository: 'http://smalltalkhub.com/mc/Pharo/MetaRepoForPharo50/main/' ]."
-			spec
+			"spec
 				project: 'PhaROS'
 				with: [ spec
 						className: #ConfigurationOfPhaROS;
 						versionString: #stable;
-						repository: 'http://smalltalkhub.com/mc/CAR/PhaROS/main' ].
+						repository: 'http://smalltalkhub.com/mc/CAR/PhaROS/main' ]."
 			spec
 				baseline: 'SystemProcess'
 				with: [ spec repository: 'github://lxsang/SystemProcess' ].
@@ -36,8 +36,8 @@ BaselineOfPolySLAM >> baseline: spec [
 				group: 'extra' with: #('PolySLAM-Core' 'PolySLAM-Extra');
 				group: 'test' with: #('PolySLAM-Core' 'PolySLAM-Tests');
 				group: 'full' with: #('PolySLAM-Core' 'PolySLAM-Extra' 'PolySLAM-Tests');
-				group: 'pharos' with: #('core' 'PhaROS');
-				group: 'pharosfull' with: #('pharos' 'PolySLAM-PhaROS-Examples');
+				"group: 'pharos' with: #('core' 'PhaROS');
+				group: 'pharosfull' with: #('pharos' 'PolySLAM-PhaROS-Examples');"
 				group: 'default' with: #('full') ]
 ]
 

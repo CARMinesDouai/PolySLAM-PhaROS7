@@ -221,6 +221,14 @@ PMDhbMatrix >> dimension [
 	^ self rows size @ (self rows at: 1) size
 ]
 
+{ #category : #dbh }
+PMDhbMatrix >> equalsTo: aMatrix [
+	self rows 
+			with: aMatrix rows  
+			do: [:a :b| (a equalsTo: b) ifFalse: [ ^false ] ].
+	^ true 
+]
+
 { #category : #comparing }
 PMDhbMatrix >> hash [
 	^ rows hash
@@ -251,6 +259,15 @@ PMDhbMatrix >> inverse [
 	^ self isSquare 
 		ifTrue: [ self lupInverse ]
 		ifFalse: [ self squared inverse * self transpose ]
+]
+
+{ #category : #dbh }
+PMDhbMatrix >> inversePivotColumns: anArray [
+	"uses vector encoding of an interchange permutation matrix  in anArray as in qrFactorizationWithPivoting. Does inverse pivoting!"
+	| res |
+	res :=self deepCopy.
+	anArray reverseWith: (1 to: anArray size ) do:  [ :piv :ind | piv ~= ind ifTrue: [res swapColumn: piv withColumn: ind ] ].
+	^ res
 ]
 
 { #category : #operation }
@@ -296,6 +313,20 @@ PMDhbMatrix >> lupInverse [
 
 ]
 
+{ #category : #dbh }
+PMDhbMatrix >> mpInverse [
+	"Moore Penrose Inverse. "
+	|f g|
+	self numberOfRows < self numberOfColumns 
+		ifTrue:[	f := self transpose qrFactorizationWithPivoting. 
+					g := f first.
+					f := f second inversePivotColumns: (f at:3) ]
+		ifFalse: [ f := self qrFactorizationWithPivoting. 
+					g := (f second  inversePivotColumns: (f at:3)) transpose.
+					f := f first transpose ]. 
+	^ g * ((f *self *g) inverse) *f
+]
+
 { #category : #transformation }
 PMDhbMatrix >> negate [
 	"Inverse the sign of all components of the receiver."
@@ -312,6 +343,13 @@ PMDhbMatrix >> numberOfColumns [
 PMDhbMatrix >> numberOfRows [
 	"Answer the number of rows of the receiver."
 	^ rows size
+]
+
+{ #category : #dbh }
+PMDhbMatrix >> orthogonalize [
+	"returns an orthonormal basis of column (!) vectors for a matrix of column vectors"
+	^ self qrFactorizationWithPivoting first
+
 ]
 
 { #category : #printing }
@@ -356,6 +394,100 @@ PMDhbMatrix >> productWithTransposeMatrix: aMatrix [
 PMDhbMatrix >> productWithVector: aVector [
 	"Answers the product of the receiver with aVector"
 	^ self columnsCollect: [ :each | each * aVector ]
+]
+
+{ #category : #dbh }
+PMDhbMatrix >> qrFactorization [
+	|identMat q r hh colSize i|
+	self numberOfRows < self numberOfColumns ifTrue:[ self error: 'numberOfRows<numberOfColumns' ]. 
+	r :=DhbMatrix rows: (rows deepCopy).
+	colSize := self numberOfRows.
+	q := DhbSymmetricMatrix identity: colSize.  
+	identMat := q deepCopy.
+	1 to: self numberOfColumns do: [:col| 
+		hh := ((r columnAt: col) copyFrom: col to: colSize) householder.
+		i := (DhbVector new: col-1withAll: 0) , (hh at:2 ).
+		q := q* (identMat - ((hh at: 1)*i tensorProduct: i ))."not really necessary, should be simplified"
+		i := DhbMatrix rows:  ( (r rows allButFirst: (col -1)) collect: [:aRow| aRow allButFirst: (col -1)]  ).
+		i := i - ((hh at: 2) tensorProduct: ( (hh at: 1)*(hh at: 2)*i  ) ) .
+		i rows withIndexDo: [ :aRow :index |
+			aRow  withIndexDo: [ :n :c| r rowAt: (col + index -1) columnAt: (col +c -1) put: ((n equalsTo: 0) ifTrue: [0] ifFalse:  [n]  )  ]  ] .
+	"col <colSize ifTrue: [i :=(hh at: 2) copyFrom: 2 to: colSize -col +1.  i withIndexDo: [:n :index| r rowAt: col columnAt: index put: n  ]  ]""and this part is not correct, dont uncomment before the bug is corrected! useful if q is not explicitely necessary" ].
+"r rows allButFirst withIndexDo: [:aRow :ri|1 to: (ri min: self numberOfColumns ) do: [:ci|aRow at: ci put:0  ]   ]  ""not necessary with equalsTo:0"  
+	i :=0.
+	[(r rowAt: colSize) allSatisfy: [:n| n=0]  ]whileTrue: [i :=i+1.colSize :=colSize -1].
+	i>0 ifTrue: [ r :=DhbMatrix rows: (r rows copyFrom: 1 to:  colSize). 
+					i := q numberOfColumns - i. 
+					q := DhbMatrix rows:  ( q rows collect: [:row| row copyFrom: 1 to: i]) ].  
+	^{q. r}
+]
+
+{ #category : #dbh }
+PMDhbMatrix >> qrFactorizationWithPivoting [
+	| identMat q r hh colSize i lengthArray rank mx pivot |
+	self numberOfRows < self numberOfColumns
+		ifTrue: [ self error: 'numberOfRows<numberOfColumns' ].
+	lengthArray := self columnsCollect: [ :col | col * col ].
+	mx := lengthArray indexOf: lengthArray max.
+	pivot := Array new: lengthArray size.
+	rank := 0.
+	r := DhbMatrix rows: rows deepCopy.
+	colSize := self numberOfRows.
+	q := DhbSymmetricMatrix identity: colSize.
+	identMat := q deepCopy.
+	[ 
+	rank := rank + 1.
+	pivot at: rank put: mx.
+	r swapColumn: rank withColumn: mx.
+	lengthArray swap: rank with: mx.
+	hh := ((r columnAt: rank) copyFrom: rank to: colSize) householder.
+	i := (DhbVector new: rank - 1 withAll: 0) , (hh at: 2).
+	q := q * (identMat - ((hh at: 1) * i tensorProduct: i)).
+	i := DhbMatrix rows: ((r rows allButFirst: rank - 1) collect: [ :aRow | aRow allButFirst: rank - 1 ]).
+	i := i - ((hh at: 2) tensorProduct: (hh at: 1) * (hh at: 2) * i).
+	i rows
+		withIndexDo: [ :aRow :index | 
+			aRow
+				withIndexDo: [ :n :c | 
+					r
+						rowAt: rank + index - 1
+						columnAt: rank + c - 1
+						put:
+							((n equalsTo: 0)
+								ifTrue: [ 0 ]
+								ifFalse: [ n ]) ] ].
+	rank + 1 to: lengthArray size do: [ :ind | lengthArray at: ind put: (lengthArray at: ind) - (r rowAt: rank columnAt: ind) squared ].
+	rank < lengthArray size
+		ifTrue: [ 
+			mx := (lengthArray copyFrom: rank + 1 to: lengthArray size) max.
+			(mx equalsTo: 0)
+				ifTrue: [ mx := 0 ].
+			mx := mx > 0
+				ifTrue: [ lengthArray indexOf: mx startingAt: rank + 1 ]
+				ifFalse: [ 0 ] ]
+		ifFalse: [ mx := 0 ].
+	mx > 0 ] whileTrue.
+	i := 0.
+	[ (r rowAt: colSize) allSatisfy: [ :n | n = 0 ] ]
+		whileTrue: [ 
+			i := i + 1.
+			colSize := colSize - 1 ].
+	i > 0
+		ifTrue: [ 
+			r := DhbMatrix rows: (r rows copyFrom: 1 to: colSize).
+			i := q numberOfColumns - i.
+			pivot := pivot copyFrom: 1 to: i.
+			q := DhbMatrix rows: (q rows collect: [ :row | row copyFrom: 1 to: i ]) ].
+	^ {q.
+	r.
+	pivot}
+]
+
+{ #category : #dbh }
+PMDhbMatrix >> rank [ 
+	^	((self numberOfRows < self numberOfColumns 
+			ifTrue: [ self transpose ] 
+			ifFalse: [ self ])  qrFactorizationWithPivoting at: 2) rows size 
 ]
 
 { #category : #'cell accessing' }
@@ -464,6 +596,12 @@ PMDhbMatrix >> subtractWithRegularMatrix: aMatrix [
 PMDhbMatrix >> subtractWithSymmetricMatrix: aMatrix [
 	"Answers the difference between aMatrix and the receiver."
 	^ self subtractWithRegularMatrix: aMatrix 
+]
+
+{ #category : #dbh }
+PMDhbMatrix >> swapColumn: anIndex withColumn:   a2Index [
+	self rowsDo: [ :r| r swap: anIndex with: a2Index ]  
+
 ]
 
 { #category : #operation }

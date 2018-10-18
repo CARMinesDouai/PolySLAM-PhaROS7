@@ -226,13 +226,10 @@ PMDhbMatrix >> hash [
 	^ rows hash
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #iterators }
 PMDhbMatrix >> indicesDo: aBlock [
-	1 to: (rows size) do: [ :rowIndex |
-		1 to: ((rows at: rowIndex) size) do: [ :columnIndex |
-			aBlock value: rowIndex value: columnIndex.
-		].
-	].
+	1 to: rows size do:
+		[ :rowIndex | 1 to: (rows at: rowIndex) size do: [ :columnIndex | aBlock value: rowIndex value: columnIndex ] ]
 ]
 
 { #category : #initialization }

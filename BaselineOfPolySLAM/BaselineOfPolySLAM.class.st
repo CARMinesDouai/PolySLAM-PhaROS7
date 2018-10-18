@@ -22,13 +22,15 @@ BaselineOfPolySLAM >> baseline: spec [
 				versionString: #'stable';
 				repository: 'http://smalltalkhub.com/mc/CAR/PhaROS/main'
 		].
-
+		spec
+			baseline: 'SystemProcess' 
+			with: [ spec repository: 'github://lxsang/SystemProcess' ].
 		
 		spec
 			package: 'PolySLAM-FixDep';
 			package: 'PolySLAM-Core' with: [ spec requires: #('PolySLAM-FixDep' 'SciSmalltalk') ];
 			package: 'PolySLAM-Tests';
-			package: 'PolySLAM-Extra';
+			package: 'PolySLAM-Extra' with: [spec requires: #( 'SystemProcess' )];
 			package: 'PolySLAM-PhaROS-Examples';
 			"groups"
 			group: 'core'  with: #('PolySLAM-Core');

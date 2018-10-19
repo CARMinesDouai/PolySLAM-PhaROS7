@@ -6,6 +6,11 @@ Number >> asDhbVector [
 ]
 
 { #category : #'*PolySLAM-Core' }
+Number >> asPMVector [
+	^{ self }
+]
+
+{ #category : #'*PolySLAM-Core' }
 Number >> asTimeString [
 	"interpretes self as seconds and prints a human-readable string"
 	| days hours minutes seconds stringStream |

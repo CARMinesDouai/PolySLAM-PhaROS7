@@ -27,6 +27,14 @@ Point >> asDhbVector [
 ]
 
 { #category : #'*PolySLAM-Core' }
+Point >> asPMVector [
+	^(PMVector new: 2)
+		at: 1 put: x;
+		at: 2 put: y;
+		yourself.
+]
+
+{ #category : #'*PolySLAM-Core' }
 Point >> asRenderableElement [
 	^VMPointRenderer model: self
 ]

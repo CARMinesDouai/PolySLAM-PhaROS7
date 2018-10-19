@@ -9,7 +9,7 @@ BaselineOfPolySLAM >> baseline: spec [
 	<baseline>
 	spec
 		for: #common
-		do: [ spec preLoadDoIt: #preload.
+		do: [
 			spec baseline: 'PolyMath' with: [ spec repository: 'github://PolyMathOrg/PolyMath:master/src' ].
 			spec
 				project: 'PhaROS'
@@ -32,12 +32,4 @@ BaselineOfPolySLAM >> baseline: spec [
 				group: 'pharos' with: #('core' 'PhaROS');
 				group: 'pharosfull' with: #('pharos' 'PolySLAM-PhaROS-Examples');
 				group: 'default' with: #('full') ]
-]
-
-{ #category : #preload }
-BaselineOfPolySLAM >> preload [
-
-	(Object lookupSelector: #ifNotNilDo:) ifNotNil: [ ^self ].
-	Object compile: 'ifNotNilDo: ablock
-	^ self ifNotNil: ablock'.
 ]

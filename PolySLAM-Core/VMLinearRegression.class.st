@@ -78,13 +78,13 @@ VMLinearRegression >> compute: collectionOfVectors [
 VMLinearRegression >> computeWithDataX: dataX dataY: dataY [
 	| matrixX matrixXTX matrixXTY beta |
 	
-	matrixX := DhbMatrix rows: (dataX collect: [ :x | { 1. x } ] ).
+	matrixX := PMMatrix rows: (dataX collect: [ :x | { 1. x } ] ).
 	
 	" compute X^T * X "
 	matrixXTX := (matrixX transpose * matrixX) inverse.
 	
 	" compute X^T * Y "
-	matrixXTY := (matrixX) transpose * (DhbMatrix rows: dataY).
+	matrixXTY := (matrixX) transpose * (PMMatrix rows: dataY).
 	
 	beta := matrixXTX * matrixXTY.
 

@@ -1,6 +1,6 @@
-Extension { #name : #DhbVector }
+Extension { #name : #PMVector }
 
 { #category : #'*PolySLAM-Core' }
-DhbVector >> asPoint [
+PMVector >> asPoint [
 	^Point x: (self at: 1) y: (self at: 2).
 ]

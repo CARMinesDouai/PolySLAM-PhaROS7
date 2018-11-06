@@ -5,7 +5,8 @@ Class {
 		'sub',
 		'cloud',
 		'update_after_n_messages',
-		'count'
+		'count',
+		'point_color'
 	],
 	#category : #'PolySLAM-Viz'
 }
@@ -20,6 +21,7 @@ PSPCView >> asJSONObject [
 	|d|
 	d := super asJSONObject.
 	d at: 'update_after_n_messages' put: self update_after_n_messages.
+	d at: 'point_color' put: self point_color asArray. 
 	^d	
 ]
 
@@ -64,7 +66,7 @@ PSPCView >> draw: msg [
 		"draw the point"
 		point := TRBoxShape new
 		extent: 1 @ 1;
-		color: Color red;
+		color: self point_color;
 		strokeWidth: 0;
 		size: 1.0.
 		points add:point.
@@ -78,6 +80,15 @@ PSPCView >> draw: msg [
 	].
 ]
 
+{ #category : #converting }
+PSPCView >> fromJSONObject: obj [
+	super fromJSONObject: obj.
+	point_color ifNil: [ point_color := Color red ] ifNotNil: [ 
+		point_color := Color r: (point_color at:1)
+			g: (point_color at:2)  b: (point_color at:3)  alpha: (point_color at:4)
+	] 
+]
+
 { #category : #initialization }
 PSPCView >> initialize [
 	super initialize.
@@ -85,12 +96,23 @@ PSPCView >> initialize [
 	localframe := 'laser'.
 	cloud := OrderedCollection new.
 	update_after_n_messages := 10.
-	count := 0
+	count := 0.
+	point_color := Color red
 ]
 
 { #category : #accessing }
 PSPCView >> name [
 	^ 'A Pointcloud view'
+]
+
+{ #category : #accessing }
+PSPCView >> point_color [
+	^ point_color
+]
+
+{ #category : #accessing }
+PSPCView >> point_color: anObject [
+	point_color := anObject
 ]
 
 { #category : #initialization }
@@ -112,6 +134,11 @@ PSPCView >> propList [
 				from:
 					{(#name -> #update_after_n_messages ).
 					(#type -> Number)}
+				holder: self).
+			(RHProperty
+				from:
+					{(#name -> #point_color  ).
+					(#type -> Color)}
 				holder: self)
 			}
 ]

@@ -46,14 +46,13 @@ PSPCView >> desynchronize [
 
 { #category : #drawing }
 PSPCView >> draw: msg [
-	|pc tf pos point points tl|
+	|pc tf pos point points|
 	count := count + 1.
 	count < update_after_n_messages ifTrue:[^self].
 	count := 0.
 	points := OrderedCollection new.
 	pc := VMPointCloud2d new fromMsg: msg.
 	tf := self tfFromParent.
-	tl := (tf at:1 at:4)@ (tf at: 2 at:4).
 	"tf at:1 at: 4 put:0."
 	"tf at:2 at:4 put:0. "
 	pc points do:[:p |
@@ -78,15 +77,6 @@ PSPCView >> draw: msg [
 		cloud do:[:p | self canvas addShape: p].
 		self canvas signalUpdate.
 	].
-]
-
-{ #category : #converting }
-PSPCView >> fromJSONObject: obj [
-	super fromJSONObject: obj.
-	point_color ifNil: [ point_color := Color red ] ifNotNil: [ 
-		point_color := Color r: (point_color at:1)
-			g: (point_color at:2)  b: (point_color at:3)  alpha: (point_color at:4)
-	] 
 ]
 
 { #category : #initialization }

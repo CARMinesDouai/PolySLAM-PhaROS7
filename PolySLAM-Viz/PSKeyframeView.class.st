@@ -41,7 +41,7 @@ PSKeyframeView >> asJSONObject [
 { #category : #initialization }
 PSKeyframeView >> desynchronize [
 	module stop.
-	"self undraw"
+	self undraw
 ]
 
 { #category : #initialization }
@@ -56,7 +56,6 @@ PSKeyframeView >> initialize [
 	obstacle_dist_m := module obstacleDist.
 	linear_delta_m := module linearDelta.
 	simplifier_th := module simplifierTh.
-	
 	module scanTopic: topic; odomTopic: odom_topic.
 	"module "
 ]
@@ -108,7 +107,19 @@ PSKeyframeView >> odom_topic: anObject [
 
 { #category : #initialization }
 PSKeyframeView >> processKeyframe:k [
-	Transcript show: 'New keyframe found.';cr
+	|tf tl shape|
+	tf := self tfFrom: 'odom' to: self parent localframe. 
+	tl := k odomPose translation.
+	tl := { 0- tl x. 0-tl y. 0. 1 }.
+	tl := tf+*tl.
+	shape := TREllipseShape new size: 2.
+	shape color: self keyframe_color.
+	shape translateTo: tl.
+	self lock critical: [ 
+		self addShape: shape.
+		self canvas signalUpdate
+	].
+	k inspect
 ]
 
 { #category : #initialization }
@@ -182,6 +193,7 @@ PSKeyframeView >> synchronize [
 	module scanTopic: self topic.
 	module odomTopic: self odom_topic.
 	module callback: [:k | self processKeyframe:k ].
+	canvas addShape: self.
 	module start.
 ]
 

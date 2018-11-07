@@ -116,10 +116,10 @@ PSScanManager >> validateScan: rawScan odom: rawOdom [
 	dev := self getDevice: rawScan.
 	lastScan := self getLastScanOf: rawScan header frame_id.
 	od := VMTransform fromOdomMsg: rawOdom.
+	delta := VMTransform zero.
 	lastScan ifNotNil: [
 		delta := (od inverse) * lastScan odomPose.
-		delta length > self linearDelta ifFalse:[^nil].
-		delta angle abs > self angularDelta ifFalse:[^nil].
+		((delta length < self linearDelta) & (delta angle abs < self angularDelta)) ifTrue:[^nil].
 	].
 		"create new localized scan polygon"
 	localizedScan := PSLocalizedScanPolygon 
@@ -128,6 +128,7 @@ PSScanManager >> validateScan: rawScan odom: rawOdom [
 			simplifierTh: self simplifierTh.
 	localizedScan odomPose: od.
 	localizedScan correctPose: od.
+	localizedScan tf: delta.
 	localizedScan device: dev.
 	self setLastScan: localizedScan.
 	^localizedScan 

@@ -9,7 +9,8 @@ Class {
 		'obstacle_dist_m',
 		'simplifier_th',
 		'linear_delta_m',
-		'angular_delta_deg'
+		'angular_delta_deg',
+		'shapes'
 	],
 	#category : #'PolySLAM-Viz'
 }
@@ -38,6 +39,11 @@ PSKeyframeView >> asJSONObject [
 	^d	
 ]
 
+{ #category : #drawing }
+PSKeyframeView >> canvasPos: realPost [
+	^((realPost at:1) / self parent resolution) rounded @ ( 0 - ( (realPost at:2) / self parent resolution)) rounded.
+]
+
 { #category : #initialization }
 PSKeyframeView >> desynchronize [
 	module stop.
@@ -57,6 +63,7 @@ PSKeyframeView >> initialize [
 	linear_delta_m := module linearDelta.
 	simplifier_th := module simplifierTh.
 	module scanTopic: topic; odomTopic: odom_topic.
+	shapes := OrderedCollection new.
 	"module "
 ]
 
@@ -108,18 +115,18 @@ PSKeyframeView >> odom_topic: anObject [
 { #category : #initialization }
 PSKeyframeView >> processKeyframe:k [
 	|tf tl shape|
-	tf := self tfFrom: 'odom' to: self parent localframe. 
+	tf := self tfFrom:'odom' to: self parent localframe.
 	tl := k odomPose translation.
-	tl := { 0- tl x. 0-tl y. 0. 1 }.
+	tl := {tl x. tl y. 0. 1 }.
 	tl := tf+*tl.
 	shape := TREllipseShape new size: 2.
 	shape color: self keyframe_color.
-	shape translateTo: tl.
+	shape translateTo: (self canvasPos: tl).
 	self lock critical: [ 
-		self addShape: shape.
+		shapes add: shape.
+		self canvas addShape: shape.
 		self canvas signalUpdate
 	].
-	k inspect
 ]
 
 { #category : #initialization }
@@ -193,7 +200,6 @@ PSKeyframeView >> synchronize [
 	module scanTopic: self topic.
 	module odomTopic: self odom_topic.
 	module callback: [:k | self processKeyframe:k ].
-	canvas addShape: self.
 	module start.
 ]
 
@@ -206,4 +212,13 @@ PSKeyframeView >> time_scale_milliseconds [
 PSKeyframeView >> time_scale_milliseconds: anObject [
 	time_scale_milliseconds := anObject.
 	module timeScale: time_scale_milliseconds
+]
+
+{ #category : #drawing }
+PSKeyframeView >> undraw [
+	self lock critical: [ 
+		shapes do:[:s| self canvas removeShape: s].
+		self canvas signalUpdate
+	].
+
 ]

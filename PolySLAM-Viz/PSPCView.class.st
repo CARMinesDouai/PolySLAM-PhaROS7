@@ -16,15 +16,6 @@ PSPCView >> allShapes [
 	^cloud
 ]
 
-{ #category : #converting }
-PSPCView >> asJSONObject [
-	|d|
-	d := super asJSONObject.
-	d at: 'update_after_n_messages' put: self update_after_n_messages.
-	d at: 'point_color' put: self point_color asArray. 
-	^d	
-]
-
 { #category : #drawing }
 PSPCView >> canvasPos: realPost [
 	^((realPost at:1) / self parent resolution) rounded @ ( 0 - ( (realPost at:2) / self parent resolution)) rounded.
@@ -35,7 +26,6 @@ PSPCView >> cleanup [
 	cloud ifNil: [ ^self ].
 	cloud isEmpty ifTrue: [ ^self ].
 	cloud do:[:p | self canvas removeShape: p].
-	
 ]
 
 { #category : #initialization }
@@ -97,40 +87,13 @@ PSPCView >> name [
 
 { #category : #accessing }
 PSPCView >> point_color [
+	<galleonProperty: #Color>
 	^ point_color
 ]
 
 { #category : #accessing }
 PSPCView >> point_color: anObject [
 	point_color := anObject
-]
-
-{ #category : #initialization }
-PSPCView >> propList [
-	^ super propList
-		,
-			{
-			(RHProperty
-				from:
-					{(#name -> #topic).
-					(#type -> String)}
-				holder: self).
-			(RHProperty
-				from:
-					{(#name -> #localframe).
-					(#type -> String)}
-				holder: self).
-			(RHProperty
-				from:
-					{(#name -> #update_after_n_messages ).
-					(#type -> Number)}
-				holder: self).
-			(RHProperty
-				from:
-					{(#name -> #point_color  ).
-					(#type -> Color)}
-				holder: self)
-			}
 ]
 
 { #category : #initialization }
@@ -143,11 +106,15 @@ PSPCView >> synchronize [
 
 { #category : #drawing }
 PSPCView >> undraw [
-	self cleanup.
+	self lock critical:[
+		self cleanup.
+		self canvas signalUpdate 
+	]
 ]
 
 { #category : #accessing }
 PSPCView >> update_after_n_messages [
+	<galleonProperty: #Number>
 	^ update_after_n_messages
 ]
 

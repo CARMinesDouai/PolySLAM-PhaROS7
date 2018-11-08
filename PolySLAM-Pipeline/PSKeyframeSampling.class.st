@@ -10,10 +10,17 @@ Class {
 		'lastOdom',
 		'callback',
 		'timeScale',
-		'scanMan'
+		'scanMan',
+		'dev'
 	],
 	#category : #'PolySLAM-Pipeline-Core'
 }
+
+{ #category : #accessing }
+PSKeyframeSampling >> allScans [
+	dev ifNil: [ ^nil ].
+	^ scanMan getAllScansOf: dev
+]
 
 { #category : #accessing }
 PSKeyframeSampling >> angularDelta [
@@ -38,7 +45,7 @@ PSKeyframeSampling >> callback: anObject [
 { #category : #accessing }
 PSKeyframeSampling >> initialize [
 	timeScale := 10 "milliSeconds".
-	scanMan := PSScanManager new
+	scanMan := PSScanManager new.
 ]
 
 { #category : #accessing }
@@ -49,16 +56,6 @@ PSKeyframeSampling >> linearDelta [
 { #category : #accessing }
 PSKeyframeSampling >> linearDelta: d [
 	scanMan linearDelta: d
-]
-
-{ #category : #accessing }
-PSKeyframeSampling >> obstacleDist [
-	^scanMan obstacleDist
-]
-
-{ #category : #accessing }
-PSKeyframeSampling >> obstacleDist: d [
-	scanMan obstacleDist: d
 ]
 
 { #category : #accessing }
@@ -76,6 +73,7 @@ PSKeyframeSampling >> sample: rawScan odom: rawOdom [
 	|localizedScan|
 	localizedScan := scanMan validateScan: rawScan odom: rawOdom.
 	localizedScan ifNotNil: [
+		dev ifNil: [ dev := localizedScan device  ].
 		callback ifNotNil: [ callback value: localizedScan ]
 	].
 ]
@@ -88,16 +86,6 @@ PSKeyframeSampling >> scanTopic [
 { #category : #accessing }
 PSKeyframeSampling >> scanTopic: anObject [
 	scanTopic := anObject
-]
-
-{ #category : #accessing }
-PSKeyframeSampling >> simplifierTh [
-	^scanMan simplifierTh
-]
-
-{ #category : #accessing }
-PSKeyframeSampling >> simplifierTh: th [
-	scanMan simplifierTh: th
 ]
 
 { #category : #accessing }

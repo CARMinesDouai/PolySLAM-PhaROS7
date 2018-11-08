@@ -10,33 +10,22 @@ Class {
 		'simplifier_th',
 		'linear_delta_m',
 		'angular_delta_deg',
-		'shapes'
+		'myshapes',
+		'running'
 	],
 	#category : #'PolySLAM-Viz'
 }
 
 { #category : #accessing }
 PSKeyframeView >> angular_delta_deg [
+	<galleonProperty: #Number>
 	^ angular_delta_deg
 ]
 
 { #category : #accessing }
 PSKeyframeView >> angular_delta_deg: anObject [
-	angular_delta_deg := anObject
-]
-
-{ #category : #converting }
-PSKeyframeView >> asJSONObject [
-	|d|
-	d := super asJSONObject.
-	d at: 'odom_topic'  put: self odom_topic .
-	d at: 'keyframe_color' put: self keyframe_color.
-	d at: 'time_scale_milliseconds' put: self time_scale_milliseconds.
-	d at: 'angular_delta_deg' put: self angular_delta_deg.
-	d at: 'linear_delta_m' put: self linear_delta_m.
-	d at: 'obstacle_dist_m' put: self obstacle_dist_m.
-	d at: 'simplifier_th' put: self simplifier_th.
-	^d	
+	angular_delta_deg := anObject.
+	module angularDelta: angular_delta_deg 
 ]
 
 { #category : #drawing }
@@ -59,16 +48,18 @@ PSKeyframeView >> initialize [
 	keyframe_color := Color blue.
 	time_scale_milliseconds := 10.
 	angular_delta_deg := 20.
-	obstacle_dist_m := module obstacleDist.
+	obstacle_dist_m := 0.4.
 	linear_delta_m := module linearDelta.
-	simplifier_th := module simplifierTh.
+	simplifier_th := 0.02 squared.
 	module scanTopic: topic; odomTopic: odom_topic.
-	shapes := OrderedCollection new.
+	myshapes := OrderedCollection new.
+	running := false.
 	"module "
 ]
 
 { #category : #accessing }
 PSKeyframeView >> keyframe_color [
+	<galleonProperty: #Color>
 	^ keyframe_color
 ]
 
@@ -79,12 +70,14 @@ PSKeyframeView >> keyframe_color: anObject [
 
 { #category : #accessing }
 PSKeyframeView >> linear_delta_m [
+	<galleonProperty: #Number>
 	^ linear_delta_m
 ]
 
 { #category : #accessing }
 PSKeyframeView >> linear_delta_m: anObject [
-	linear_delta_m := anObject
+	linear_delta_m := anObject.
+	module linearDelta: linear_delta_m 
 ]
 
 { #category : #accessing }
@@ -94,16 +87,18 @@ PSKeyframeView >> name [
 
 { #category : #accessing }
 PSKeyframeView >> obstacle_dist_m [
+	<galleonProperty: #Number>
 	^ obstacle_dist_m
 ]
 
 { #category : #accessing }
 PSKeyframeView >> obstacle_dist_m: anObject [
-	obstacle_dist_m := anObject
+	obstacle_dist_m := anObject.
 ]
 
 { #category : #accessing }
 PSKeyframeView >> odom_topic [
+	<galleonProperty: #String>
 	^ odom_topic
 ]
 
@@ -113,68 +108,37 @@ PSKeyframeView >> odom_topic: anObject [
 ]
 
 { #category : #initialization }
+PSKeyframeView >> process [
+[ running ] whileTrue: [ 
+	module allScans ifNotNil: [ 
+		module allScans atEnd ifFalse:[
+			self processKeyframe: module allScans next	
+		]
+	]	
+]
+]
+
+{ #category : #initialization }
 PSKeyframeView >> processKeyframe:k [
-	|tf tl shape|
+	|tf tl l pos|
 	tf := self tfFrom:'odom' to: self parent localframe.
 	tl := k odomPose translation.
 	tl := {tl x. tl y. 0. 1 }.
 	tl := tf+*tl.
-	shape := TREllipseShape new size: 2.
+	pos := self canvasPos: tl.
+	"shape := TREllipseShape new size: 10.
+	shape strokeWidth: 0.
 	shape color: self keyframe_color.
-	shape translateTo: (self canvasPos: tl).
-	self lock critical: [ 
-		shapes add: shape.
-		self canvas addShape: shape.
+	shape translateTo: pos."
+	l := self arrowFrom: pos orientation: k odomPose orientation. 
+	self lock critical: [
+		l do:[:line|
+			myshapes add: line.
+			line color: self keyframe_color.
+			self canvas addShape: line.
+		]. 
 		self canvas signalUpdate
 	].
-]
-
-{ #category : #initialization }
-PSKeyframeView >> propList [
-	^ super propList
-		,
-			{
-			(RHProperty
-				from:
-					{(#name -> #topic).
-					(#type -> String)}
-				holder: self).
-			(RHProperty
-				from:
-					{(#name -> #odom_topic).
-					(#type -> String)}
-				holder: self).
-			(RHProperty
-				from:
-					{(#name -> #keyframe_color).
-					(#type -> Color)}
-				holder: self).
-			(RHProperty
-				from:
-					{(#name -> #time_scale_milliseconds).
-					(#type -> Number)}
-				holder: self).
-			(RHProperty
-				from:
-					{(#name -> #angular_delta_deg).
-					(#type -> Number)}
-				holder: self).
-			(RHProperty
-				from:
-					{(#name -> #linear_delta_m ).
-					(#type -> Number)}
-				holder: self).
-			(RHProperty
-				from:
-					{(#name -> #obstacle_dist_m ).
-					(#type -> Number)}
-				holder: self).
-			(RHProperty
-				from:
-					{(#name -> #simplifier_th ).
-					(#type -> Number)}
-				holder: self).
-			}
 ]
 
 { #category : #event }
@@ -186,12 +150,13 @@ PSKeyframeView >> propertyChange: prop [
 
 { #category : #accessing }
 PSKeyframeView >> simplifier_th [
+	<galleonProperty: #Number>
 	^ simplifier_th
 ]
 
 { #category : #accessing }
 PSKeyframeView >> simplifier_th: anObject [
-	simplifier_th := anObject
+	simplifier_th := anObject.
 ]
 
 { #category : #initialization }
@@ -199,12 +164,16 @@ PSKeyframeView >> synchronize [
 	module controller: self proxy controller.
 	module scanTopic: self topic.
 	module odomTopic: self odom_topic.
-	module callback: [:k | self processKeyframe:k ].
+	"module callback: [:k | self processKeyframe:k ]."
 	module start.
+	running := true.
+	"process the new keyframe in the background"
+	[ self process ] forkAt: Processor userBackgroundPriority
 ]
 
 { #category : #accessing }
 PSKeyframeView >> time_scale_milliseconds [
+	<galleonProperty: #Number>
 	^ time_scale_milliseconds
 ]
 
@@ -217,7 +186,7 @@ PSKeyframeView >> time_scale_milliseconds: anObject [
 { #category : #drawing }
 PSKeyframeView >> undraw [
 	self lock critical: [ 
-		shapes do:[:s| self canvas removeShape: s].
+		myshapes do:[:s| self canvas removeShape: s].
 		self canvas signalUpdate
 	].
 

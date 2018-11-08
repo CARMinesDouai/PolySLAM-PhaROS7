@@ -62,6 +62,7 @@ PSScanPolygonView >> fallbackColor [
 
 { #category : #accessing }
 PSScanPolygonView >> frontier_color [
+	<galleonProperty: #Color>
 	^ frontier_color
 ]
 
@@ -91,6 +92,7 @@ PSScanPolygonView >> name [
 
 { #category : #accessing }
 PSScanPolygonView >> obstacle_color [
+	<galleonProperty: #Color>
 	^ obstacle_color
 ]
 
@@ -101,6 +103,7 @@ PSScanPolygonView >> obstacle_color: anObject [
 
 { #category : #accessing }
 PSScanPolygonView >> obstacle_distance [
+	<galleonProperty: #Number>
 	^ obstacle_distance
 ]
 
@@ -122,49 +125,6 @@ PSScanPolygonView >> process: msg [
 	"self desynchronize."
 ]
 
-{ #category : #initialization }
-PSScanPolygonView >> propList [
-	^ super propList
-		,
-			{
-			(RHProperty
-				from:
-					{(#name -> #topic).
-					(#type -> String)}
-				holder: self).
-			(RHProperty
-				from:
-					{(#name -> #localframe).
-					(#type -> String)}
-				holder: self).
-			(RHProperty
-				from:
-					{(#name -> #update_after_n_messages ).
-					(#type -> Number)}
-				holder: self).
-			(RHProperty
-				from:
-					{(#name -> #obstacle_color   ).
-					(#type -> Color)}
-				holder: self).
-			(RHProperty
-				from:
-					{(#name -> #frontier_color).
-					(#type -> Color)}
-				holder: self).
-			(RHProperty
-				from:
-					{(#name -> #obstacle_distance).
-					(#type -> Number)}
-				holder: self).
-			(RHProperty
-				from:
-					{(#name -> #simplifier_threshold).
-					(#type -> Number)}
-				holder: self)
-			}
-]
-
 { #category : #drawing }
 PSScanPolygonView >> queryColor: line [
 	line type class caseOf: { 
@@ -175,6 +135,7 @@ PSScanPolygonView >> queryColor: line [
 
 { #category : #accessing }
 PSScanPolygonView >> simplifier_threshold [
+	<galleonProperty: #Number>
 	^ simplifier_threshold
 ]
 
@@ -193,11 +154,13 @@ PSScanPolygonView >> synchronize [
 
 { #category : #sync }
 PSScanPolygonView >> undraw [
-	self cleanup 
+	self lock critical:[	self cleanup. self canvas signalUpdate].
+
 ]
 
 { #category : #accessing }
 PSScanPolygonView >> update_after_n_messages [
+	<galleonProperty: #Number>
 	^ update_after_n_messages
 ]
 

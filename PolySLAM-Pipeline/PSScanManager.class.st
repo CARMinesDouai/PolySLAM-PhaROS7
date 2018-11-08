@@ -2,15 +2,18 @@ Class {
 	#name : #PSScanManager,
 	#superclass : #Object,
 	#instVars : [
-		'lastScans',
+		'streams',
 		'devices',
 		'linearDelta',
-		'angularDelta',
-		'obstacleDist',
-		'simplifierTh'
+		'angularDelta'
 	],
 	#category : #'PolySLAM-Pipeline-Core'
 }
+
+{ #category : #accessing }
+PSScanManager >> addScan: localizedScan [
+	(streams at: localizedScan device devName) add: localizedScan
+]
 
 { #category : #accessing }
 PSScanManager >> angularDelta [
@@ -32,42 +35,39 @@ PSScanManager >> devices: anObject [
 	devices := anObject
 ]
 
-{ #category : #initialization }
+{ #category : #accessing }
+PSScanManager >> getAllScansOf:dev [
+	|name|
+	name := dev.
+	dev class = ByteString ifFalse:[ name := dev devName ].
+	^streams at: name ifAbsent: [ nil ].
+]
+
+{ #category : #accessing }
 PSScanManager >> getDevice: aRawScan [
 	|dev|
 	^ self devices at: aRawScan header frame_id ifAbsent:[
 		dev := PSLaserRangeFinder from: aRawScan.
 		self devices at: aRawScan header frame_id put: dev.
+		streams at: aRawScan header frame_id put: PSSharedCollection new.
 		^dev
 	]
 ]
 
-{ #category : #initialization }
+{ #category : #accessing }
 PSScanManager >> getLastScanOf: name [
-	^ lastScans at:name ifAbsent: [ ^nil ] 
-]
-
-{ #category : #initialization }
-PSScanManager >> hasMoveEnough: rawScan odom: rawOdom [
-	|lastScan od delta|
-	lastScan := self getLastScanOf: rawScan header frame_id.
-	lastScan ifNil: [ ^true ].
-	od := VMTransform fromOdomMsg: rawOdom.
-	delta := (od inverse) * lastScan odomPose.
-	delta length > self linearDelta ifFalse:[^false].
-	
-	
-	
+	|scans|
+	scans := self getAllScansOf: name.
+	scans ifNil: [ ^nil ].
+	^scans last 
 ]
 
 { #category : #initialization }
 PSScanManager >> initialize [
-	lastScans := Dictionary new.
 	devices := Dictionary new.
-	linearDelta := 0.2"meter".
+	streams := Dictionary new.
+	linearDelta := 0.5"meter".
 	angularDelta := (Float pi / 180) * 20 "degree".
-	simplifierTh := 0.02 squared.
-	obstacleDist := 0.4 "meter"
 ]
 
 { #category : #accessing }
@@ -81,36 +81,11 @@ PSScanManager >> linearDelta: anObject [
 ]
 
 { #category : #accessing }
-PSScanManager >> obstacleDist [
-	^ obstacleDist
-]
-
-{ #category : #accessing }
-PSScanManager >> obstacleDist: anObject [
-	obstacleDist := anObject
-]
-
-{ #category : #initialization }
 PSScanManager >> sensorNames [
 	^ lastScans keys
 ]
 
-{ #category : #initialization }
-PSScanManager >> setLastScan: value [
-	lastScans at: value device devName put: value
-]
-
-{ #category : #accessing }
-PSScanManager >> simplifierTh [
-	^ simplifierTh
-]
-
-{ #category : #accessing }
-PSScanManager >> simplifierTh: anObject [
-	simplifierTh := anObject
-]
-
-{ #category : #initialization }
+{ #category : #validating }
 PSScanManager >> validateScan: rawScan odom: rawOdom [
 	|lastScan od delta localizedScan dev|
 	dev := self getDevice: rawScan.
@@ -122,14 +97,14 @@ PSScanManager >> validateScan: rawScan odom: rawOdom [
 		((delta length < self linearDelta) & (delta angle abs < self angularDelta)) ifTrue:[^nil].
 	].
 		"create new localized scan polygon"
-	localizedScan := PSLocalizedScanPolygon 
-			from: rawScan
-			obstacleDist: self obstacleDist
-			simplifierTh: self simplifierTh.
+	localizedScan := PSLocalizedScan 
+			from: rawScan.
+			"obstacleDist: self obstacleDist
+			simplifierTh: self simplifierTh."
 	localizedScan odomPose: od.
 	localizedScan correctPose: od.
 	localizedScan tf: delta.
 	localizedScan device: dev.
-	self setLastScan: localizedScan.
+	self addScan: localizedScan.
 	^localizedScan 
 ]

@@ -51,3 +51,9 @@ PSSharedCollection >> next [
 PSSharedCollection >> reset [
 	self lock critical: [super reset. ptr := 0 ]
 ]
+
+{ #category : #initialization }
+PSSharedCollection >> resetPointer [
+	self lock critical:[ptr := 0].
+	
+]

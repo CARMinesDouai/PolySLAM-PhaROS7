@@ -7,7 +7,8 @@ Class {
 		'tf',
 		'device',
 		'cloud',
-		'score'
+		'score',
+		'polygon'
 	],
 	#category : #'PolySLAM-Pipeline-Core'
 }
@@ -15,20 +16,6 @@ Class {
 { #category : #'instance creation' }
 PSLocalizedScan class >> from: rawScan [
 	^self new from: rawScan 
-]
-
-{ #category : #initialization }
-PSLocalizedScan >> asPolygon [
-	"polygon := VMPolygon new fromPointCloud: pc tf: nil  obstacleDist: dist.
-	polygon := (VMVectorCollectionSimplifier compute: polygon  inlierThreshold: th) result."
-]
-
-{ #category : #initialization }
-PSLocalizedScan >> asPolygonWith: dist simplifierTh: th [
-	|polygon|
-	polygon := VMPolygon new fromPointCloud: cloud tf: nil  obstacleDist: dist.
-	polygon := (VMVectorCollectionSimplifier compute: polygon  inlierThreshold: th) result.
-	^polygon 
 ]
 
 { #category : #accessing }
@@ -44,6 +31,13 @@ PSLocalizedScan >> correctPose [
 { #category : #accessing }
 PSLocalizedScan >> correctPose: anObject [
 	correctPose := anObject
+]
+
+{ #category : #converting }
+PSLocalizedScan >> createPolygonWith: dist simplifierTh: th tf: aVMTf [
+	polygon := VMPolygon new fromPointCloud: cloud tf: aVMTf  obstacleDist: dist.
+	polygon := (VMVectorCollectionSimplifier compute: polygon  inlierThreshold: th) result.
+	^polygon 
 ]
 
 { #category : #accessing }
@@ -73,6 +67,11 @@ PSLocalizedScan >> odomPose [
 { #category : #accessing }
 PSLocalizedScan >> odomPose: anObject [
 	odomPose := anObject
+]
+
+{ #category : #accessing }
+PSLocalizedScan >> polygon [
+	^ polygon
 ]
 
 { #category : #accessing }

@@ -90,8 +90,8 @@ PSScanManager >> validateScan: rawScan odom: rawOdom [
 	|lastScan od delta localizedScan dev|
 	dev := self getDevice: rawScan.
 	lastScan := self getLastScanOf: rawScan header frame_id.
-	od := VMTransform fromOdomMsg: rawOdom.
-	delta := VMTransform zero.
+	od := (VMTransform fromOdomMsg: rawOdom) asVMTFMatrix.
+	delta := VMTFMatrix identity .
 	lastScan ifNotNil: [
 		delta := (od inverse) * lastScan odomPose.
 		((delta length < self linearDelta) & (delta angle abs < self angularDelta)) ifTrue:[^nil].

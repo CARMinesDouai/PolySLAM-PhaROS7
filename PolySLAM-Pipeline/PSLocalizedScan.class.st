@@ -75,6 +75,11 @@ PSLocalizedScan >> polygon [
 ]
 
 { #category : #accessing }
+PSLocalizedScan >> polygon: anObject [
+	polygon := anObject
+]
+
+{ #category : #accessing }
 PSLocalizedScan >> score [
 	^ score
 ]

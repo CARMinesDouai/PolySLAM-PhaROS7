@@ -103,6 +103,7 @@ PSLocalization >> processNextKeyFrame [
 	lastScan ifNil: [
 		nnc addAll: (scan polygon select:[:v| v isObstacle]).
 		outputCollection add: scan.
+		lastScan := scan.
 		^self
 	].
 	"run icp"

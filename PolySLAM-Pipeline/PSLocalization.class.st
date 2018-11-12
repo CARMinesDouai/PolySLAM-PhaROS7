@@ -26,6 +26,7 @@ PSLocalization >> initialize [
 	outlierThresholdFalloff := 1.
 	outlierStartThreshold := 0.7.
 	maxIterations := 20.
+	outputCollection := PSSharedCollection new.
 ]
 
 { #category : #accessing }
@@ -101,6 +102,7 @@ PSLocalization >> processNextKeyFrame [
 	scan createPolygonWith: obstacleDistance simplifierTh: simplifierTh  tf: (VMTFMatrix angle: Float halfPi translation: 0@0).
 	lastScan ifNil: [
 		nnc addAll: (scan polygon select:[:v| v isObstacle]).
+		outputCollection add: scan.
 		^self
 	].
 	"run icp"
@@ -110,7 +112,7 @@ PSLocalization >> processNextKeyFrame [
 	scan polygon: (VMVectorCollectionSimplifier compute: scan polygon inlierThreshold: simplifierTh ) result.
 	nnc addAll: (scan polygon select:[:v| v isObstacle]).
 	lastScan := scan.
-	collection add: scan.
+	outputCollection add: scan.
 	
 ]
 

@@ -192,8 +192,11 @@ PSKeyframeView >> processLocalizedData [
 { #category : #processing }
 PSKeyframeView >> processLocalizedKeyframe: kf [
 	|tf tl pos|
+	"kf inspect."
+	tf := self tfFrom:'odom' to: self parent localframe.
 	tl := kf correctPose translation.
 	tl := {tl x. tl y. 0. 1 }.
+	tl := tf+*tl.
 	pos := self canvasPos: tl.
 	self drawArrowFrom: pos orientation: kf correctPose orientation color: self correct_key_frame_color 
 ]

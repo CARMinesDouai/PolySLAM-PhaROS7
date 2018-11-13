@@ -45,8 +45,7 @@ PSLineSegmentsView >> draw: aCollection [
 	lastIndex := aCollection size.
 	self lock critical: [ 
 		"self cleanup."
-		collection do:[:e| self canvas addShape: e].
-		lines := collection.
+		collection do:[:e| lines add:e.self canvas addShape: e].
 		self canvas signalUpdate
 	]
 ]

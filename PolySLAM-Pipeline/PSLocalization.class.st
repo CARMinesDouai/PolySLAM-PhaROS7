@@ -28,7 +28,7 @@ PSLocalization >> initialize [
 	simplifierTh	 :=  0.02 squared.
 	outlierThresholdFalloff := 1.
 	outlierStartThreshold := 0.7.
-	maxIterations := 20.
+	maxIterations := -1.
 	outputCollection := PSSharedCollection new.
 ]
 

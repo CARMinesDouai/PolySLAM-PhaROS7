@@ -184,4 +184,6 @@ PSKeyframeSampling >> validate [
 		queue nextPut:{lastScan. lastOdom }
 		"Transcript show: 'New sync message with Duration :', duration asString; cr"
 	]
+	"queue nextPut:{lastScan. lastOdom }.""
+	self sample: lastScan   odom:lastOdom ."
 ]

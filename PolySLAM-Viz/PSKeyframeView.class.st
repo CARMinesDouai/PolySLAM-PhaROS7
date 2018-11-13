@@ -80,7 +80,7 @@ PSKeyframeView >> initialize [
 	odom_topic := '/odom'.
 	odom_keyframe_color := Color blue.
 	correct_key_frame_color := Color red.
-	time_scale_milliseconds := 10.
+	time_scale_milliseconds := samplingModule timeScale.
 	angular_delta_deg := 20.
 	linear_delta_m := samplingModule linearDelta.
 	samplingModule  scanTopic: topic; odomTopic: odom_topic.
@@ -200,7 +200,7 @@ PSKeyframeView >> processLocalizedKeyframe: kf [
 	self announcer announce: (LineSegmentsDataEvent for: localizationModule nnc addedVectors).
 	tl := kf correctPose translate.
 	tl := {tl at:1. tl at:2. 0. 1 }.
-	tl := tfOff+*tl.
+	"tl := tfOff+*tl."
 	pos := self canvasPos: tl.
 	self drawArrowFrom: pos orientation: kf correctPose angle color: self correct_key_frame_color 
 ]
@@ -208,11 +208,11 @@ PSKeyframeView >> processLocalizedKeyframe: kf [
 { #category : #processing }
 PSKeyframeView >> processOdomKeyframe:k [
 	|tf tl pos|
-	tf := self tfFrom:'odom' to: self parent localframe.
+	"tf := self tfFrom:'odom' to: self parent localframe."
 	tfOff ifNil: [ tfOff := tf ].
 	tl := k odomPose translate.
 	tl := {tl at:1. tl at:2. 0. 1 }.
-	tl := tf+*tl.
+	"tl := tf+*tl."
 	pos := self canvasPos: tl.
 	self drawArrowFrom: pos orientation: k odomPose angle color: self odom_keyframe_color.
 ]

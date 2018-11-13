@@ -9,7 +9,8 @@ Class {
 		'obstacle_color',
 		'frontier_color',
 		'simplifier_threshold',
-		'segs'
+		'segs',
+		'max_range'
 	],
 	#category : #'PolySLAM-Viz'
 }
@@ -82,7 +83,19 @@ PSScanPolygonView >> initialize [
 	obstacle_distance := 0.4.
 	simplifier_threshold := 0.02 squared.
 	segs := OrderedCollection new.
+	max_range := 10.
 	count := 0
+]
+
+{ #category : #accessing }
+PSScanPolygonView >> max_range [
+	<galleonProperty: #Number>
+	^ max_range
+]
+
+{ #category : #accessing }
+PSScanPolygonView >> max_range: anObject [
+	max_range := anObject
 ]
 
 { #category : #accessing }
@@ -118,6 +131,7 @@ PSScanPolygonView >> process: msg [
 	count := count + 1.
 	count < update_after_n_messages ifTrue:[^self].
 	count := 0.
+	self validateScan:msg.
 	pc := VMPointCloud2d new fromMsg: msg.
 	polygon := VMPolygon new fromPointCloud: pc tf: nil  obstacleDist: self obstacle_distance.
 	polygon := (VMVectorCollectionSimplifier compute: polygon  inlierThreshold: self simplifier_threshold) result.
@@ -167,4 +181,11 @@ PSScanPolygonView >> update_after_n_messages [
 { #category : #accessing }
 PSScanPolygonView >> update_after_n_messages: anObject [
 	update_after_n_messages := anObject
+]
+
+{ #category : #sync }
+PSScanPolygonView >> validateScan:msg [
+	1 to: msg ranges size do:[:i|
+		(msg ranges at: i) > max_range ifTrue:[msg ranges at:i put: Float nan]
+	].
 ]

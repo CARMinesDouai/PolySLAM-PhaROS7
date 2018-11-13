@@ -5,7 +5,9 @@ Class {
 		'streams',
 		'devices',
 		'linearDelta',
-		'angularDelta'
+		'angularDelta',
+		'obDist',
+		'maxRange'
 	],
 	#category : #'PolySLAM-Pipeline-Core'
 }
@@ -66,7 +68,9 @@ PSScanManager >> getLastScanOf: name [
 PSScanManager >> initialize [
 	devices := Dictionary new.
 	streams := Dictionary new.
-	linearDelta := 0.5"meter".
+	obDist := 0.4."meter"
+	linearDelta := 0.4"meter".
+	maxRange := 10. "meter"
 	angularDelta := (Float pi / 180) * 20 "degree".
 ]
 
@@ -81,8 +85,28 @@ PSScanManager >> linearDelta: anObject [
 ]
 
 { #category : #accessing }
+PSScanManager >> maxRange [
+	^ maxRange
+]
+
+{ #category : #accessing }
+PSScanManager >> maxRange: anObject [
+	maxRange := anObject
+]
+
+{ #category : #accessing }
+PSScanManager >> obDist [
+	^ obDist
+]
+
+{ #category : #accessing }
+PSScanManager >> obDist: anObject [
+	obDist := anObject
+]
+
+{ #category : #accessing }
 PSScanManager >> sensorNames [
-	^ lastScans keys
+	^ devices keys
 ]
 
 { #category : #validating }
@@ -93,12 +117,13 @@ PSScanManager >> validateScan: rawScan odom: rawOdom [
 	od := (VMTransform fromOdomMsg: rawOdom) asVMTFMatrix.
 	delta := VMTFMatrix identity .
 	lastScan ifNotNil: [
-		delta := (od inverse) * lastScan odomPose.
+		delta := (lastScan odomPose inverse)* od.
 		((delta length < self linearDelta) & (delta angle abs < self angularDelta)) ifTrue:[^nil].
 	].
 		"create new localized scan polygon"
+	self validateScanRange: rawScan.
 	localizedScan := PSLocalizedScan 
-			from: rawScan.
+			from: rawScan obstacleDist: obDist.
 			"obstacleDist: self obstacleDist
 			simplifierTh: self simplifierTh."
 	localizedScan odomPose: od.
@@ -107,4 +132,11 @@ PSScanManager >> validateScan: rawScan odom: rawOdom [
 	localizedScan device: dev.
 	self addScan: localizedScan.
 	^localizedScan 
+]
+
+{ #category : #validating }
+PSScanManager >> validateScanRange:msg [
+	1 to: msg ranges size do:[:i|
+		(msg ranges at: i) > maxRange ifTrue:[msg ranges at:i put: Float nan]
+	].
 ]

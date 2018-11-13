@@ -6,7 +6,6 @@ Class {
 		'outlierThresholdFalloff',
 		'outlierStartThreshold',
 		'maxIterations',
-		'obstacleDistance',
 		'simplifierTh',
 		'nnc',
 		'icp',
@@ -17,11 +16,15 @@ Class {
 	#category : #'PolySLAM-Pipeline-Core'
 }
 
+{ #category : #accessing }
+PSLocalization >> icp [
+	^ icp
+]
+
 { #category : #initialization }
 PSLocalization >> initialize [
 	super initialize.
 	running := false.
-	obstacleDistance := 0.5.
 	simplifierTh	 :=  0.02 squared.
 	outlierThresholdFalloff := 1.
 	outlierStartThreshold := 0.7.
@@ -35,11 +38,6 @@ PSLocalization >> inputCollection [
 ]
 
 { #category : #accessing }
-PSLocalization >> keyframes [
-	^collection 
-]
-
-{ #category : #accessing }
 PSLocalization >> maxIterations [
 	^ maxIterations
 ]
@@ -50,13 +48,8 @@ PSLocalization >> maxIterations: anObject [
 ]
 
 { #category : #accessing }
-PSLocalization >> obstacleDistance [
-	^ obstacleDistance
-]
-
-{ #category : #accessing }
-PSLocalization >> obstacleDistance: anObject [
-	obstacleDistance := anObject
+PSLocalization >> nnc [
+	^ nnc
 ]
 
 { #category : #accessing }
@@ -95,22 +88,26 @@ PSLocalization >> process [
 
 { #category : #processing }
 PSLocalization >> processNextKeyFrame [
-	|scan|
+	|scan guess|
 	scan := inputCollection next.
 	scan ifNil: [ ^self ].
 	"no tf from that point"
-	scan createPolygonWith: obstacleDistance simplifierTh: simplifierTh  tf: (VMTFMatrix angle: Float halfPi translation: 0@0).
 	lastScan ifNil: [
+		scan polygon: (scan polygon transform: (scan odomPose)).
+		"The first polygon"
 		nnc addAll: (scan polygon select:[:v| v isObstacle]).
+		"nnc inspect."
 		outputCollection add: scan.
 		lastScan := scan.
 		^self
 	].
+	guess := (lastScan correctPose * (scan tf)) .
 	"run icp"
-	icp compute: scan cloud  with: nnc  initialGuess: (lastScan correctPose * (scan tf)) sensorPoint: scan polygon last pointA.
+	icp compute: ((scan polygon asPointCollection) removeLast;yourself)  with: nnc  initialGuess: guess sensorPoint: scan polygon last pointA.
 	scan correctPose: icp finalTF.
 	scan polygon: (scan polygon transform: icp finalTF).
 	scan polygon: (VMVectorCollectionSimplifier compute: scan polygon inlierThreshold: simplifierTh ) result.
+	scan score:(VMAlignmentScore computeScoreIcp: icp).
 	nnc addAll: (scan polygon select:[:v| v isObstacle]).
 	lastScan := scan.
 	outputCollection add: scan.

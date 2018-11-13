@@ -16,7 +16,8 @@ Class {
 		'correct_key_frame_color',
 		'outlier_threshold_falloff',
 		'outlier_threshold_start',
-		'max_iteration'
+		'max_iteration',
+		'tfOff'
 	],
 	#category : #'PolySLAM-Viz'
 }
@@ -88,7 +89,7 @@ PSKeyframeView >> initialize [
 	"localization module "
 	outlier_threshold_falloff := localizationModule outlierThresholdFalloff.
 	outlier_threshold_start := localizationModule outlierStartThreshold.
-	obstacle_dist_m := localizationModule obstacleDistance.
+	obstacle_dist_m := samplingModule obstacleDist.
 	simplifier_th := localizationModule simplifierTh.
 	max_iteration := localizationModule maxIterations 
 ]
@@ -131,7 +132,7 @@ PSKeyframeView >> obstacle_dist_m [
 { #category : #accessing }
 PSKeyframeView >> obstacle_dist_m: anObject [
 	obstacle_dist_m := anObject.
-	localizationModule obstacleDistance: obstacle_dist_m
+	samplingModule obstacleDist: obstacle_dist_m
 ]
 
 { #category : #accessing }
@@ -182,7 +183,8 @@ PSKeyframeView >> outlier_threshold_start: anObject [
 
 { #category : #processing }
 PSKeyframeView >> processLocalizedData [
-[ running ] whileTrue: [ 
+[ running ] whileTrue: [
+	localizationModule outputCollection ifNil: [ ^self ].
 	localizationModule outputCollection atEnd ifFalse:[
 		self processLocalizedKeyframe: localizationModule outputCollection next	
 	] ifTrue:[ 150 milliSeconds wait ]
@@ -191,12 +193,14 @@ PSKeyframeView >> processLocalizedData [
 
 { #category : #processing }
 PSKeyframeView >> processLocalizedKeyframe: kf [
-	|tf tl pos|
+	| tl pos|
 	"kf inspect."
-	tf := self tfFrom:'odom' to: self parent localframe.
+	"tf := self tfFrom:'odom' to: self parent localframe."
+	"trigger event"
+	self announcer announce: (LineSegmentsDataEvent for: localizationModule nnc addedVectors).
 	tl := kf correctPose translate.
 	tl := {tl at:1. tl at:2. 0. 1 }.
-	tl := tf+*tl.
+	tl := tfOff+*tl.
 	pos := self canvasPos: tl.
 	self drawArrowFrom: pos orientation: kf correctPose angle color: self correct_key_frame_color 
 ]
@@ -205,11 +209,12 @@ PSKeyframeView >> processLocalizedKeyframe: kf [
 PSKeyframeView >> processOdomKeyframe:k [
 	|tf tl pos|
 	tf := self tfFrom:'odom' to: self parent localframe.
+	tfOff ifNil: [ tfOff := tf ].
 	tl := k odomPose translate.
 	tl := {tl at:1. tl at:2. 0. 1 }.
 	tl := tf+*tl.
 	pos := self canvasPos: tl.
-	self drawArrowFrom: pos orientation: k odomPose angle color: self odom_keyframe_color
+	self drawArrowFrom: pos orientation: k odomPose angle color: self odom_keyframe_color.
 ]
 
 { #category : #processing }
@@ -222,8 +227,8 @@ PSKeyframeView >> processSamplingData [
 			localizationModule start ].
 		samplingModule allScans atEnd ifFalse:[
 			scan := samplingModule allScans next.
+			self processOdomKeyframe: scan.
 			localizationModule inputCollection nextPut: scan.
-			self processOdomKeyframe: scan
 		] ifTrue:[ 150 milliSeconds wait ]
 	] ifNil: [ 150 milliSeconds wait ]
 ]

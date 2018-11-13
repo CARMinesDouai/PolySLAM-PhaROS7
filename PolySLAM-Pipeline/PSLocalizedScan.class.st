@@ -14,8 +14,8 @@ Class {
 }
 
 { #category : #'instance creation' }
-PSLocalizedScan class >> from: rawScan [
-	^self new from: rawScan 
+PSLocalizedScan class >> from: rawScan  obstacleDist: dist [
+	^self new from: rawScan  obstacleDist: dist
 ]
 
 { #category : #accessing }
@@ -33,13 +33,6 @@ PSLocalizedScan >> correctPose: anObject [
 	correctPose := anObject
 ]
 
-{ #category : #converting }
-PSLocalizedScan >> createPolygonWith: dist simplifierTh: th tf: aVMTf [
-	polygon := VMPolygon new fromPointCloud: cloud tf: aVMTf  obstacleDist: dist.
-	polygon := (VMVectorCollectionSimplifier compute: polygon  inlierThreshold: th) result.
-	^polygon 
-]
-
 { #category : #accessing }
 PSLocalizedScan >> device [
 	^ device
@@ -51,10 +44,12 @@ PSLocalizedScan >> device: anObject [
 ]
 
 { #category : #initialization }
-PSLocalizedScan >> from: rawScan [ 
+PSLocalizedScan >> from: rawScan  obstacleDist: dist [
+	|rot|
+	rot := VMTFMatrix angle: Float pi translation: 0@0.
 	cloud := VMPointCloud2d new fromMsg: rawScan.
-	"polygon := VMPolygon new fromPointCloud: pc tf: nil  obstacleDist: dist.
-	polygon := (VMVectorCollectionSimplifier compute: polygon  inlierThreshold: th) result."
+	polygon := VMPolygon new fromPointCloud: cloud tf: rot  obstacleDist: dist.
+	"polygon := (VMVectorCollectionSimplifier compute: polygon  inlierThreshold: th) result."
 	^self
 
 ]

@@ -2,9 +2,9 @@ Class {
 	#name : #PSKeyframeView,
 	#superclass : #RHModule,
 	#instVars : [
+		'sub',
 		'samplingModule',
 		'localizationModule',
-		'odom_topic',
 		'odom_keyframe_color',
 		'time_scale_milliseconds',
 		'obstacle_dist_m',
@@ -54,6 +54,7 @@ PSKeyframeView >> correct_key_frame_color: anObject [
 PSKeyframeView >> desynchronize [
 	samplingModule stop.
 	localizationModule stop.
+	self proxy controller node unsubscribe: sub.
 	self undraw
 ]
 
@@ -76,14 +77,12 @@ PSKeyframeView >> initialize [
 	super initialize.
 	samplingModule := PSKeyframeSampling new.
 	localizationModule := PSLocalization new.
-	topic := '/scan'.
-	odom_topic := '/odom'.
+	topic := '/scan_odom_sync'.
 	odom_keyframe_color := Color blue.
 	correct_key_frame_color := Color red.
 	time_scale_milliseconds := samplingModule timeScale.
 	angular_delta_deg := 20.
 	linear_delta_m := samplingModule linearDelta.
-	samplingModule  scanTopic: topic; odomTopic: odom_topic.
 	myshapes := OrderedCollection new.
 	running := false.
 	"localization module "
@@ -144,17 +143,6 @@ PSKeyframeView >> odom_keyframe_color [
 { #category : #accessing }
 PSKeyframeView >> odom_keyframe_color: anObject [
 	odom_keyframe_color := anObject
-]
-
-{ #category : #accessing }
-PSKeyframeView >> odom_topic [
-	<galleonProperty: #String>
-	^ odom_topic
-]
-
-{ #category : #accessing }
-PSKeyframeView >> odom_topic: anObject [
-	odom_topic := anObject
 ]
 
 { #category : #accessing }
@@ -227,8 +215,8 @@ PSKeyframeView >> processSamplingData [
 			localizationModule start ].
 		samplingModule allScans atEnd ifFalse:[
 			scan := samplingModule allScans next.
-			self processOdomKeyframe: scan.
 			localizationModule inputCollection nextPut: scan.
+			self processOdomKeyframe: scan.
 		] ifTrue:[ 150 milliSeconds wait ]
 	] ifNil: [ 150 milliSeconds wait ]
 ]
@@ -256,12 +244,14 @@ PSKeyframeView >> simplifier_th: anObject [
 { #category : #initialization }
 PSKeyframeView >> synchronize [
 	samplingModule controller: self proxy controller.
-	samplingModule scanTopic: self topic.
-	samplingModule odomTopic: self odom_topic.
 	"module callback: [:k | self processKeyframe:k ]."
 	samplingModule start.
 	running := true.
 	"process the new keyframe in the background"
+	sub :=  (self proxy controller node buildConnectionFor: self topic)
+		typedAs: 'scan_odom_sync/ScanOdomSync';
+		for:[:msg| samplingModule sample: msg scan odom: msg odom  ];
+		connect.
 	[ self processSamplingData ] forkAt: Processor userBackgroundPriority.
 	[ self processLocalizedData  ] forkAt: Processor userBackgroundPriority
 ]

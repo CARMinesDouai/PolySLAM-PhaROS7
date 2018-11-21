@@ -2,23 +2,23 @@
 I am a compilable FFI object, i have C code in my class side, and compile this code to shared library if neccessary before accessing to this library using my instance side methods
 "
 Class {
-	#name : #CompilableFFIObject,
-	#superclass : #Object,
+	#name : #CompilableFFILibrary,
+	#superclass : #FFILibrary,
 	#category : #'PolySLAM-Pipeline-Helper'
 }
 
 { #category : #options }
-CompilableFFIObject class >> arch [
+CompilableFFILibrary class >> arch [
 	^Smalltalk vm wordSize = 8 ifTrue: [ '-m64' ] ifFalse: [ '-m32' ].
 ]
 
 { #category : #options }
-CompilableFFIObject class >> cflags [
+CompilableFFILibrary class >> cflags [
 	^''
 ]
 
 { #category : #compiling }
-CompilableFFIObject class >> compile [
+CompilableFFILibrary class >> compile [
 	|files ofiles cmd paths st|
 	files := self mksource.
 	ofiles := files collect: [:file|self compileFile: file].
@@ -33,7 +33,7 @@ CompilableFFIObject class >> compile [
 ]
 
 { #category : #compiling }
-CompilableFFIObject class >> compileFile: fp [
+CompilableFFILibrary class >> compileFile: fp [
 	|ofile cmd st|
 	ofile := fp parent / (fp basename, '.o').
 	cmd := 'gcc -c -fpic ', self arch,' ',self cflags, ' "', fp pathString, '" -o "', ofile pathString, '"'.
@@ -44,28 +44,28 @@ CompilableFFIObject class >> compileFile: fp [
 ]
 
 { #category : #options }
-CompilableFFIObject class >> ldflags [
+CompilableFFILibrary class >> ldflags [
 	^''
 ]
 
 { #category : #options }
-CompilableFFIObject class >> libBase [
+CompilableFFILibrary class >> libBase [
 	^Smalltalk vmDirectory asFileReference absolutePath asFileReference 
 	"'./' asFileReference absolutePath"
 ]
 
 { #category : #options }
-CompilableFFIObject class >> libName [
+CompilableFFILibrary class >> libName [
 	^self subclassResponsibility 
 ]
 
 { #category : #options }
-CompilableFFIObject class >> libPath [
+CompilableFFILibrary class >> libPath [
 	^self libBase / (self libName, '.ffi')
 ]
 
 { #category : #compilation }
-CompilableFFIObject class >> mksource [
+CompilableFFILibrary class >> mksource [
 	|file stream i|
 	i := 0.
 	^self sources collect:[:e|
@@ -79,8 +79,19 @@ CompilableFFIObject class >> mksource [
 	]
 ]
 
+{ #category : #'instance creation' }
+CompilableFFILibrary class >> singleton [ 
+	^ self uniqueInstance 
+]
+
 { #category : #options }
-CompilableFFIObject class >> sources [
+CompilableFFILibrary class >> sources [
 	"should return a list of codes"
 	^self subclassResponsibility 
+]
+
+{ #category : #accessing }
+CompilableFFILibrary >> moduleName [
+	self class libPath exists ifFalse:[self class compile].
+	^ self class libPath pathString
 ]

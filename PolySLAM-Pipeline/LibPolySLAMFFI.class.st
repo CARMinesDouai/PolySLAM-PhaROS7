@@ -889,7 +889,7 @@ LibPolySLAMFFI >> kdCreate: dim [
 
 { #category : #libkdtree }
 LibPolySLAMFFI >> kdFree: ptr [
-	^self ffiCall: #(kd_free(struct void *ptr))
+	^self ffiCall: #(void kd_free(void *ptr))
 ]
 
 { #category : #libkdtree }
@@ -905,5 +905,5 @@ LibPolySLAMFFI >> kdInsertLineTo:tree x1:x1 y1:y1 x2:x2 y2:y2 res: res idx: idx 
 
 { #category : #libkdtree }
 LibPolySLAMFFI >> kdNearestLineFrom: tree x: x y:y [
- ^self ffiCall: #( int kd_nearest_line(struct kdtree *tree, double x, double y) )
+ ^self ffiCall: #( int kd_nearest_line(void* tree, double x, double y) )
 ]

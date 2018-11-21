@@ -23,12 +23,14 @@ BaselineOfPolySLAM >> baseline: spec [
 				package: 'PolySLAM-Core' with: [ spec requires: #('PolyMath') ];
 				package: 'PolySLAM-Tests';
 				package: 'PolySLAM-Extra' with: [ spec requires: #('SystemProcess') ];
+				package: 'PolySLAM-Pipeline';
 				package: 'PolySLAM-PhaROS-Examples';
 				"groups"
 					group: 'core' with: #('PolySLAM-Core');
 				group: 'extra' with: #('PolySLAM-Core' 'PolySLAM-Extra');
 				group: 'test' with: #('PolySLAM-Core' 'PolySLAM-Tests');
 				group: 'full' with: #('PolySLAM-Core' 'PolySLAM-Extra' 'PolySLAM-Tests');
+				group: 'pipeline' with: #('PolySLAM-Core' 'PolySLAM-Extra' 'PolySLAM-Tests', 'PolySLAM-Pipeline');
 				group: 'pharos' with: #('core' 'PhaROS');
 				group: 'pharosfull' with: #('pharos' 'PolySLAM-PhaROS-Examples');
 				group: 'default' with: #('full') ]

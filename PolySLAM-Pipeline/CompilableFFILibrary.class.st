@@ -20,6 +20,7 @@ CompilableFFILibrary class >> cflags [
 { #category : #compiling }
 CompilableFFILibrary class >> compile [
 	|files ofiles cmd paths st|
+	self unloadLib.
 	files := self mksource.
 	ofiles := files collect: [:file|self compileFile: file].
 	"create shared object"
@@ -88,6 +89,18 @@ CompilableFFILibrary class >> singleton [
 CompilableFFILibrary class >> sources [
 	"should return a list of codes"
 	^self subclassResponsibility 
+]
+
+{ #category : #compiling }
+CompilableFFILibrary class >> unloadLib [
+	|path|
+	FFIMethodRegistry resetAll.
+	path := LibPolySLAMFFI libPath pathString.
+	(Smalltalk vm listLoadedModules includes: path) ifFalse:[^self].
+	Smalltalk vm unloadModule: path.
+	Transcript show: 'Unload: ', path; cr.
+	Smalltalk garbageCollect.
+
 ]
 
 { #category : #accessing }

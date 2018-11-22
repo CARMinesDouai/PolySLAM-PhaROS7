@@ -294,14 +294,13 @@ int kd_insertline(struct kdtree *tree, double x1, double y1, double x2, double y
 	double dy = y2 - y1;
 	double mag = sqrt(dx * dx + dy * dy);
 	double data[2];
-	dx /= mag;
-	dy /= mag;
 	int size = mag / res;
 	//int size = r_data_.xs.size()/scale;
-	for (int i = 0; i < size; i++)
+	for (int i = 0; i < size ; i++)
 	{
-		data[0] = dx * i * mag / (double)size + x1;
-		data[1] = dy * i * mag / (double)size + y1;
+		data[0] = dx * i * res / (double)mag + x1;
+		data[1] = dy * i * res / (double)mag + y1;
+		//printf("%f; %f\n", data[0], data[1]);
 		kd_insert(tree, data, (void *)idx);
 	}
 	return 1;
@@ -894,7 +893,7 @@ LibPolySLAMFFI >> kdFree: ptr [
 
 { #category : #libkdtree }
 LibPolySLAMFFI >> kdInsertLine:l to: tree resolution: res index: i [
-	^ self kdInsertLineTo: tree x1: l pointA x  y1: l pointA y  x2:l pointB x  y2: l pointB x  res: res  idx:i 
+	^ self kdInsertLineTo: tree x1: l pointA x  y1: l pointA y  x2:l pointB x  y2: l pointB y  res: res  idx:i 
 	
 ]
 

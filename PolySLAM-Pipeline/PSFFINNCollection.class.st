@@ -45,7 +45,7 @@ PSFFINNCollection >> findNearest:aPoint [
 	((id = 0)| (id > collection size)) ifTrue:[ ^nil ].
 	v := collection at: id.
 	cPoint := v closestPoint: aPoint.
-	id inspect.
+	Transcript show: id asString;cr.
 	^VMNNSearchResult object: cPoint  squareDist:(cPoint squaredDistanceTo: aPoint) 
 ]
 

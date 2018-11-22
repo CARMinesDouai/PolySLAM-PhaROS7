@@ -26,8 +26,8 @@ PSLocalization >> initialize [
 	super initialize.
 	running := false.
 	simplifierTh	 :=  0.02 squared.
-	outlierThresholdFalloff := 1.
-	outlierStartThreshold := 0.7.
+	outlierThresholdFalloff := 0.2.
+	outlierStartThreshold := 0.1.
 	maxIterations := 20.
 	outputCollection := PSSharedCollection new.
 ]
@@ -59,7 +59,9 @@ PSLocalization >> outlierStartThreshold [
 
 { #category : #accessing }
 PSLocalization >> outlierStartThreshold: anObject [
-	outlierStartThreshold := anObject
+	outlierStartThreshold := anObject.
+	icp ifNil: [ ^self ].
+	icp outlierStartThreshold: outlierStartThreshold 
 ]
 
 { #category : #accessing }
@@ -142,7 +144,7 @@ PSLocalization >> start [
 		outlierStartThreshold: outlierStartThreshold ;
 		maxIterations: maxIterations ;
 		yourself.
-	nnc := VMNNVectorGrid new.
+	nnc := PSFFINNCollection new.
 	lastScan := nil.
 	inputCollection := SharedQueue new.
 	outputCollection := PSSharedCollection new.
@@ -151,6 +153,7 @@ PSLocalization >> start [
 
 { #category : #accessing }
 PSLocalization >> stop [
+	nnc cleanup.
 	running := false.
 	icp := nil.
 	nnc := nil.

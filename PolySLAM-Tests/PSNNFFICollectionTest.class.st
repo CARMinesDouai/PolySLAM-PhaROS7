@@ -125,7 +125,7 @@ PSNNFFICollectionTest >> testFindNearest3 [
 
 { #category : #tests }
 PSNNFFICollectionTest >> testFindNearestSensorPoint [
-	| pc pc2 pc3 rand polygon grid icp tf sensorPoint sensorPoint3 |
+	| pc pc2 pc3 rand polygon grid icp tf sensorPoint sensorPoint3 pc4|
 	
 	polygon := VMPolygon fromPoints: { 0@0.  4@0.  4@6.  4.4@6.  4.4@0.  10@0.  10@10.  0@10 } withTypes: { 1.  1.  1.  1.  1.  1.  1.  1. }.
 	
@@ -142,7 +142,7 @@ PSNNFFICollectionTest >> testFindNearestSensorPoint [
 	pc3 := pc2 collect: [ :p | p transform: tf ].
 	sensorPoint3 := sensorPoint transform: tf.
 	
-	"{ polygon.  pc asRenderableElement color: Color cyan.  pc3 asRenderableElement color: Color orange. } asRenderableElement inspect."
+	
 	
 	grid := PSFFINNCollection new.
 	grid addAll: polygon.
@@ -150,6 +150,8 @@ PSNNFFICollectionTest >> testFindNearestSensorPoint [
 	icp := VMVectorICP new maxIterations: 30; outlierThresholdFalloff: 0.1.
 	icp compute: pc3 with: grid sensorPoint: sensorPoint3.
 	Transcript show: (icp finalTF * tf) printString; cr.
+	pc4 := pc3 collect:[:p | p transform: icp finalTF].
+	{ polygon.  pc asVMPointCollection asRenderableElement color: Color cyan.  pc3 asVMPointCollection asRenderableElement color: Color orange. pc4 asVMPointCollection asRenderableElement color: Color green } asRenderableElement inspect.
 	self assert: (icp finalTF * tf) angle < 0.002.
 	self assert: ((icp finalTF * tf) translate asPoint dist: 0@0) < 0.02.
 	"icp inspect."

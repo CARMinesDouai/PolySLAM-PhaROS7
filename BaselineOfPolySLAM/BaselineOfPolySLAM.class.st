@@ -24,6 +24,7 @@ BaselineOfPolySLAM >> baseline: spec [
 				package: 'PolySLAM-Tests';
 				package: 'PolySLAM-Extra' with: [ spec requires: #('SystemProcess') ];
 				package: 'PolySLAM-Pipeline';
+				package: 'PolySLAM-Viz';
 				package: 'PolySLAM-PhaROS-Examples';
 				"groups"
 					group: 'core' with: #('PolySLAM-Core');

@@ -14,7 +14,8 @@ Class {
 
 { #category : #accessing }
 PSScanManager >> addScan: localizedScan [
-	(streams at: localizedScan device devName) add: localizedScan
+	(streams at: localizedScan device devName) add: localizedScan.
+	localizedScan id: (streams at: localizedScan device devName) size
 ]
 
 { #category : #accessing }

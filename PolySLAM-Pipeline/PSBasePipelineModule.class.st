@@ -1,6 +1,6 @@
 Class {
 	#name : #PSBasePipelineModule,
-	#superclass : #Object,
+	#superclass : #InterVMChannel,
 	#instVars : [
 		'controller',
 		'lock'

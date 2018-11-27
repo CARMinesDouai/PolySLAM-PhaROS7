@@ -91,11 +91,6 @@ PSKeyframeSampling >> sample: rawScan odom: rawOdom [
 	].
 ]
 
-{ #category : #accessing }
-PSKeyframeSampling >> scanTopic: anObject [
-	scanTopic := anObject
-]
-
 { #category : #process }
 PSKeyframeSampling >> start [
 	queue := SharedQueue new.

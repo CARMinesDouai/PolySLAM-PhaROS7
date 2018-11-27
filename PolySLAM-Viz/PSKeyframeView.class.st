@@ -172,54 +172,34 @@ PSKeyframeView >> outlier_threshold_start: anObject [
 { #category : #processing }
 PSKeyframeView >> processLocalizedData [
 [ running ] whileTrue: [
-	localizationModule outputCollection ifNil: [ ^self ].
-	localizationModule outputCollection atEnd ifFalse:[
-		self processLocalizedKeyframe: localizationModule outputCollection next	
+	localizationModule iostream ifNil: [ ^self ].
+	localizationModule iostream atEnd ifFalse:[
+		self processLocalizedKeyframe: localizationModule iostream next	
 	] ifTrue:[ 150 milliSeconds wait ]
 ]
 ]
 
 { #category : #processing }
-PSKeyframeView >> processLocalizedKeyframe: kf [
-	| tl pos|
+PSKeyframeView >> processLocalizedKeyframe: 	anArray [
+	| tl pos scan|
 	"kf inspect."
 	"tf := self tfFrom:'odom' to: self parent localframe."
 	"trigger event"
-	self announcer announce: (LineSegmentsDataEvent for: localizationModule nnc addedVectors).
-	tl := kf correctPose translate.
+	scan := samplingModule allScans at:( anArray at:1).
+	scan correctPose: (anArray at:2).
+	scan polygon: (anArray at:3).
+	"self announcer announce: (LineSegmentsDataEvent for: localizationModule nnc addedVectors)."
+	tl := scan correctPose translate.
 	tl := {tl at:1. tl at:2. 0. 1 }.
 	"tl := tfOff+*tl."
 	pos := self canvasPos: tl.
-	self drawArrowFrom: pos orientation: kf correctPose angle color: self correct_key_frame_color 
-]
-
-{ #category : #processing }
-PSKeyframeView >> processOdomKeyframe:k [
-	|tf tl pos|
-	"tf := self tfFrom:'odom' to: self parent localframe."
-	tfOff ifNil: [ tfOff := tf ].
-	tl := k odomPose translate.
+	self drawArrowFrom: pos orientation: scan correctPose angle color: self correct_key_frame_color.
+	tl := scan odomPose translate.
 	tl := {tl at:1. tl at:2. 0. 1 }.
 	"tl := tf+*tl."
 	pos := self canvasPos: tl.
-	self drawArrowFrom: pos orientation: k odomPose angle color: self odom_keyframe_color.
-]
-
-{ #category : #processing }
-PSKeyframeView >> processSamplingData [
-|scan|
-[ running ] whileTrue: [ 
-	samplingModule allScans ifNotNil: [
-		localizationModule running ifFalse:[
-			"this happend only once"
-			localizationModule start ].
-		samplingModule allScans atEnd ifFalse:[
-			scan := samplingModule allScans next.
-			localizationModule inputCollection nextPut: scan.
-			self processOdomKeyframe: scan.
-		] ifTrue:[ 150 milliSeconds wait ]
-	] ifNil: [ 150 milliSeconds wait ]
-]
+	self drawArrowFrom: pos orientation: scan odomPose angle color: self odom_keyframe_color.
+	
 ]
 
 { #category : #event }
@@ -243,16 +223,16 @@ PSKeyframeView >> simplifier_th: anObject [
 
 { #category : #initialization }
 PSKeyframeView >> synchronize [
-	samplingModule controller: self proxy controller.
-	"module callback: [:k | self processKeyframe:k ]."
+	"samplingModule controller: self proxy controller."
+	samplingModule callback: [:k | localizationModule addKeyFrame: k ].
 	samplingModule start.
+	localizationModule start.
 	running := true.
 	"process the new keyframe in the background"
 	sub :=  (self proxy controller node buildConnectionFor: self topic)
 		typedAs: 'scan_odom_sync/ScanOdomSync';
 		for:[:msg| samplingModule sample: msg scan odom: msg odom  ];
 		connect.
-	[ self processSamplingData ] forkAt: Processor userBackgroundPriority.
 	[ self processLocalizedData  ] forkAt: Processor userBackgroundPriority
 ]
 

@@ -8,7 +8,8 @@ Class {
 		'device',
 		'cloud',
 		'score',
-		'polygon'
+		'polygon',
+		'id'
 	],
 	#category : #'PolySLAM-Pipeline-Core'
 }
@@ -52,6 +53,16 @@ PSLocalizedScan >> from: rawScan  obstacleDist: dist [
 	"polygon := (VMVectorCollectionSimplifier compute: polygon  inlierThreshold: th) result."
 	^self
 
+]
+
+{ #category : #accessing }
+PSLocalizedScan >> id [
+	^ id
+]
+
+{ #category : #accessing }
+PSLocalizedScan >> id: anObject [
+	id := anObject
 ]
 
 { #category : #accessing }

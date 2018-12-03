@@ -1,6 +1,6 @@
 Class {
 	#name : #PSLocalization,
-	#superclass : #PSBasePipelineModule,
+	#superclass : #InterVMAvatarObject,
 	#instVars : [
 		'running',
 		'outlierThresholdFalloff',
@@ -16,6 +16,7 @@ Class {
 
 { #category : #accessing }
 PSLocalization >> addKeyFrame: scan [
+ 	<master>
 	self iostream ifNil: [ ^self ].
 	self iostream isOpen ifFalse:[^self].
 	Transcript show: 'Key frame added: ', scan id asString;cr.
@@ -44,7 +45,10 @@ PSLocalization >> maxIterations [
 
 { #category : #accessing }
 PSLocalization >> maxIterations: anObject [
-	maxIterations := anObject
+	maxIterations := anObject.
+	icp ifNil: [ ^self ].
+	Transcript show: 'Max iteration is: ', anObject asString;cr.
+	icp maxIterations: maxIterations 
 ]
 
 { #category : #accessing }
@@ -71,7 +75,9 @@ PSLocalization >> outlierThresholdFalloff [
 
 { #category : #accessing }
 PSLocalization >> outlierThresholdFalloff: anObject [
-	outlierThresholdFalloff := anObject
+	outlierThresholdFalloff := anObject.
+	icp ifNil: [ ^self ].
+	icp outlierThresholdFalloff: anObject 
 ]
 
 { #category : #processing }
@@ -86,17 +92,17 @@ PSLocalization >> process [
 	nnc ifNil: [
 		nnc := PSFFINNCollection new.
 	].
-	[[ self iostream isOpen  ] whileTrue: [ 
-		self iostream atEnd ifTrue: [ 50 milliSeconds wait ] ifFalse:[
-			self processNextKeyFrame
-		]
-	]] fork.
+	^ super process
 ]
 
 { #category : #processing }
-PSLocalization >> processNextKeyFrame [
-	|data guess polygon odomPose tf|
-	data := self iostream next.
+PSLocalization >> processData: data [
+	^ self processKeyframe: data
+]
+
+{ #category : #processing }
+PSLocalization >> processKeyframe: data [
+	| guess polygon odomPose tf|
 	data ifNil: [ ^self ].
 	odomPose := data at:2.
 	tf := data at:3.
@@ -147,13 +153,14 @@ PSLocalization >> simplifierTh: anObject [
 
 { #category : #accessing }
 PSLocalization >> start [
-	running := true.
-	lastCorrectPose := nil.
-	self teleport process.
+	<master>
+	"do nothing cause it already running"
+	Transcript show: 'Running localization module'; cr
 ]
 
 { #category : #accessing }
 PSLocalization >> stop [
+	<master>
 	"nnc cleanup."
 	running := false.
 	icp := nil.

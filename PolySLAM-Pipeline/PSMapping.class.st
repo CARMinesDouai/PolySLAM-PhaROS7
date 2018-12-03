@@ -1,5 +1,5 @@
 Class {
 	#name : #PSMapping,
-	#superclass : #PSBasePipelineModule,
+	#superclass : #Object,
 	#category : #'PolySLAM-Pipeline-Core'
 }

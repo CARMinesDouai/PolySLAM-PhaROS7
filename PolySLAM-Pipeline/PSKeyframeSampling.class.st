@@ -1,6 +1,6 @@
 Class {
 	#name : #PSKeyframeSampling,
-	#superclass : #PSBasePipelineModule,
+	#superclass : #Object,
 	#instVars : [
 		'callback',
 		'timeScale',

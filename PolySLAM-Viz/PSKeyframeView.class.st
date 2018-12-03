@@ -76,7 +76,7 @@ PSKeyframeView >> drawArrowFrom: pos orientation: o color: aColor [
 PSKeyframeView >> initialize [
 	super initialize.
 	samplingModule := PSKeyframeSampling new.
-	localizationModule := PSLocalization new.
+	localizationModule := PSLocalization headfull.
 	topic := '/scan_odom_sync'.
 	odom_keyframe_color := Color blue.
 	correct_key_frame_color := Color red.
@@ -86,11 +86,11 @@ PSKeyframeView >> initialize [
 	myshapes := OrderedCollection new.
 	running := false.
 	"localization module "
-	outlier_threshold_falloff := localizationModule outlierThresholdFalloff.
-	outlier_threshold_start := localizationModule outlierStartThreshold.
+	outlier_threshold_falloff := 0.2.
+	outlier_threshold_start := 0.1.
 	obstacle_dist_m := samplingModule obstacleDist.
-	simplifier_th := localizationModule simplifierTh.
-	max_iteration := localizationModule maxIterations 
+	simplifier_th := 0.02 squared.
+	max_iteration := 20
 ]
 
 { #category : #accessing }
@@ -226,7 +226,7 @@ PSKeyframeView >> synchronize [
 	"samplingModule controller: self proxy controller."
 	samplingModule callback: [:k | localizationModule addKeyFrame: k ].
 	samplingModule start.
-	localizationModule start.
+	"localizationModule start."
 	running := true.
 	"process the new keyframe in the background"
 	sub :=  (self proxy controller node buildConnectionFor: self topic)

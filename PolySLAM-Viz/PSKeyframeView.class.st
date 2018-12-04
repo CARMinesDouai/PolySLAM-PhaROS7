@@ -5,6 +5,7 @@ Class {
 		'sub',
 		'samplingModule',
 		'localizationModule',
+		'mappingModule',
 		'odom_keyframe_color',
 		'time_scale_milliseconds',
 		'obstacle_dist_m',
@@ -54,6 +55,7 @@ PSKeyframeView >> correct_key_frame_color: anObject [
 PSKeyframeView >> desynchronize [
 	samplingModule stop.
 	localizationModule stop.
+	mappingModule stop.
 	self proxy controller node unsubscribe: sub.
 	self undraw
 ]
@@ -76,7 +78,8 @@ PSKeyframeView >> drawArrowFrom: pos orientation: o color: aColor [
 PSKeyframeView >> initialize [
 	super initialize.
 	samplingModule := PSKeyframeSampling new.
-	localizationModule := PSLocalization headfull.
+	localizationModule := PSLocalization new.
+	mappingModule := PSMapping new.
 	topic := '/scan_odom_sync'.
 	odom_keyframe_color := Color blue.
 	correct_key_frame_color := Color red.
@@ -188,7 +191,8 @@ PSKeyframeView >> processLocalizedKeyframe: 	anArray [
 	scan := samplingModule allScans at:( anArray at:1).
 	scan correctPose: (anArray at:2).
 	scan polygon: (anArray at:3).
-	"self announcer announce: (LineSegmentsDataEvent for: localizationModule nnc addedVectors)."
+	mappingModule addPolygon: scan polygon.
+	self announcer announce: (MapAvailableEvent for: mappingModule map).
 	tl := scan correctPose translate.
 	tl := {tl at:1. tl at:2. 0. 1 }.
 	"tl := tfOff+*tl."
@@ -226,6 +230,7 @@ PSKeyframeView >> synchronize [
 	"samplingModule controller: self proxy controller."
 	samplingModule callback: [:k | localizationModule addKeyFrame: k ].
 	samplingModule start.
+	mappingModule start.
 	"localizationModule start."
 	running := true.
 	"process the new keyframe in the background"

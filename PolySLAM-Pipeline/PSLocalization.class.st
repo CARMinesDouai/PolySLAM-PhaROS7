@@ -1,6 +1,6 @@
 Class {
 	#name : #PSLocalization,
-	#superclass : #InterVMAvatarObject,
+	#superclass : #InterVMChannel,
 	#instVars : [
 		'running',
 		'outlierThresholdFalloff',

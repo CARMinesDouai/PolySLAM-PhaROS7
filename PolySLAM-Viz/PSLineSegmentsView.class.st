@@ -4,7 +4,7 @@ Class {
 	#instVars : [
 		'lines',
 		'line_color',
-		'lastIndex'
+		'queue'
 	],
 	#category : #'PolySLAM-Viz'
 }
@@ -25,7 +25,6 @@ PSLineSegmentsView >> desynchronize [
 		self cleanup.
 		self canvas signalUpdate
 	].
-	lastIndex := 0.
 	self announcer unsubscribe: self
 ]
 
@@ -33,16 +32,12 @@ PSLineSegmentsView >> desynchronize [
 PSLineSegmentsView >> draw: aCollection [
 	|collection shape|
 	collection := OrderedCollection new.
-	lastIndex := lastIndex + 1.
-	lastIndex > aCollection size ifTrue: [ ^self ].
-	lastIndex to:aCollection size do: [ :i|
-		|line|
-		line := aCollection at:i.
+	collection := aCollection select: [ :e| e isObstacle  ] thenCollect: [ :line|
 		shape := TRLineShape new from: (self canvasPos: line pointA) to: (self canvasPos: line pointB).
-		shape color: (self line_color ). "queryColor: line"
-		collection add:shape.
+		shape color: (self line_color ).
+		shape
 	].
-	lastIndex := aCollection size.
+
 	self lock critical: [ 
 		"self cleanup."
 		collection do:[:e| lines add:e.self canvas addShape: e].
@@ -55,7 +50,7 @@ PSLineSegmentsView >> initialize [
 	super initialize.
 	lines := OrderedCollection new.
 	line_color := Color red.
-	lastIndex := 0
+	queue := SharedQueue new.
 ]
 
 { #category : #accessing }

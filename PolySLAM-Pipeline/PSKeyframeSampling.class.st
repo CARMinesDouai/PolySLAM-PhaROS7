@@ -1,6 +1,6 @@
 Class {
 	#name : #PSKeyframeSampling,
-	#superclass : #PSBasePipelineModule,
+	#superclass : #Object,
 	#instVars : [
 		'callback',
 		'timeScale',
@@ -89,11 +89,6 @@ PSKeyframeSampling >> sample: rawScan odom: rawOdom [
 		dev ifNil: [ dev := localizedScan device  ].
 		callback ifNotNil: [ callback value: localizedScan ]
 	].
-]
-
-{ #category : #accessing }
-PSKeyframeSampling >> scanTopic: anObject [
-	scanTopic := anObject
 ]
 
 { #category : #process }

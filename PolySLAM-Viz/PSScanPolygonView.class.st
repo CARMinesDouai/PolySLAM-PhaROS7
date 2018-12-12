@@ -36,9 +36,9 @@ PSScanPolygonView >> desynchronize [
 
 { #category : #drawing }
 PSScanPolygonView >> drawKeyframe: polygon [
-	|tf collection pointA pointB shape|
+	| collection pointA pointB shape|
 	collection := OrderedCollection new.
-	tf := self tfFromParent.
+	self tfFromParentDo:[:tf|
 	polygon do: [ :line|
 		pointA := { 0 - line pointA x. 0 - line pointA y. 0 .1 }.
 		pointB := { 0 - line pointB x. 0 - line pointB y. 0 .1 }.
@@ -53,7 +53,7 @@ PSScanPolygonView >> drawKeyframe: polygon [
 		segs := collection.
 		segs do:[:p | self canvas addShape: p].
 		self canvas signalUpdate.
-	].
+	]].
 ]
 
 { #category : #drawing }

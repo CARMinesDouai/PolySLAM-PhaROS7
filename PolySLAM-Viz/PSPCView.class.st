@@ -42,7 +42,7 @@ PSPCView >> draw: msg [
 	count := 0.
 	points := OrderedCollection new.
 	pc := VMPointCloud2d new fromMsg: msg.
-	tf := self tfFromParent.
+	"tf := self tfFromParent."
 	"tf at:1 at: 4 put:0."
 	"tf at:2 at:4 put:0. "
 	pc points do:[:p |

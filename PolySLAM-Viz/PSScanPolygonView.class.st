@@ -10,7 +10,9 @@ Class {
 		'frontier_color',
 		'simplifier_threshold',
 		'segs',
-		'max_range'
+		'max_range',
+		'running',
+		'queue'
 	],
 	#category : #'PolySLAM-Viz'
 }
@@ -31,29 +33,41 @@ PSScanPolygonView >> cleanup [
 { #category : #sync }
 PSScanPolygonView >> desynchronize [
 	self proxy controller node unsubscribe: sub.
-	self undraw 
+	self undraw.
+	running := false
 ]
 
 { #category : #drawing }
-PSScanPolygonView >> drawKeyframe: polygon [
-	| collection pointA pointB shape|
+PSScanPolygonView >> drawKeyframe: arr [
+	| collection pointA pointB shape polygon tf|
 	collection := OrderedCollection new.
-	self tfFromParentDo:[:tf|
-	polygon do: [ :line|
-		pointA := { 0 - line pointA x. 0 - line pointA y. 0 .1 }.
-		pointB := { 0 - line pointB x. 0 - line pointB y. 0 .1 }.
-		pointA := tf+*pointA.
-		pointB := tf+*pointB.
-		shape := TRLineShape new from: (self canvasPos: pointA) to: (self canvasPos: pointB).
-		shape color: (self queryColor: line).
-		collection add:shape.
-	].
-	self lock critical:[
-		self cleanup.
-		segs := collection.
-		segs do:[:p | self canvas addShape: p].
-		self canvas signalUpdate.
-	]].
+	tf := arr at:1.
+	polygon := arr at:2.
+			polygon do: [ :line|
+				pointA := { 0 - line pointA x. 0 - line pointA y. 0 .1 }.
+				pointB := { 0 - line pointB x. 0 - line pointB y. 0 .1 }.
+				pointA := tf+*pointA.
+				pointB := tf+*pointB.
+				shape := TRLineShape new from: (self canvasPos: pointA) to: (self canvasPos: pointB).
+				shape color: (self queryColor: line).
+				collection add:shape.
+			].
+			self lock critical:[
+				self cleanup.
+				segs := collection.
+				segs do:[:p | self canvas addShape: p].
+				self canvas signalUpdate.
+		].
+	"500 milliSeconds wait."
+]
+
+{ #category : #drawing }
+PSScanPolygonView >> drawing [
+	[ running ] whileTrue:[
+		queue atEnd
+			ifTrue: [ 10 milliSeconds wait ]
+			ifFalse: [ self drawKeyframe: queue next ]
+	]
 ]
 
 { #category : #drawing }
@@ -77,14 +91,16 @@ PSScanPolygonView >> initialize [
 	super initialize.
 	topic := '/scan'.
 	localframe := 'laser'.
-	update_after_n_messages := 10.
+	update_after_n_messages := 25.
 	obstacle_color := Color red.
 	frontier_color := Color green.
 	obstacle_distance := 0.4.
 	simplifier_threshold := 0.02 squared.
 	segs := OrderedCollection new.
 	max_range := 10.
-	count := 0
+	count := 0.
+	queue := SharedQueue new.
+	running := false
 ]
 
 { #category : #accessing }
@@ -135,7 +151,8 @@ PSScanPolygonView >> process: msg [
 	pc := VMPointCloud2d new fromMsg: msg.
 	polygon := VMPolygon new fromPointCloud: pc tf: nil  obstacleDist: self obstacle_distance.
 	polygon := (VMVectorCollectionSimplifier compute: polygon  inlierThreshold: self simplifier_threshold) result.
-	self drawKeyframe: polygon.
+	self tfFromParentDo:[:tf|
+		tf ifNotNil: [ queue nextPut: {tf. polygon} ]]
 	"self desynchronize."
 ]
 
@@ -163,7 +180,9 @@ PSScanPolygonView >> synchronize [
 	sub :=  (self proxy controller node buildConnectionFor: self topic)
 		typedAs: 'sensor_msgs/LaserScan';
 		for:[:msg| self process: msg ];
-		connect
+		connect.
+	running := true.
+	[ self drawing ] forkAt: Processor userBackgroundPriority 
 ]
 
 { #category : #sync }

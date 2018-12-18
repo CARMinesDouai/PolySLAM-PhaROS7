@@ -143,6 +143,19 @@ VMGridStorage >> insert: aPolygon [
 	self add: aPolygon
 ]
 
+{ #category : #'as yet unclassified' }
+VMGridStorage >> simplify [
+	self doWithIndex: [ :cell :x :y |
+		Transcript show: self class name;
+			show: ' simplify x=';
+			show: x printString;
+			show: ' y=';
+			show: y printString;
+			cr.
+			
+		cell simplify. ].
+]
+
 { #category : #splitting }
 VMGridStorage >> splitHorizontalPolygonCollection: aCollection xIndex: xIndex [
 	"splits a collection of polygons (received from #splitVerticalPolygon:) into polygons that align with the grid.

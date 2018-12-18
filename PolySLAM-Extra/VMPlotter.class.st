@@ -141,12 +141,9 @@ VMPlotter >> initialize [
 	
 	plotInitStream
 		nextPutAll: 'set encoding utf8';
-		nextPutAll: crlf;
-		nextPutAll: 'set lable size 14';
 		nextPutAll: crlf.
-	
-
-
+		"nextPutAll: 'set lable size 14';
+		nextPutAll: crlf."
 ]
 
 { #category : #accessing }
@@ -381,9 +378,10 @@ VMPlotter >> plotFilledPolygon: polygon extra: extraString [
 
 { #category : #'plotting - execution' }
 VMPlotter >> plotFinish: process [
-	process stdinStream close.
-	process waitForExit.
-	process closeAndCleanStreams.
+	process stdinStream nextPutAll: 'exit', crlf.
+"	process stdinStream close."
+	"process waitForExit.
+	process closeAndCleanStreams."
 
 ]
 
@@ -524,17 +522,13 @@ VMPlotter >> plotHeadlessArrowCollection: aCollection [
 { #category : #'plotting - execution' }
 VMPlotter >> plotInit [
 	| cmd process |
-	cmd := 'gnuplot -p'.
+	cmd := {'/usr/bin/gnuplot'. '-p'}.
 	
-	process := OSSUnixSubprocess new
-		shellCommand: cmd;
-		redirectStdin;
-		redirectStdout;
-		run.
+	process := SystemProcess  new.
+	process redirectStdin.
+	process onFinishDo: [ process cleanup  ].
+	process shellCommand: cmd.
 	
-"	process stdinStream
-		nextPutAll: plotInitStream contents.
-"	
 	^process
 ]
 

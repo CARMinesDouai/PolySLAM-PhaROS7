@@ -26,7 +26,7 @@ Class {
 		'triggerAngle',
 		'lastCheckSize'
 	],
-	#category : #'PolySLAM-PhaROS-Examples-Helper'
+	#category : #'PolySLAM-Pipeline-Helper'
 }
 
 { #category : #'as yet unclassified' }

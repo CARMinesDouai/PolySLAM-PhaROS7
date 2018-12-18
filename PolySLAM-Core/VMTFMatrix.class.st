@@ -17,7 +17,7 @@ class-side methods:
 "
 Class {
 	#name : #VMTFMatrix,
-	#superclass : #DhbMatrix,
+	#superclass : #PMMatrix,
 	#category : #'PolySLAM-Core-LinAlgebra'
 }
 
@@ -216,7 +216,7 @@ VMTFMatrix >> transformPoint: aPoint [
 
 { #category : #accessing }
 VMTFMatrix >> translate [
-	^(DhbVector new: 2)
+	^(PMVector new: 2)
 		at: 1 put: (self at: 1 at: 3);
 		at: 2 put: (self at: 2 at: 3);
 		yourself.

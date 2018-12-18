@@ -9,7 +9,7 @@ VMEigen2dTests >> testMatrix [
 	| m eigen error epsilon |
 	
 	epsilon := 0.000001.
-	m := DhbMatrix rows: 2 columns: 2.
+	m := PMMatrix rows: 2 columns: 2.
 	m at: 1 at: 1 put: 1.
 	m at: 1 at: 2 put: 2.
 	m at: 2 at: 1 put: 0.
@@ -46,7 +46,7 @@ VMEigen2dTests >> testMatrix2 [
 	
 	epsilon := 0.000001.
 	phi := Float pi * 0.25.
-	m := DhbMatrix rows: 2 columns: 2.
+	m := PMMatrix rows: 2 columns: 2.
 	m at: 1 at: 1 put: (phi cos).
 	m at: 1 at: 2 put: (phi sin negated).
 	m at: 2 at: 1 put: (phi sin).
@@ -83,7 +83,7 @@ VMEigen2dTests >> testMatrix3 [
 	| m eigen error epsilon |
 	
 	epsilon := 0.0001.
-	m := DhbMatrix rows: 2 columns: 2.
+	m := PMMatrix rows: 2 columns: 2.
 	m at: 1 at: 1 put: 5.
 	m at: 1 at: 2 put: 2.
 	m at: 2 at: 1 put: 2.

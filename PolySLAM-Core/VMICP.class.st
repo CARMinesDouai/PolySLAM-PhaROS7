@@ -57,7 +57,7 @@ VMICP >> computeMatH: centroids [
 		].
 	].
 	
-	matH := DhbMatrix rows: { { a. b. }. { c. d. } }.
+	matH := PMMatrix rows: { { a. b. }. { c. d. } }.
 	^ matH
 
 ]

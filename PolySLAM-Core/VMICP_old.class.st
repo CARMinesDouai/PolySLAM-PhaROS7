@@ -257,7 +257,7 @@ VMICP_old >> computeStepTransform: aMatchCollection [
 		].
 	].
 	
-	matH := DhbMatrix rows: { { a. b. }. { c. d. } }.
+	matH := PMMatrix rows: { { a. b. }. { c. d. } }.
 	
 	"svd := VMSVD2d matrix: (matH transpose)."
 	svd := VMSVD2d matrix: (matH).
@@ -275,8 +275,8 @@ VMICP_old >> computeStepTransform: aMatchCollection [
 		stepMatR at: 2 at: 2 put: ((stepMatR at: 2 at: 2) negated).
 	].
 	
-	vecA := DhbVector new: 2.
-	vecB := DhbVector new: 2.
+	vecA := PMVector new: 2.
+	vecB := PMVector new: 2.
 	
 	vecA at: 1 put: (centA x).
 	vecA at: 2 put: (centA y).

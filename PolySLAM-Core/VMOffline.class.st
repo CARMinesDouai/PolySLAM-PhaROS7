@@ -389,7 +389,7 @@ VMOffline >> initialize [
 
 	icpTF := OrderedCollection new.
 	icpScoreHistory := OrderedCollection new.
-	nnc := VMNNVectorGrid new.
+	nnc := PSFFINNCollection new.
 	nncSizeHistory := OrderedCollection new.
 	map := VMBSPLeaf new.
 	noiseGen := nil.

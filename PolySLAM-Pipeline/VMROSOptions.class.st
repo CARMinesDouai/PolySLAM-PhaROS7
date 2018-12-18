@@ -10,7 +10,7 @@ Public API and Key Messages
 Class {
 	#name : #VMROSOptions,
 	#superclass : #Object,
-	#category : #'PolySLAM-PhaROS-Examples-Helper'
+	#category : #'PolySLAM-Pipeline-Helper'
 }
 
 { #category : #'as yet unclassified' }

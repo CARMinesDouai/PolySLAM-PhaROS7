@@ -55,7 +55,7 @@ Class {
 		'cellCountX',
 		'numObjects'
 	],
-	#category : #'PolySLAM-PhaROS-Examples-Helper'
+	#category : #'PolySLAM-Pipeline-Helper'
 }
 
 { #category : #accessing }

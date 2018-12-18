@@ -1,6 +1,9 @@
+"
+this class is created for compatible purpose only
+"
 Class {
 	#name : #VMVector2d,
-	#superclass : #DhbVector,
+	#superclass : #PMVector,
 	#type : #variable,
 	#category : #'PolySLAM-Core-LinAlgebra'
 }

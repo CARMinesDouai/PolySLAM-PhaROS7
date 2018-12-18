@@ -37,6 +37,11 @@ VMPointCloud2d >> asRenderableElement [
 	^ VMPointCloud2dRenderer model: self
 ]
 
+{ #category : #converting }
+VMPointCloud2d >> asVMPointCollection [
+	^ points
+]
+
 { #category : #accessing }
 VMPointCloud2d >> bounds [
 	| rect |

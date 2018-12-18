@@ -54,9 +54,9 @@ VMSVD2d >> matrix: aDhbMatrix [
 	
 	"u := DhbMatrix rows: { {cosPhi. sinPhi negated * sign}. {sinPhi. cosPhi * sign} }.
 	s := DhbMatrix rows: { {s1. 0}.  {0. s2 abs} }."
-	u := DhbMatrix rows: { {cosPhi. sinPhi negated}. {sinPhi. cosPhi} }.
-	s := DhbMatrix rows: { {s1. 0}.  {0. s2} }.
-	v := (DhbMatrix rows: { {cosTheta. sinTheta negated}.  {sinTheta. cosTheta} }) transpose.
+	u := PMMatrix rows: { {cosPhi. sinPhi negated}. {sinPhi. cosPhi} }.
+	s := PMMatrix rows: { {s1. 0}.  {0. s2} }.
+	v := (PMMatrix rows: { {cosTheta. sinTheta negated}.  {sinTheta. cosTheta} }) transpose.
 
 ]
 

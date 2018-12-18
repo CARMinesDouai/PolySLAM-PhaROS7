@@ -55,6 +55,10 @@ Instance Variables
 			same as 'tempLineSegs', but for line segments that lie on the plane. line segments here are
 			also associated with either left or right side of the plane, depending on which side will incooporate them
 			into the new polygons.
+	tempPolygon:		<VMPolygon>
+			this is the polygon that is currently being reconstructed by #createPolygons and #createPolygonsFromCollection... .
+			if the method was interrupted (e.g. by rising a signal), tempPolygon may contain an incomplete polygon (i.e.
+			missing one or more line segments and therefor being not closed).
 
 
     Implementation Points
@@ -68,6 +72,7 @@ Class {
 		'polygons',
 		'tempLineSegs',
 		'tempOnLine',
+		'tempPolygon',
 		'splitPoints',
 		'borderLineSegs',
 		'sortByX',
@@ -76,10 +81,22 @@ Class {
 	#category : #'PolySLAM-Core-Data Structures: Polygons'
 }
 
+{ #category : #'public - splitting' }
+VMPolygonSplitter class >> split: aPolygon onPlane: aPlane [
+	^ self new
+		split: aPolygon onPlane: aPlane
+]
+
 { #category : #'private - accessing (for sunit tests)' }
 VMPolygonSplitter >> borderLineSegs [
 	"contains (sector) line segments that were newly created and lie on the hyperplane"
 	^borderLineSegs
+]
+
+{ #category : #'public - accessing' }
+VMPolygonSplitter >> bounds [
+	originalPolygon ifNil: [ ^ nil ].
+	^ originalPolygon bounds
 ]
 
 { #category : #'private - computing' }
@@ -116,43 +133,125 @@ VMPolygonSplitter >> createPolygons [
 
 { #category : #'private - computing' }
 VMPolygonSplitter >> createPolygonsFromCollection: sourceCollection withBorders: borderSet to: targetCollection [
-	| polygon sourceSet |
+	| sourceSet |
 	"1 halt."
 	sourceSet := sourceCollection asSet. "creates a copy"
 	
 	[ sourceSet isEmpty ] whileFalse: [
-		polygon := originalPolygon species new.
+		tempPolygon := originalPolygon species new.
 		
 		"start with a random line segment from the set"
-		polygon add: (sourceSet remove: sourceSet anyOne).
+		tempPolygon add: (sourceSet remove: sourceSet anyOne).
 		
 		"find a line segment that connects to the previous line segment"
-		[ polygon first pointA = polygon last pointB] whileFalse: [
+		[ tempPolygon first pointA = tempPolygon last pointB] whileFalse: [
 			"look in leftSet first, then in border set. if none is found we rise an error"
-			sourceSet detect: [ :element | element pointA = polygon last pointB ]
-				ifFound: [ :element | polygon add: (sourceSet remove: element) ]
+			sourceSet detect: [ :element | element pointA = tempPolygon last pointB ]
+				ifFound: [ :element | tempPolygon add: (sourceSet remove: element) ]
 				ifNone: [
-					borderSet detect: [ :element | element pointA = polygon last pointB ]
-						ifFound: [ :element | polygon add: (borderSet remove: element) ]
+					borderSet detect: [ :element | element pointA = tempPolygon last pointB ]
+						ifFound: [ :element | tempPolygon add: (borderSet remove: element) ]
 						ifNone: [
-							self error: 'failed to find a matching line segment to create a closed polygon'.
+							"1 halt."
+							self error: self class printString, ' - failed to find a matching line segment to create a closed polygon'.
 				]
 			]
 		
 		].
 		
 		"polygons must have the same orientation as originalPolygon, which should always be clock-wise"
-		(polygon size > 2)
+		(tempPolygon size > 2)
 			ifTrue: [
 				"polygon isCW ifFalse: [ Transcript show: 'warning: polygon is oriented CCW'; cr. ]."
+				targetCollection add: tempPolygon.
 			] ifFalse: [
-				Transcript show: 'warning: polygon size=', polygon size printString; cr.
+				Transcript show: 'warning: polygon size='; show: tempPolygon size printString; cr.
 				1 halt.
 			].
 		
-		targetCollection add: polygon.
 	]
 
+]
+
+{ #category : #'GT Inspector' }
+VMPolygonSplitter >> gtInspectorDebugRenderedIn: composite [
+	<gtInspectorPresentationOrder: 51>
+	
+	(composite morph)
+		title: 'Viewer (L/R vectors)';
+		morph: [
+			| renderObjects bounds |
+			renderObjects := OrderedCollection new.
+			bounds := 0@0 extent: 1@1.
+			originalPolygon
+				ifNotNil: [
+					renderObjects add: (originalPolygon asRenderableElement lineWidth: 0.01).
+					bounds := (originalPolygon bounds).
+					bounds := bounds expandBy: (bounds width max: bounds height) * 0.3].
+			plane
+				ifNotNil: [
+					renderObjects add: ((plane asVMLineSegment fitIntoRectangle: bounds) asRenderableElement) ].
+			tempLineSegs left do: [ :v |
+				renderObjects add: (v asRenderableElement color: (Color fromString: '#FFB700'); lineWidth: 0.02). ].
+			tempLineSegs right do: [ :v |
+				renderObjects add: (v asRenderableElement color: (Color fromString: '#9BFF00'); lineWidth: 0.02). ].
+			
+			(VMViewer openWindowlessOn: renderObjects)
+				autozoom.
+		].
+]
+
+{ #category : #'GT Inspector' }
+VMPolygonSplitter >> gtInspectorRenderedIn: composite [
+	<gtInspectorPresentationOrder: 50>
+	
+	(composite morph)
+		title: 'Viewer (org.)';
+		morph: [
+			| renderObjects bounds |
+			renderObjects := OrderedCollection new.
+			bounds := 0@0 extent: 1@1.
+			originalPolygon
+				ifNotNil: [
+					renderObjects add: originalPolygon asRenderableElement.
+					bounds := (originalPolygon bounds).
+					bounds := bounds expandBy: (bounds width max: bounds height) * 0.3].
+			plane
+				ifNotNil: [
+					renderObjects add: ((plane asVMLineSegment fitIntoRectangle: bounds) asRenderableElement) ].
+			
+			(VMViewer openWindowlessOn: renderObjects)
+				autozoom.
+		].
+]
+
+{ #category : #'GT Inspector' }
+VMPolygonSplitter >> gtInspectorTempPolygonRenderedIn: composite [
+	<gtInspectorPresentationOrder: 52>
+	
+	(composite morph)
+		title: 'Viewer (temp polygon)';
+		morph: [
+			| renderObjects bounds |
+			renderObjects := OrderedCollection new.
+			bounds := 0@0 extent: 1@1.
+			originalPolygon
+				ifNotNil: [
+					renderObjects add: (originalPolygon asRenderableElement lineWidth: 0.01).
+					bounds := (originalPolygon bounds).
+					bounds := bounds expandBy: (bounds width max: bounds height) * 0.3].
+			plane
+				ifNotNil: [
+					renderObjects add: ((plane asVMLineSegment fitIntoRectangle: bounds) asRenderableElement lineWidth: 0.02) ].
+			tempPolygon do: [ :v | v asRenderableElement color: (Color fromString: '#00AFFF'). ].
+"			tempLineSegs left do: [ :v |
+				renderObjects add: (v asRenderableElement color: (Color fromString: '#FFB700'); lineWidth: 0.02). ].
+			tempLineSegs right do: [ :v |
+				renderObjects add: (v asRenderableElement color: (Color fromString: '#9BFF00'); lineWidth: 0.02). ]."
+			
+			(VMViewer openWindowlessOn: renderObjects)
+				autozoom.
+		].
 ]
 
 { #category : #'private - computing' }
@@ -228,8 +327,18 @@ VMPolygonSplitter >> onLinePlacementOld: lineSeg [
 ]
 
 { #category : #'private - accessing (for sunit tests)' }
+VMPolygonSplitter >> originalPolygon [
+	^ originalPolygon
+]
+
+{ #category : #'private - accessing (for sunit tests)' }
 VMPolygonSplitter >> originalPolygon: aPolygon [
 	originalPolygon := aPolygon
+]
+
+{ #category : #'public - accessing' }
+VMPolygonSplitter >> plane [
+	^ plane
 ]
 
 { #category : #'private - accessing (for sunit tests)' }
@@ -326,6 +435,7 @@ VMPolygonSplitter >> sortSplitPoints [
 { #category : #'public - splitting' }
 VMPolygonSplitter >> split: aPolygon onPlane: aPlane [
 	
+	(aPlane pointA = aPlane pointB) ifTrue: [ "1 halt." self error: self class printString, ' - invalid plane (zero length)'. ].
 	self originalPolygon: aPolygon.
 	self plane: aPlane.
 	self reset.

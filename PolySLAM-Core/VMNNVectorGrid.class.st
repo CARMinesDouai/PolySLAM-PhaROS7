@@ -88,9 +88,13 @@ VMNNVectorGrid >> at: x at: y [
 
 { #category : #accessing }
 VMNNVectorGrid >> at: x at: y put: aVector [
-	((xCollection at: x+xOffset ifAbsent: [ self error: 'invalid x index'. ])
+	| row |
+	row := xCollection at: x+xOffset ifAbsent: [ self error: 'invalid x index'. ].
+	row checkBoundary: y.
+	(row at: y) add: aVector.
+	"((xCollection at: x+xOffset ifAbsent: [ self error: 'invalid x index'. ])
 		at: y)
-			add: aVector.
+			add: aVector."
 ]
 
 { #category : #accessing }
@@ -350,6 +354,11 @@ VMNNVectorGrid >> initialize [
 	xCollection := OrderedCollection new.
 	addedVectors := OrderedCollection new.
 	xOffset := 0.
+]
+
+{ #category : #adding }
+VMNNVectorGrid >> insert: aPolygon [
+	^ self add: aPolygon
 ]
 
 { #category : #helper }

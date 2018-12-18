@@ -51,6 +51,11 @@ VMPolygonCollection >> gtInspectorRenderedIn: composite [
 		].
 ]
 
+{ #category : #inserting }
+VMPolygonCollection >> insert: p [
+	1 halt
+]
+
 { #category : #testing }
 VMPolygonCollection >> polygonIsIsolated: aPolygon [
 	"a polygon is considered isolated if all line segments are frontiers"

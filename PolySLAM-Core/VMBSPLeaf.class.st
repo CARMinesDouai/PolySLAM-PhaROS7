@@ -43,9 +43,11 @@ VMBSPLeaf >> addToDB: aSector [
 
 { #category : #converting }
 VMBSPLeaf >> asCollectionOfSectors [
-	sector ifNil: [ ^{} ].
+	sector ifNil: [ ^VMPolygonCollection new: 0 ].
 	
-	^{ sector }
+	^ (VMPolygonCollection new: 1)
+		add: sector;
+		yourself
 
 ]
 
@@ -64,6 +66,19 @@ VMBSPLeaf >> changeLineSeg: lineSeg type: type inPolygon: polygon [
 	
 	polygon at: (polygon indexOf: lineSeg) put: newLineSeg.
 
+]
+
+{ #category : #'private - create hyperplane' }
+VMBSPLeaf >> checkCollinear: aVMLineSegment [
+	"returns true if any of the parent elements' hyperplane is collinear with the provided
+	line segment, false otherwise"
+	| node |
+	node := parent.
+	[ node isNil] whileFalse: [
+		(aVMLineSegment isCollinearWith: node hyperplane) ifTrue: [ ^true ].
+		node := node parent.
+	].
+	^ false
 ]
 
 { #category : #private }
@@ -114,7 +129,7 @@ VMBSPLeaf >> checkVector: v type: type [
 
 { #category : #'as yet unclassified' }
 VMBSPLeaf >> checkVectorType: aSector [
-	Transcript show: 'checkVectorType'; cr.
+	"Transcript show: 'checkVectorType'; cr."
 	aSector do: [ :vec |
 		(vectorDB findSimilarVectors: vec) do: [ :v |
 			v == vec ifFalse: [
@@ -169,8 +184,7 @@ VMBSPLeaf >> createPlane: aPolygon [
 	minDeltaStartIndex := 1.
 	
 	collection do: [ :vectorIndex |
-		| vector rightVector |
-		vector := VMLineSegment from: (aPolygon at: vectorIndex) pointA to: (aPolygon atWrap: vectorIndex+1) pointB.
+		| rightVector |
 		rightVector := cw
 			ifTrue: [ (aPolygon at: vectorIndex) rotateCW ]
 			ifFalse: [ (aPolygon at: vectorIndex) rotateCCW ].
@@ -194,38 +208,42 @@ VMBSPLeaf >> createPlane: aPolygon [
 ]
 
 { #category : #'private - create hyperplane' }
-VMBSPLeaf >> createPlaneAlt: aSectorOrPolygon ifNoneDo: aBlock [
-	"similar to createPlaneForPolygon:ifNoneDo:, but with reversed roles
-	of sector and aSectorOrPolygon"
+VMBSPLeaf >> createPlaneForPolygon: aSectorOrPolygon ifNoneDo: aBlock [
+	"returns a new hyperplane, or nil if no hyperplane was found (which should only
+	happen if 'aSectorOrPolygon' lies inside the current sector."
+	
+	^ self createPlaneForPolygon: aSectorOrPolygon polygon: sector ifNoneDo: [
+		^ self createPlaneForPolygon: sector polygon: aSectorOrPolygon ifNoneDo: aBlock ]
+
+]
+
+{ #category : #'private - create hyperplane' }
+VMBSPLeaf >> createPlaneForPolygon: polygonA polygon: polygonB ifNoneDo: aBlock [
+	"returns a new hyperplane, or nil if no hyperplane was found (which should only
+	happen if polygonA lies inside polygonB."
 	| counter hyperplane cw |
 	
-	"Transcript show: 'createPlaneAlt'; cr."
-	self assert: sector isNotNil.
+	self assert: polygonB isNotNil.
 	
 	counter := 0.
 	hyperplane := nil.
-	cw := aSectorOrPolygon isCW.
+	cw := polygonB isCW.
 	
-	"try every line segment of this leaf's sector as a hyperplane"
-	aSectorOrPolygon do: [ :plane |
+	"try every line segment of polygonB as a hyperplane"
+	sector do: [ :plane |
 		| localCounter |
+		"iterate over all line segments of the new sector and count how many line segment start
+		points are on the wrong side (i.e. are not on the same side as polygonB)"
 		((parent isNil) or: [(plane isCollinearWith: parent hyperplane) not]) ifTrue: [
 			localCounter := 0.
 			cw ifTrue: [
-				sector do: [ :lineSeg |
+				polygonA do: [ :lineSeg |
 					plane fuzzyPoint: lineSeg pointA
-						ifOnLeftSideDo: [ localCounter := localCounter + 1. ]
-						ifOnRightSideDo: []
-						ifOnLineDo: [].
-				].
+						ifOnLeftSideDo: [ localCounter := localCounter + 1. ]. ].
 			] ifFalse: [
-				sector do: [ :lineSeg |
+				polygonA do: [ :lineSeg |
 					plane fuzzyPoint: lineSeg pointA
-						ifOnLeftSideDo: []
-							ifOnRightSideDo: [ localCounter := localCounter + 1. ]
-						ifOnLineDo: [].
-				].
-			].
+						ifOnRightSideDo: [ localCounter := localCounter + 1. ]. ]. ].
 			localCounter > counter ifTrue: [
 				hyperplane := plane.
 				counter := localCounter
@@ -233,77 +251,25 @@ VMBSPLeaf >> createPlaneAlt: aSectorOrPolygon ifNoneDo: aBlock [
 		].
 	].
 	
-	hyperplane ifNil: [
-		aBlock value
+	hyperplane ifNil: [ "this case happens when polygonA is inside polygonB"
+		self ifOnlySectors: polygonA do: [ aBlock value. ^ nil ].
+		polygonA do: [ :v |
+			(v isObstacle and: [(self checkCollinear: v) not]) ifTrue: [
+				^ v ] ].
+			"self ifNotTouching: aSectorOrPolygon do: [
+			Transcript show: 'skipping polygon=', aSectorOrPolygon printString; cr.
+			aBlock value.
+			^niln]."
 	].
 	
-	^hyperplane
+	^ hyperplane
 
 ]
 
 { #category : #enumerating }
-VMBSPLeaf >> createPlaneForPolygon: aSectorOrPolygon ifNoneDo: aBlock [
-	"returns a new hyperplane, or nil if no hyperplane was found (which should only
-	happen if 'aSectorOrPolygon' lies inside the current sector."
-	| counter hyperplane cw |
-	
-	"Transcript show: 'createPlaneForPolygon'; cr."
-	self assert: sector isNotNil.
-	
-	counter := 0.
-	hyperplane := nil.
-	cw := sector isCW.
-	
-	"try every line segment of this leaf's sector as a hyperplane"
-	sector do: [ :plane |
-		| localCounter |
-		"iterate over all line segments of the new sector and count how many line
-		segment start points are on the wrong side (i.e. are not on the same side
-		as the leaf's sector)"
-		((parent isNil) or: [(plane isCollinearWith: parent hyperplane) not]) ifTrue: [
-			localCounter := 0.
-			cw ifTrue: [
-				aSectorOrPolygon do: [ :lineSeg |
-					plane fuzzyPoint: lineSeg pointA
-						ifOnLeftSideDo: [ localCounter := localCounter + 1. ]
-						ifOnRightSideDo: []
-						ifOnLineDo: [].
-				].
-			] ifFalse: [
-				aSectorOrPolygon do: [ :lineSeg |
-					plane fuzzyPoint: lineSeg pointA
-						ifOnLeftSideDo: []
-						ifOnRightSideDo: [ localCounter := localCounter + 1. ]
-						ifOnLineDo: [].
-				].
-			].
-			localCounter > counter ifTrue: [
-				hyperplane := plane.
-				counter := localCounter
-			].
-		].
-	].
-	
-	hyperplane ifNil: [
-		"this case happens when aSectorOrPolygon is inside the current sector"
-		
-		self ifOnlySectors: aSectorOrPolygon do: [ aBlock value. ^ nil ].
-		"
-		self ifNotTouching: aSectorOrPolygon do: [
-			Transcript show: 'skipping polygon=', aSectorOrPolygon printString; cr.
-			aBlock value.
-			^nil
-		].
-		"
-		
-		^ self createPlaneAlt: aSectorOrPolygon ifNoneDo: [
-			"1 halt."
-			aBlock value
-		].
-	].
-	
-	^hyperplane
-
+VMBSPLeaf >> do: aBlock [
+	sector ifNil: [ ^self ].
+	aBlock value: sector.
 ]
 
 { #category : #accessing }
@@ -337,6 +303,30 @@ VMBSPLeaf >> findSectorByLineSeg: aLineSeg [
 VMBSPLeaf >> findSectorsByLineSeg: aLineSeg [
 	sector ifNil: [ ^{} ].
 	^{sector}
+
+]
+
+{ #category : #'inserting polygons' }
+VMBSPLeaf >> growAndInsert: aPolygon [
+	| newPlane newNode |
+	
+	newPlane := self createPlane: aPolygon.
+	newNode := self class nodeClass parent: parent plane: newPlane level: level maxDepth: maxDepth.
+	
+	sector ifNotNil: [ newNode insert: sector. ].
+	newNode insert: aPolygon.
+	
+	^newNode.
+	
+]
+
+{ #category : #'as yet unclassified' }
+VMBSPLeaf >> handDownVectors: aPolygon. [
+	"all obstacles and sectors are 'inserted' into the sector, so that dominant vector types can
+	merge into the sector. for example, a frontier in the sector polygon can overlap with an obstacle
+	from 'aPolygon', causing the frontier to turn into an obstacle. partial overlaps result into
+	vectors being split into smaller vectors before type merging."
+	aPolygon select: [ :v | v isObstacle or: [v isSector]] thenDo: [ :v | self insertVector: v ].
 
 ]
 
@@ -376,42 +366,34 @@ VMBSPLeaf >> initialize [
 	sector := nil.
 ]
 
-{ #category : #operations }
+{ #category : #'inserting polygons' }
 VMBSPLeaf >> insert: aPolygon [
 	| newPlane newNode |
 	
 	"check if we have reached the maximum depth of the tree."
-	(level > self maxDepth) ifTrue: [
-		Transcript
-			show: 'skipping (level=', level printString, '):'; cr;
-			show: '  polygon=', aPolygon printString; cr.
-		sector ifNil: [
-			self sector: aPolygon.
-		].
-		^ self
-	].
+	(level > self maxDepth) ifTrue: [ ^ self onMaxDepthInsert: aPolygon. ].
 
-	sector ifNil: [
-		aPolygon
-			ifConvexDo: [ :ignored |
-				self sector: aPolygon.
-				^self.
-			] otherwiseDo: [ :ignored :lineSeg |
-				"newPlane := lineSeg"
-				newPlane := self createPlane: aPolygon.
-			].
-	] ifNotNil: [
-		newPlane := self createPlaneForPolygon: aPolygon
-			ifNoneDo: [
-				self checkLineTypes: aPolygon.
-				"self logCr: self class name, ' insert status: skipping'.
-				self logCr: '  polygon=', aPolygon printString.
-				self logCr: '  sector=', sector printString."
-				self checkVectorType: aPolygon.
-				^self.
-			].
-	].
+	sector ifNil: [ ^ self onEmptyInsert: aPolygon ].
 	
+	newPlane := self createPlaneForPolygon: aPolygon
+		ifNoneDo: [
+			self checkLineTypes: aPolygon.
+			"self logCr: self class name, ' insert status: skipping'.
+			self logCr: '  polygon=', aPolygon printString.
+			self logCr: '  sector=', sector printString."
+			self checkVectorType: aPolygon.
+			^self.
+		].
+	newPlane ifNil: [
+		"this case should only happen if aPolygon lies completly inside sector. they still may share borders, hence the
+		call to #handDownVectors:"
+		"self handDownVectors: aPolygon."
+		"Transcript show: 'BSPLeaf: skipping insert - invalid plane (nil)'; cr.
+		{sector asRenderableElement autoColor: false; color: Color orange. aPolygon.} asRenderableElement.
+		1 halt."
+		^ self].
+	
+	"Transcript show: 'selected hyperplane=', newPlane printString; cr."
 	parent ifNotNil: [
 		(newPlane isCollinearWith: parent hyperplane)
 			"this is an old error that should no longer occure"
@@ -426,9 +408,87 @@ VMBSPLeaf >> insert: aPolygon [
 
 ]
 
+{ #category : #'inserting vectors' }
+VMBSPLeaf >> insertVector: aVector [
+	"this method inserts 'aVector' into the sector. this is used to add obstacles to the current sector when the polygon
+	that should be inserted into this leaf does not contribute anything shape-wise, but still contributes in terms of
+	line types (e.g. obstacles that currently might be frontiers or sectors."
+	| chains startNormal endNormal intersectionA intersectionB tempPointA tempPointB |
+	
+	sector ifNil: [ ^ self ].
+	startNormal := aVector pointA vectorTo: (aVector pointA + aVector normal).
+	endNormal := aVector pointB vectorTo: (aVector pointB + aVector normal).
+	
+	chains := VMVectorChainCollection
+		fromTypelessVectorCollection: (sector select: [ :v |
+			(v isCollinearWith: aVector) and: [(v direction normalized + aVector direction normalized) length > 1.0] ]).
+	chains do: [ :chain |
+		chain do: [ :v |
+			intersectionA := VMIntersection intersectLine: v withLine: startNormal.
+			intersectionB := VMIntersection intersectLine: v withLine: endNormal.
+			tempPointA := v pointA + (v direction * intersectionA factorT).
+			tempPointB := v pointA + (v direction * intersectionB factorT).
+			
+			intersectionA factorT <= 0.0001
+				ifTrue: [ "start point of v lies within aVector"
+					intersectionB factorT >= 0.9999
+						ifTrue: [ "v lies completely in 'aVector'"
+							sector replaceVector: v with: (v copy type: (aVector type useDominantType: v type); yourself). ]
+						ifFalse: [ "v starts inside of 'aVector', but the end sticks out"
+							sector replaceVector: v withCollection: {
+								v pointA vectorTo: tempPointB type: (aVector type useDominantType: v type).
+								tempPointB vectorTo: v pointB type: v type.
+								}. ]. ]
+				ifFalse: [ "start point of v is outside of aVector"
+					intersectionA factorT < 0.9999 ifTrue: [ "v and aVector do intersect"
+						intersectionB factorT >= 0.9999
+							ifTrue: [ "endPoint of v lies inside of aVector"
+								sector replaceVector: v withCollection: {
+									v pointA vectorTo: tempPointA type: v type.
+									tempPointA vectorTo: v pointB type: (aVector type useDominantType: v type). }. ]
+							ifFalse: [ "aVector lies inside of v"
+								sector replaceVector: v withCollection: {
+									v pointA vectorTo: tempPointA type: v type.
+									tempPointA vectorTo: tempPointB type: (aVector type useDominantType: v type).
+									tempPointB vectorTo: v pointB type: v type }. ]. ]. ]. ]. ].
+
+
+]
+
 { #category : #testing }
 VMBSPLeaf >> isLeaf [
 	^true
+]
+
+{ #category : #'inserting polygons' }
+VMBSPLeaf >> onEmptyInsert: aPolygon [
+	"called when the leaf is empty"
+	
+	aPolygon
+		ifConvex: [ :ignored |
+			self sector: aPolygon.
+			^ self
+		] otherwise: [ :ignored :lineSeg |
+			^ self growAndInsert: aPolygon
+		].
+
+]
+
+{ #category : #'inserting polygons' }
+VMBSPLeaf >> onMaxDepthInsert: aPolygon [
+	"called when we have reached the maximum depth. we still allow to insert, but we
+	no longer grow. consequently, if the leaf already contains a polygon, we ignore
+	any further attempts to insert another polygon"
+	
+	sector ifNotNil: [
+		Transcript
+			show: 'skipping (level='; show: level printString; show: '):'; cr;
+			show: '  polygon='; show: aPolygon printString; cr.
+		^ self ].
+
+	"note that we don't check if the polygon is convex and just insert it"
+	self sector: aPolygon.
+
 ]
 
 { #category : #accessing }
@@ -480,4 +540,10 @@ VMBSPLeaf >> sectorNeighbors2 [
 	
 	^ neighbors
 
+]
+
+{ #category : #testing }
+VMBSPLeaf >> size [
+	sector ifNil: [ ^ 0 ].
+	^ 1
 ]

@@ -112,6 +112,24 @@ VMPlotObject >> plotFilledPolygon: polygon extra: extraString [
 
 ]
 
+{ #category : #'plotting - helper - text' }
+VMPlotObject >> plotLabel: aString at: aPoint [
+	^ self plotLabel: aString at: aPoint color: Color black
+]
+
+{ #category : #'plotting - helper - text' }
+VMPlotObject >> plotLabel: aString at: aPoint color: aColor [
+	| labelCounter |
+	labelCounter := plotter labelCounter.
+	self initStream
+		nextPutAll: 'set label front';
+		crlf;
+		nextPutAll: 'set label ', labelCounter printString, ' at ', aPoint x printString, ', ', aPoint y printString;
+		crlf;
+		nextPutAll: 'set label ', labelCounter printString, ' ''', aString ,''' tc rgb ''#', aColor asHexString, '''';
+		crlf.
+]
+
 { #category : #plotting }
 VMPlotObject >> plotParent: parentPlotter [
 	plotter := parentPlotter.
@@ -142,6 +160,47 @@ VMPlotObject >> plotPointCollection: aCollection extra: extraString [
 			nextPutAll: aPoint y printString;
 			crlf.	].
 	
+	self dataStream nextPutAll: 'e'; crlf.
+
+]
+
+{ #category : #'plotting - helper - vectors & vector collections' }
+VMPlotObject >> plotTypedVectorCollection: aCollection [ 
+	^ self plotTypedVectorCollection: aCollection colorCollection: {Color black. Color green. Color fromString: '#FFCAA3'}
+	
+]
+
+{ #category : #'plotting - helper - vectors & vector collections' }
+VMPlotObject >> plotTypedVectorCollection: aCollection colorCollection: colorArray [
+	colorArray doWithIndex: [ :color :index |
+		self initStream
+			nextPutAll: 'set style arrow ';
+			nextPutAll: index printString;
+			nextPutAll: ' lt 1 lc rgb ''#';
+			nextPutAll: (colorArray at: index) asHexString;
+			nextPutAll: ''' lw ';
+			nextPutAll: lineWidth printString;
+			crlf.
+	].
+	
+	self cmdStream
+		nextPutAll: (self cmdStream isEmpty ifTrue: [ 'plot ''-'' '] ifFalse: [ ', ''-'' ' ]);
+		nextPutAll: 'using 1:2:3:4:5 with vectors arrowstyle var';
+		nextPutAll: ' t '''''.
+
+	aCollection doWithIndex: [ :vec :index |
+		self dataStream
+			nextPutAll: vec pointA x printString;
+			nextPutAll: ' ';
+			nextPutAll: vec pointA y printString;
+			nextPutAll: ' ';
+			nextPutAll: vec direction x printString;
+			nextPutAll: ' ';
+			nextPutAll: vec direction y printString;
+			nextPutAll: ' ';
+			nextPutAll: vec type asInteger printString;
+			crlf.
+	].
 	self dataStream nextPutAll: 'e'; crlf.
 
 ]

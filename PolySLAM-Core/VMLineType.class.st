@@ -28,53 +28,79 @@ VMLineType class >> fromInteger: anObject [
 	^VMLineTypeFrontier new.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #comparing }
 VMLineType >> = aType [
 	"line types are considered equal if the are instances of the same class"
 	^ aType asLineSegmentType class = self class
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #converting }
 VMLineType >> asInteger [
 	^0
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #converting }
 VMLineType >> asLineSegmentType [
 	^self
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #converting }
+VMLineType >> asLineType [
+	^ self asLineSegmentType
+]
+
+{ #category : #'type hierarchy' }
+VMLineType >> dominatesOverFrontier [
+	^ false
+]
+
+{ #category : #'type hierarchy' }
+VMLineType >> dominatesOverObstacle [
+	^ false
+]
+
+{ #category : #'type hierarchy' }
+VMLineType >> dominatesOverSector [
+	^ false
+]
+
+{ #category : #comparing }
 VMLineType >> hash [
 	^self asInteger hash
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 VMLineType >> ifMergeableTypeDo: aBlock otherwiseDo: otherBlock [
 	self subclassResponsibility.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 VMLineType >> isFrontier [
 	^false
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 VMLineType >> isObstacle [
 	^false
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 VMLineType >> isSector [
 	^false
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #printing }
 VMLineType >> printString [
 	^ self asInteger printString, ' asLineSegmentType'
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #rendering }
 VMLineType >> renderColor [
 	^Color blue.
+]
+
+{ #category : #'type hierarchy' }
+VMLineType >> useDominantType: aLineType [
+	^ aLineType asLineSegmentType
+
 ]

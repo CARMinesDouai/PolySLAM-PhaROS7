@@ -33,6 +33,20 @@ Class {
 }
 
 { #category : #'helper methods' }
+VMGraphBuilder >> addGraph: graph fromTree: aBspTree [
+	
+	self traverseTree: aBspTree.
+	self buildHyperplaneDictionary.
+	self connectSectors: graph.
+	
+	"workaround to add missing edges"
+	graph checkEdges.
+	
+	^ graph
+
+]
+
+{ #category : #'helper methods' }
 VMGraphBuilder >> buildGraph: aBspTree [
 	| graph |
 	
@@ -48,12 +62,25 @@ VMGraphBuilder >> buildGraph: aBspTree [
 ]
 
 { #category : #'helper methods' }
+VMGraphBuilder >> buildGraphFromGrid: aGridStorage [
+	| graph |
+	
+	self loopOverGrid: aGridStorage.
+		
+	"workaround to add missing edges"
+	graph checkEdges.
+	
+	^ graph
+
+]
+
+{ #category : #'helper methods' }
 VMGraphBuilder >> buildHyperplaneDictionary [
 	"all VMSectorVector instances in 'storage' are grouped into a dictionary
 	by their hyperplane."
 	storage do: [ :svObj |
 		svObj hyperplane
-			ifNil: [ Transcript show: 'invalid hyperplane (nil) - ignored'; cr. ]
+			ifNil: [ "Transcript show: 'invalid hyperplane (nil) - ignored'; cr." ]
 			ifNotNil: [
 				hyperplaneDict at: svObj hyperplane
 					ifPresent: [ :oc | oc add: svObj ]
@@ -86,13 +113,92 @@ VMGraphBuilder >> connectSectors [
 ]
 
 { #category : #'helper methods' }
+VMGraphBuilder >> connectSectors: graph [
+	| neighbors node |
+	hyperplaneDict do: [ :svCollection |
+		svCollection do: [ :svObj |
+			graph add: (VMGraphNode sector: svObj polygon). ].
+		svCollection do: [:svObj |
+			node := graph atSector: (svObj polygon).
+			neighbors := self findMatches: svObj.
+			neighbors do: [ :n |
+				node neighbors add: (graph atSector: (n polygon)).
+			].
+		].
+	].
+	^ graph
+
+]
+
+{ #category : #'helper methods' }
+VMGraphBuilder >> debugLoopOverCells: aGridStorage [
+	| graph builder timeSpent |
+	graph := VMGraph new.
+	aGridStorage doWithIndex: [ :cell :x :y |
+		builder := VMGraphBuilder new.
+		Transcript show: 'processing cell '; show: x printString; show: '@'; show: y printString; cr.
+		"self northCollectionGrid: aGridStorage atX: x atY: y graph: graph.
+		self eastCollectionGrid: aGridStorage atX: x atY: y graph: graph."
+		timeSpent := [ builder addGraph: VMGraph new fromTree: cell root ] timeToRun.
+		Transcript show: '  time spent='; show: timeSpent totalSeconds asFloat asTimeString; cr.
+	].
+	^ graph
+	
+
+]
+
+{ #category : #'helper methods' }
+VMGraphBuilder >> debugLoopOverGrid: aGridStorage [
+	| graph builder |
+	graph := VMGraph new.
+	builder := VMGraphBuilder new.
+	aGridStorage doWithIndex: [ :cell :x :y |
+		Transcript show: 'processing cell '; show: x printString; show: '@'; show: y printString; cr.
+		self northCollectionGrid: aGridStorage atX: x atY: y graph: graph.
+		self eastCollectionGrid: aGridStorage atX: x atY: y graph: graph.
+		"builder addGraph: graph fromTree: cell root."
+	].
+	^ graph
+	
+
+]
+
+{ #category : #'helper methods' }
+VMGraphBuilder >> eastCollectionGrid: grid atX: x atY: y graph: graph [
+	| leftCell rightCell leftCollection rightCollection node |
+	rightCell := grid at: x+1 at: y.
+	leftCell := grid at: x at: y.
+	leftCell ifNil: [ ^self ].
+	rightCell ifNil: [ ^self ].
+	
+	leftCollection := leftCell collectBordersX: (x + 1) * (grid gridSize).
+	rightCollection := rightCell collectBordersX: (x + 1) * (grid gridSize).
+	
+	leftCollection do: [ :leftSectorVector |
+		rightCollection do: [ :rightSectorVector |
+			(self vector: leftSectorVector vector byXOverlapsWith: rightSectorVector vector) ifTrue: [
+				graph add: (VMGraphNode sector: leftSectorVector polygon).
+				graph add: (VMGraphNode sector: rightSectorVector polygon).
+				node := graph atSector: (leftSectorVector polygon).
+				node neighbors add: (graph atSector: (rightSectorVector polygon)).
+				node := graph atSector: (rightSectorVector polygon).
+				node neighbors add: (graph atSector: (leftSectorVector polygon)).
+			].
+		].
+	].
+
+]
+
+{ #category : #'helper methods' }
 VMGraphBuilder >> findHyperplaneVector: aVector node: aNode [
 	"starts at aNode and checks if the node's hyperplane is collinear with aVector.
 	if not, the search is continued recursively upwards until the root has been reached
 	or a matching hyperplane is found. if no matching hyperplane is found, then nil is
 	returned."
 	(aNode hyperplane isCollinearWith: aVector) ifTrue: [ ^aNode hyperplane ].
-	aNode parent ifNil: [ Transcript show: 'reached root without finding a matching hyperplane for ', aVector printString; cr. ^nil ].
+	aNode parent ifNil: [
+		"Transcript show: 'reached root without finding a matching hyperplane for ', aVector printString; cr."
+		^nil ].
 	^ self findHyperplaneVector: aVector node: aNode parent
 	
 ]
@@ -109,28 +215,24 @@ VMGraphBuilder >> findMatches: aSectorVector [
 
 { #category : #'helper methods' }
 VMGraphBuilder >> findMatchesByX: aSectorVector [
-	| sign candidates a b |
+	| sign candidates |
 	
 	sign := aSectorVector vector direction x sign.
-	a := aSectorVector vector pointA x.
-	b := aSectorVector vector pointB x.
 	
 	candidates := (hyperplaneDict at: aSectorVector hyperplane)
 		select: [ :svObj | svObj vector direction x sign ~= sign ].
 	
 	^ candidates select: [ :svObj |
-		self vector: aSectorVector vector byXOverlapsWith: svObj vector
+		self vector: aSectorVector vector byXOverlapsWith: svObj vector.
 	].
 	
 ]
 
 { #category : #'helper methods' }
 VMGraphBuilder >> findMatchesByY: aSectorVector [
-	| sign candidates a b |
+	| sign candidates |
 	
 	sign := aSectorVector vector direction y sign.
-	a := aSectorVector vector pointA y.
-	b := aSectorVector vector pointB y.
 	
 	candidates := (hyperplaneDict at: aSectorVector hyperplane)
 		select: [ :svObj | svObj vector direction y sign ~= sign ].
@@ -149,6 +251,48 @@ VMGraphBuilder >> initialize [
 	hyperplaneDict := Dictionary new.
 ]
 
+{ #category : #'helper methods' }
+VMGraphBuilder >> loopOverGrid: aGridStorage [
+	| graph builder |
+	graph := VMGraph new.
+	aGridStorage doWithIndex: [ :cell :x :y |
+		builder := VMGraphBuilder new.
+		Transcript show: 'processing cell '; show: x printString; show: '@'; show: y printString; cr.
+		self northCollectionGrid: aGridStorage atX: x atY: y graph: graph.
+		self eastCollectionGrid: aGridStorage atX: x atY: y graph: graph.
+		builder addGraph: graph fromTree: cell root.
+	].
+	^ graph
+	
+
+]
+
+{ #category : #'helper methods' }
+VMGraphBuilder >> northCollectionGrid: grid atX: x atY: y graph: graph [
+	| topCell botCell botCollection topCollection node |
+	topCell := grid at: x at: y+1.
+	botCell := grid at: x at: y.
+	topCell ifNil: [ ^self ].
+	botCell ifNil: [ ^self ].
+	
+	topCollection := topCell collectBordersY: (y + 1) * (grid gridSize).
+	botCollection := botCell collectBordersY: (y + 1) * (grid gridSize).
+	
+	topCollection do: [ :topSectorVector |
+		botCollection do: [ :botSectorVector |
+			(self vector: topSectorVector vector byXOverlapsWith: botSectorVector vector) ifTrue: [
+				graph add: (VMGraphNode sector: topSectorVector polygon).
+				graph add: (VMGraphNode sector: botSectorVector polygon).
+				node := graph atSector: (topSectorVector polygon).
+				node neighbors add: (graph atSector: (botSectorVector polygon)).
+				node := graph atSector: (botSectorVector polygon).
+				node neighbors add: (graph atSector: (topSectorVector polygon)).
+			].
+		].
+	].
+
+]
+
 { #category : #accessing }
 VMGraphBuilder >> storage [
 	^ storage
@@ -165,9 +309,10 @@ VMGraphBuilder >> storeVector: aVector node: aNode [
 VMGraphBuilder >> traverseTree: aNode [
 	aNode isLeaf
 		ifTrue: [
-			aNode sector ifNil: [ ^self ].
-			aNode sector do: [ :v | v isSector
-				ifTrue: [ self storeVector: v node: aNode]. ]
+			aNode parent ifNotNil: [
+				aNode sector ifNil: [ ^self ].
+				aNode sector do: [ :v | v isSector
+					ifTrue: [ self storeVector: v node: aNode]. ]. ]
 		] ifFalse: [
 			self traverseTree: aNode leftChild.
 			self traverseTree: aNode rightChild.

@@ -1,6 +1,18 @@
 Extension { #name : #Rectangle }
 
 { #category : #'*PolySLAM-Core' }
+Rectangle >> asLineCollection [
+	"creates four lines (not line segments) that are collinear with the four sides of the rectangle.
+	returns them in an OrderedCollection instance."
+	^(OrderedCollection new: 4)
+		add: (VMLine pointA: self bottomLeft pointB: self bottomRight);
+		add: (VMLine pointA: self bottomRight pointB: self topRight);
+		add: (VMLine pointA: self topRight pointB: self topLeft);
+		add: (VMLine pointA: self topLeft pointB: self bottomLeft);
+		yourself
+]
+
+{ #category : #'*PolySLAM-Core' }
 Rectangle >> asVMRectangle [
 	^(VMRectangle origin: self origin corner: self corner).
 ]

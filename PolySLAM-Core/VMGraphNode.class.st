@@ -25,6 +25,11 @@ VMGraphNode >> = aNode [
 ]
 
 { #category : #converting }
+VMGraphNode >> asPoint [
+	^ self center asPoint
+]
+
+{ #category : #converting }
 VMGraphNode >> asPolygon [
 	^ self sector
 ]

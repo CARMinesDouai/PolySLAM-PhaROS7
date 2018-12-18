@@ -4,27 +4,39 @@ Class {
 	#category : #'PolySLAM-Core-Data Structures: Points & Lines'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #converting }
 VMLineTypeSector >> asInteger [
 	^3.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'type hierarchy' }
+VMLineTypeSector >> dominatesOverFrontier [
+	^ true
+]
+
+{ #category : #testing }
 VMLineTypeSector >> isFrontier [
 	^false.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 VMLineTypeSector >> isObstacle [
 	^false.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 VMLineTypeSector >> isSector [
 	^true
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #rendering }
 VMLineTypeSector >> renderColor [
 	^Color r: 0.8 g: 0.8 b: 0.2
+]
+
+{ #category : #'type hierarchy' }
+VMLineTypeSector >> useDominantType: aLineType [
+	aLineType dominatesOverSector
+		ifTrue: [ ^aLineType ].
+	^ self
 ]

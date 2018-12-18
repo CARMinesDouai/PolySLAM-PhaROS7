@@ -163,8 +163,8 @@ VMPolygonTest >> testIfConvexDoOtherwiseDo [
 		polygon := VMPolygon new fromPoints: points.
 		
 		polygon
-			ifConvexDo: [ :p | result := true ]
-			otherwiseDo: [ :p :l | result := false ].
+			ifConvex: [ :p | result := true ]
+			otherwise: [ :p :l | result := false ].
 		
 		self assert: result equals: (expectedResults at: index).
 	].

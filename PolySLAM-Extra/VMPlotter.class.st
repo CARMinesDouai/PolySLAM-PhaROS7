@@ -150,6 +150,13 @@ VMPlotter >> initialize [
 ]
 
 { #category : #accessing }
+VMPlotter >> labelCounter [
+	"provides an unused label counter"
+	labelCounter := labelCounter + 1.
+	^ labelCounter
+]
+
+{ #category : #accessing }
 VMPlotter >> lineWidth: aNumber [
 	lineWidth := aNumber.
 ]
@@ -253,6 +260,30 @@ VMPlotter >> plotArrowCollection: aCollection [
 			nextPutAll: vec direction y printString;
 			nextPutAll: ' ';
 			nextPutAll: vec type asInteger printString;
+			nextPutAll: crlf.
+	].
+	plotData nextPutAll: 'e'; crlf.
+
+]
+
+{ #category : #'plotting - helper - vectors & vector collections' }
+VMPlotter >> plotArrowCollection: aCollection extra: extraString [
+	
+	plotCmd
+		nextPutAll: (plotCmd isEmpty ifTrue: [ 'plot ''-'' '] ifFalse: [ ', ''-'' ' ]);
+		nextPutAll: 'using 1:2:3:4 with vectors';
+		nextPutAll: ' t '''' ';
+		nextPutAll: extraString.
+
+	aCollection doWithIndex: [ :vec :index |
+		plotData
+			nextPutAll: vec pointA x printString;
+			nextPutAll: ' ';
+			nextPutAll: vec pointA y printString;
+			nextPutAll: ' ';
+			nextPutAll: vec direction x printString;
+			nextPutAll: ' ';
+			nextPutAll: vec direction y printString;
 			nextPutAll: crlf.
 	].
 	plotData nextPutAll: 'e'; crlf.

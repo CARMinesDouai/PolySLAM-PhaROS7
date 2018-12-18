@@ -6,7 +6,9 @@ Class {
 	#superclass : #VMPlotObject,
 	#instVars : [
 		'nodeColor',
-		'edgeColor'
+		'edgeColor',
+		'nodeSize',
+		'edgeSize'
 	],
 	#category : #'PolySLAM-Extra-Gnuplot plotter'
 }
@@ -29,6 +31,7 @@ VMPlotGraph >> initialize [
 	
 	nodeColor := Color r: 1 g: 0 b: 1.
 	edgeColor := Color r: 1 g: 0.5 b: 1.
+	nodeSize := 0.75.
 
 ]
 
@@ -40,6 +43,17 @@ VMPlotGraph >> nodeColor [
 { #category : #accessing }
 VMPlotGraph >> nodeColor: aColor [
 	nodeColor := aColor
+]
+
+{ #category : #accessing }
+VMPlotGraph >> nodeSize [
+	^ nodeSize
+]
+
+{ #category : #accessing }
+VMPlotGraph >> nodeSize: aFloat [
+	nodeSize := aFloat.
+
 ]
 
 { #category : #plotting }
@@ -62,6 +76,7 @@ VMPlotGraph >> plotParent: parent [
 	points := model collect: [ :node |
 		node center ].
 	
-	self plotPointCollection: points extra: 'pointtype 7 pointsize 0.75 lc rgb ''#', nodeColor asHexString, ''' notitle'
+	self plotPointCollection: points
+		extra: 'pointtype 7 pointsize ', nodeSize printString ,' lc rgb ''#', nodeColor asHexString, ''' notitle'
 
 ]

@@ -1,7 +1,7 @@
 Class {
 	#name : #VMBSPLeafTests,
 	#superclass : #VMTests,
-	#category : #'PolySLAM-Tests'
+	#category : #'PolySLAM-Core-SLAM - Maps'
 }
 
 { #category : #tests }
@@ -218,6 +218,41 @@ VMBSPLeafTests >> testInsert3 [
 		tree := tree insert: p.
 	].
 	tree inspect.
+
+]
+
+{ #category : #tests }
+VMBSPLeafTests >> testInsertVector [
+	| polygon leaf |
+	
+	polygon := VMPolygon fromPoints: { 0@0.  4@0. 4@4. 0@4. } withTypes: { 2. 2. 2. 2. }.
+	leaf := VMBSPLeaf new sector: polygon copy; yourself.
+	leaf insertVector: (1@0 vectorTo: 3@0 type: 1).
+	self assert: leaf sector size equals: 6.
+	leaf insertVector: (4@2 vectorTo: 4@2.5 type: 1).
+	self assert: leaf sector size equals: 8.
+	self assert: leaf sector isClosed.
+	
+	polygon := VMPolygon fromPoints: { 0@0.  4@0. 4@4. 0@4. } withTypes: { 2. 2. 2. 2. }.
+	leaf := VMBSPLeaf new sector: polygon copy; yourself.
+	leaf insertVector: (0@0 vectorTo: 2@0 type: 1).
+	self assert: leaf sector size equals: 5.
+	self assert: leaf sector isClosed.
+	self assert: leaf sector containsZeroLengthVectors not.
+	
+	polygon := VMPolygon fromPoints: { 0@0.  4@0. 4@4. 0@4. } withTypes: { 2. 2. 2. 2. }.
+	leaf := VMBSPLeaf new sector: polygon copy; yourself.
+	leaf insertVector: (2@0 vectorTo: 4@0 type: 1).
+	self assert: leaf sector size equals: 5.
+	self assert: leaf sector isClosed.
+	self assert: leaf sector containsZeroLengthVectors not.
+	
+	polygon := VMPolygon fromPoints: { 0@0. 2@0. 4@0. 4@4. 0@4. } withTypes: { 2. 2. 2. 2. 2. }.
+	leaf := VMBSPLeaf new sector: polygon; yourself.
+	leaf insertVector: (1@0 vectorTo: 3@0 type: 1).
+	self assert: leaf sector size equals: 7.
+	self assert: leaf sector isClosed.
+	self assert: leaf sector containsZeroLengthVectors not.
 
 ]
 

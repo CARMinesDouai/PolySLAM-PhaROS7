@@ -98,7 +98,8 @@ VMLine >> dY [
 
 { #category : #accessing }
 VMLine >> deltaAngle: aLine [
-	"returns the delta angle between self and aLine. the value is in the range [-pi, pi]"
+	"returns the delta angle between self and aLine. the value is in the range [-pi, pi].
+	note: VMLineSegments are treated like lines"
 	| angleA angleB angleD |
 	
 	angleA := self angle.
@@ -151,6 +152,12 @@ VMLine >> distanceToPoint: aPoint [
 ]
 
 { #category : #testing }
+VMLine >> fuzzyPoint: aPoint ifOnLeftSideDo: leftBlock [
+	^ self fuzzyPoint: aPoint ifOnLeftSideDo: leftBlock ifOnRightSideDo: [] ifOnLineDo: []
+
+]
+
+{ #category : #testing }
 VMLine >> fuzzyPoint: aPoint ifOnLeftSideDo: leftBlock ifOnRightSideDo: rightBlock ifOnLineDo: lineBlock [
 	"same as the non-fuzzy method, but points that are close to the line are considered to lie on the line.
 	this hopefully deals with numeric issue that arise with float point arithmetic."
@@ -163,6 +170,11 @@ VMLine >> fuzzyPoint: aPoint ifOnLeftSideDo: leftBlock ifOnRightSideDo: rightBlo
 	^self point: aPoint ifOnLeftSideDo: leftBlock ifOnRightSideDo: rightBlock ifOnLineDo: lineBlock
 	
 
+]
+
+{ #category : #testing }
+VMLine >> fuzzyPoint: aPoint ifOnRightSideDo: rightBlock [
+	^ self fuzzyPoint: aPoint ifOnLeftSideDo: [] ifOnRightSideDo: rightBlock ifOnLineDo: []
 ]
 
 { #category : #testing }
@@ -298,7 +310,9 @@ VMLine >> point: aPoint ifOnLeftSideDo: leftBlock ifOnRightSideDo: rightBlock if
 	note (1): 'left' and 'right' are not to be taking literaly, as sides flip when a directed line is inversed. furthermore, 
 	flipping the y-axis also flips the sides (remember, that Athens for example has its y-axis pointed downwards)
 	
-	note (2): unlike #isPointOnRightSide: this method considers points that lie on the line to be not on the right side"
+	note (2): unlike #isPointOnRightSide: this method considers points that lie on the line to be not on the right side
+	
+	note (3): the blocks are executed without any parameters"
 	| vecAP vecAB d |
 	
 	vecAP := aPoint - pointA.  "vector from pointA to aPoint"

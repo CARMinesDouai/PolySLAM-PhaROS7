@@ -18,7 +18,6 @@ VMLineFittingErrorComputer class >> compute: aVectorCollection line: aline [
 VMLineFittingErrorComputer >> compute: aVectorCollection line: aLine [
 	| line |
 	line := aLine asVMLine.
-	"todo: compute error for all elements in aVectorCollection"
 	errorCollection := aVectorCollection
 		collect: [ :vec | self computeErrorVector: vec line: line ]
 		as: OrderedCollection.

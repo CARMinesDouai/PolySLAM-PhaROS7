@@ -16,27 +16,9 @@ VMGridStorage class >> gridSize: gridSize [
 		yourself
 ]
 
-{ #category : #'as yet unclassified' }
-VMGridStorage class >> gridSize: gridSize cellClass: cellClass [
-	^self new
-		gridSize: gridSize;
-		cellClass: cellClass;
-		yourself
-]
-
 { #category : #adding }
 VMGridStorage >> add: aPolygon [
-	| collection |
-	"note: returns self, not aPolygon"
-	collection := self splitVerticalPolygon: aPolygon.
-	collection do: [ :p |
-		| center x y |
-		center := p bounds center.
-		x := (center x // gridSize).
-		y := (center y // gridSize).
-		self at: x at: y add: p.
-	].
-
+	^ self splitVerticalPolygon: aPolygon
 ]
 
 { #category : #accessing }
@@ -55,7 +37,6 @@ VMGridStorage >> at: xCoord at: yCoord [
 VMGridStorage >> at: xCoord at: yCoord add: anObj [
 	| xIndex yIndex |
 	
-	Transcript show: 'adding object at x=', xCoord printString, ' y=', yCoord printString; cr.
 	xIndex := xCoord "\\ gridSize".
 	yIndex := yCoord "\\ gridSize".
 	
@@ -133,20 +114,13 @@ VMGridStorage >> do: aBlock [
 
 { #category : #enumerating }
 VMGridStorage >> doWithIndex: aBlock [
-	"iterates over all cells, executes aBlock with cell instance, x & y indices.
-	cells may be empty, but they will not be nil (thouse are skipped instead)"
 	columns doWithIndex: [ :row :xIndex |
-		"Transcript show: 'xIndex=', xIndex printString; cr."
+		Transcript show: 'xIndex=', xIndex printString; cr.
 		row ifNotNil: [
 			row doWithIndex: [ :cell :yIndex|
-			"Transcript show: '  yIndex=', yIndex printString; cr."
+			Transcript show: '  yIndex=', yIndex printString; cr.
 				cell ifNotNil: [
 					aBlock cull: cell cull: xIndex cull: yIndex ]. ]. ]. ].
-]
-
-{ #category : #accessing }
-VMGridStorage >> gridSize [
-	^ gridSize
 ]
 
 { #category : #'private - accessing' }
@@ -160,27 +134,13 @@ VMGridStorage >> initialize [
 	super initialize.
 	gridSize := 2.5.
 	
-	columns := VMDoubleEndedCollection
-		newWithEntryBlock: [ VMDoubleEndedCollection newWithEntryBlock: [cellClass new] ].
+	columns := VMDoubleEndedCollection newWithEntryBlock: [ VMDoubleEndedCollection newWithEntryBlock: [cellClass new] ].
 	cellClass := OrderedCollection.
 ]
 
 { #category : #adding }
 VMGridStorage >> insert: aPolygon [
 	self add: aPolygon
-]
-
-{ #category : #'as yet unclassified' }
-VMGridStorage >> simplify [
-	self doWithIndex: [ :cell :x :y |
-		Transcript show: self class name;
-			show: ' simplify x=';
-			show: x printString;
-			show: ' y=';
-			show: y printString;
-			cr.
-			
-		cell simplify. ].
 ]
 
 { #category : #splitting }

@@ -329,7 +329,7 @@ VMGraphBuilder >> vector: vectorA byXOverlapsWith: vectorB [
 					ifTrue: [ ^ false "vectorB is to the left, non-overlapping"]
 					ifFalse: [ ^ true "vectorA overlaps at the left of vectorA"].]
 				ifFalse: [
-					vectorA pointB x < vectorB pointA x
+					vectorA pointB x < vectorB pointB x
 						ifTrue: [ ^ false "vectorB is to the right of vectorA"]
 						ifFalse: [ ^ true "vectorB overlaps at the right of vectorA"].
 				].
@@ -351,14 +351,14 @@ VMGraphBuilder >> vector: vectorA byXOverlapsWith: vectorB [
 VMGraphBuilder >> vector: vectorA byYOverlapsWith: vectorB [
 	"returns true if the two vectors overlap, false otherwise
 	note: we assume, that both vectors have oposite direction, and are collinear"
-	vectorA direction y > 0 "if true, vector A is facing to the right and vectorB is facing to the left"
+	vectorA direction y > 0 "if true, vector A is facing up and vectorB is facing down"
 		ifTrue: [
 			vectorA pointA y > vectorB pointB y
 				ifTrue: [ vectorA pointA y > vectorB pointA y
 					ifTrue: [ ^ false ]
 					ifFalse: [ ^ true ].]
 				ifFalse: [
-					vectorA pointB y < vectorB pointA y
+					vectorA pointB y < vectorB pointB y
 						ifTrue: [ ^ false ]
 						ifFalse: [ ^ true ].].]
 		ifFalse: [
@@ -367,7 +367,7 @@ VMGraphBuilder >> vector: vectorA byYOverlapsWith: vectorB [
 					ifTrue: [ ^ false ]
 					ifFalse: [ ^ true ].]
 				ifFalse: [
-					vectorA pointB x > vectorB pointB x
+					vectorA pointB y > vectorB pointB y
 						ifTrue: [ ^ false ]
 						ifFalse: [ ^ true ].].].
 

@@ -224,6 +224,11 @@ VMBSPBase >> parent: aNode [
 ]
 
 { #category : #accessing }
+VMBSPBase >> polygonAt: aPoint [
+	^ self subclassResponsibility
+]
+
+{ #category : #accessing }
 VMBSPBase >> root [
 	parent ifNil: [ ^ self ].
 	^ parent root.

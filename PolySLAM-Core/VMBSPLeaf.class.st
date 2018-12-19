@@ -492,6 +492,15 @@ VMBSPLeaf >> onMaxDepthInsert: aPolygon [
 ]
 
 { #category : #accessing }
+VMBSPLeaf >> polygonAt: aPoint [
+	sector ifNil: [ ^ nil ].
+	
+	(sector isPointInside: aPoint)
+		ifTrue: [ ^ sector ]
+		ifFalse: [ ^ nil ].
+]
+
+{ #category : #accessing }
 VMBSPLeaf >> sector [
 	^sector
 ]

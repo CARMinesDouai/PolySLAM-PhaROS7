@@ -285,6 +285,19 @@ VMBSPNode >> parent: aNode [
 ]
 
 { #category : #accessing }
+VMBSPNode >> polygonAt: aPoint [
+	hyperplane
+		point: aPoint
+		ifOnLeftSideDo: [ ^ leftChild polygonAt: aPoint ]
+		ifOnRightSideDo: [ ^ rightChild polygonAt: aPoint ]
+		ifOnLineDo: [
+			| leftResult |
+			leftResult := leftChild polygonAt: aPoint.
+			leftResult ifNotNil: [ ^ leftResult ].
+			^ rightChild polygonAt: aPoint ].
+]
+
+{ #category : #accessing }
 VMBSPNode >> rightChild [
 	^rightChild
 ]

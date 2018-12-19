@@ -434,6 +434,22 @@ VMLine >> transform: aVMTFMatrix [
 
 ]
 
+{ #category : #transforming }
+VMLine >> translate: aPoint [
+	"creates a copy of itself with the provided translation applied to pointA/B.
+	note: 'transform' applies rotation and translation,
+	'translate' applies only translation."
+	| mat |
+
+	mat := VMTFMatrix angle: 0 translation: aPoint.
+	
+	^self species
+		pointA: (mat transformPoint: pointA)
+		pointB: (mat transformPoint: pointB)
+		type: type.
+
+]
+
 { #category : #accessing }
 VMLine >> type [
 	^type.

@@ -129,11 +129,21 @@ VMOffline >> buildMapLazyFrom: startIndex to: endIndex by: stepSize [
 			"(index/stepSize \\ 4 = k) ifTrue: ["
 				polygon := (self polygonAt: index) transform: (icpTF at: tfIndex).
 				polygon := (VMVectorCollectionSimplifier compute: polygon inlierThreshold: simplifierThreshold) result debugCopy.
-				[
-					VMBSPLeaf new insert: polygon.
-					[ map := map insert: polygon.
-					] on: Error do: [ :e | Transcript show: 'failed map-building at index='; show: index printString; show: ' e=', e printString; cr. ].
-				] on: Error do: [ :e | Transcript show: 'failed at index='; show: index printString; show: ' e=', e printString; cr. ].
+				[ VMBSPLeaf new insert: polygon. ]
+					on: Error
+					do: [ :e |
+						Transcript show: 'failed pre-test at index=';
+							show: index printString;
+							show: ' e=', e printString;
+							cr.
+							1 halt].
+				[ map := map insert: polygon. ]
+					on: Error
+					do: [ :e |
+						Transcript show: 'failed map-building at index=';
+							show: index printString;
+							show: ' e=', e printString; cr.
+							1 halt. ].
 			"]."
 			tfIndex := tfIndex + 1.
 		].
@@ -676,20 +686,17 @@ VMOffline >> runICPFrom: startIndex to: endIndex by: stepSize path: pathString [
 	"this method loads data on-the-fly as oposed to #runICP which expects data to be already loaded.
 	point clouds & polygons are discarded after use, making this method require significantly less
 	memory. nnc and icpTF are filled normaly."
-	| fullPath data lastOdom dataIndex iterationCounter |
+	| fullPath data iterationCounter |
 	path := pathString.
 	fullPath := pathPrefix, pathString.
-	dataIndex := 0.
 	iterationCounter := 0.
 	
 	Transcript show: 'running offline ICP'; cr.
 	
 	data := self loadDataAt: startIndex path: fullPath.
 	self initICPWithData: data.
-	lastOdom := data at: #odom.
 	
 	"[" startIndex+stepSize to: endIndex by: stepSize do: [ :index |
-		dataIndex := index. "needed for the error message only"
 		iterationCounter := iterationCounter + 1.
 		nncSizeHistory add: nnc addedVectors size.
 		
@@ -697,7 +704,7 @@ VMOffline >> runICPFrom: startIndex to: endIndex by: stepSize path: pathString [
 		(iterationCounter \\\ 40 = 0) ifTrue: [Transcript cr. ].
 		
 		data := self icpLoopIterationAt: index lastData: data.
-	]"] on: Error do: [ :e | Transcript show: 'icp loop interrupted at index='; show: dataIndex printString; cr. Transcript show: e printString. ]".
+	]"] on: Error do: [ :e | Transcript show: 'icp loop interrupted'; cr; show: e printString. ]".
 	Transcript show: 'finished ICP'; cr.
 
 

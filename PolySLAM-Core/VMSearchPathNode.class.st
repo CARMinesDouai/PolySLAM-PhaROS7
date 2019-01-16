@@ -91,20 +91,18 @@ VMSearchPathNode >> <= aSearchNode [
 { #category : #computing }
 VMSearchPathNode >> computeEstimate [
 	"computes the L-infinity norm and returns the result."
-	| x y |
+	| point dx dy goalPoint |
+	point := vertex asPoint.
+	goalPoint := goal asPoint.
 	
-	x := ((vertex x) - (goal x)) abs.
-	y := ((vertex y) - (goal y)) abs.
+	dx := ((point x) - (goalPoint x)) abs.
+	dy := ((point y) - (goalPoint y)) abs.
 	
-	self assert: ( x isNotNil ).
-	self assert: ( y isNotNil ).
+	self assert: ( dx isNotNil ).
+	self assert: ( dy isNotNil ).
 	
-	(x > y) ifTrue: [
-		estimate := x.
-	] ifFalse: [
-		estimate := y.
-	].
-	
+	estimate := dx max: dy.
+
 ]
 
 { #category : #computing }
@@ -114,7 +112,7 @@ VMSearchPathNode >> computeWeight [
 	prev ifNil: [
 		weight := 0.
 	] ifNotNil: [
-		weight := self vertex dist: (prev vertex).
+		weight := self vertex asPoint dist: (prev vertex asPoint).
 	].
 ]
 

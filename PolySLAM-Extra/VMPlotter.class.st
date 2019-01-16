@@ -48,7 +48,6 @@ Class {
 		'plotCmd',
 		'plotData',
 		'plotInitStream',
-		'plotDataStream',
 		'autoColor',
 		'lineWidth',
 		'dataSetCounter',
@@ -100,6 +99,11 @@ VMPlotter >> circleAt: center radius: radius numSegments: segCount [
 
 ]
 
+{ #category : #accessing }
+VMPlotter >> cmdStream [
+	^ plotCmd
+]
+
 { #category : #'as yet unclassified' }
 VMPlotter >> createDataID [
 	dataSetCounter := dataSetCounter + 1.
@@ -111,13 +115,22 @@ VMPlotter >> crlf [
 	^ crlf
 ]
 
+{ #category : #accessing }
+VMPlotter >> dataStream [
+	^ plotData
+]
+
+{ #category : #accessing }
+VMPlotter >> initStream [
+	^ plotInitStream
+]
+
 { #category : #initialization }
 VMPlotter >> initialize [
 	crlf := Character cr asString, Character lf asString.
+	plotInitStream := String new writeStream.
 	plotCmd := String new writeStream.
 	plotData := String new writeStream.
-	plotInitStream := String new writeStream.
-	plotDataStream := String new writeStream.
 	
 	lineWidth := 1.
 	autoColor := true.
@@ -127,9 +140,6 @@ VMPlotter >> initialize [
 	range := nil.	"nil = auto / let gnuplot decide"
 	
 	plotInitStream
-		"force aspect ratio 1.0, i.e. no distortion on resizing"
-"		nextPutAll: 'set size ratio -1';
-		nextPutAll: crlf;"
 		nextPutAll: 'set encoding utf8';
 		nextPutAll: crlf;
 		nextPutAll: 'set lable size 14';
@@ -137,6 +147,13 @@ VMPlotter >> initialize [
 	
 
 
+]
+
+{ #category : #accessing }
+VMPlotter >> labelCounter [
+	"provides an unused label counter"
+	labelCounter := labelCounter + 1.
+	^ labelCounter
 ]
 
 { #category : #accessing }
@@ -249,10 +266,42 @@ VMPlotter >> plotArrowCollection: aCollection [
 
 ]
 
+{ #category : #'plotting - helper - vectors & vector collections' }
+VMPlotter >> plotArrowCollection: aCollection extra: extraString [
+	
+	plotCmd
+		nextPutAll: (plotCmd isEmpty ifTrue: [ 'plot ''-'' '] ifFalse: [ ', ''-'' ' ]);
+		nextPutAll: 'using 1:2:3:4 with vectors';
+		nextPutAll: ' t '''' ';
+		nextPutAll: extraString.
+
+	aCollection doWithIndex: [ :vec :index |
+		plotData
+			nextPutAll: vec pointA x printString;
+			nextPutAll: ' ';
+			nextPutAll: vec pointA y printString;
+			nextPutAll: ' ';
+			nextPutAll: vec direction x printString;
+			nextPutAll: ' ';
+			nextPutAll: vec direction y printString;
+			nextPutAll: crlf.
+	].
+	plotData nextPutAll: 'e'; crlf.
+
+]
+
 { #category : #'plotting - helper' }
 VMPlotter >> plotBackground [
 	range ifNil: [ ^ self ].
 	self plotFilledPolygon: (VMPolygon fromRectangle: range) extra: 'lc rgb "#CCCCCC"'.
+]
+
+{ #category : #plotting }
+VMPlotter >> plotChild: aPlotObj [
+	"plots the child in self. the child is responsible for creating unique ids where needed"
+	aPlotObj plotParent: self.
+
+
 ]
 
 { #category : #'plotting - helper' }
@@ -287,7 +336,6 @@ VMPlotter >> plotExec: process [
 
 	process stdinStream
 		nextPutAll: plotInitStream contents;
-		"nextPutAll: plotDataStream contents;"
 		nextPutAll: plotCmd contents;
 		nextPutAll: crlf;
 		nextPutAll: plotData contents.
@@ -376,41 +424,20 @@ VMPlotter >> plotGridFrom: pointA to: pointB by: stepSize color: aColor [
 
 { #category : #'plotting - helper - vectors & vector collections' }
 VMPlotter >> plotHeadlessArrowCollection2: aCollection [
+	"note: only renders obstacles"
 	| dataID |
 	
 	dataID := self createDataID. 
 	
 	autoColor ifTrue: [
 		plotInitStream	
-			nextPutAll: 'set style arrow 101 lt 1 lc rgb "black" nohead lw ', lineWidth printString, crlf;
-			nextPutAll: 'set style arrow 2 lt 1 lc rgb "green" nohead lw ', lineWidth printString, crlf;
-			nextPutAll: 'set style arrow 3 lt 1 lc rgb "#FFCAA300" nohead lw ', lineWidth printString, crlf.
-	].
+			nextPutAll: 'set style arrow 101 lt 1 lc rgb "black" nohead lw ', lineWidth printString, crlf.].
 	
 	plotCmd
 		nextPutAll: (plotCmd isEmpty ifTrue: [ 'plot ''-'' '] ifFalse: [ ', ''-'' ' ]);
 		nextPutAll: 'using 1:2:3:4:5 with vectors arrowstyle var';
 		nextPutAll: ' t '''''.
 
-	plotDataStream
-		nextPutAll: dataID;
-		nextPutAll: ' << EOD';
-		nextPutAll: crlf.
-	aCollection do: [ :vec |
-		plotDataStream
-			nextPutAll: vec pointA x printString;
-			nextPutAll: ' ';
-			nextPutAll: vec pointA y printString;
-			nextPutAll: ' ';
-			nextPutAll: vec direction x printString;
-			nextPutAll: ' ';
-			nextPutAll: vec direction y printString;
-			nextPutAll: ' ';
-			nextPutAll: vec type asInteger printString;
-			nextPutAll: crlf.
-	].
-	plotDataStream nextPutAll: 'EOD', crlf.
-	
 	aCollection doWithIndex: [ :vec :index |
 		vec type isObstacle ifTrue: [
 		plotData
@@ -423,9 +450,8 @@ VMPlotter >> plotHeadlessArrowCollection2: aCollection [
 			nextPutAll: vec direction y printString;
 			nextPutAll: ' ';
 			nextPutAll: '101';
-			nextPutAll: crlf.
-		].
-	].
+			nextPutAll: crlf.].].
+	
 	plotData nextPutAll: 'e'; crlf.
 
 ]
@@ -436,8 +462,7 @@ VMPlotter >> plotHeadlessArrowCollection3: aCollection [
 		plotInitStream	
 			nextPutAll: 'set style arrow 101 lt 1 lc rgb "black" nohead lw ', lineWidth printString, crlf;
 			nextPutAll: 'set style arrow 2 lt 1 lc rgb "green" nohead lw ', lineWidth printString, crlf;
-			nextPutAll: 'set style arrow 3 lt 1 lc rgb "#CAA300" nohead lw ', lineWidth printString, crlf.
-	].
+			nextPutAll: 'set style arrow 3 lt 1 lc rgb "#CAA300" nohead lw ', lineWidth printString, crlf.].
 	
 	plotCmd
 		nextPutAll: (plotCmd isEmpty ifTrue: [ 'plot ''-'' '] ifFalse: [ ', ''-'' ' ]);
@@ -455,8 +480,8 @@ VMPlotter >> plotHeadlessArrowCollection3: aCollection [
 			nextPutAll: vec direction y printString;
 			nextPutAll: ' ';
 			nextPutAll: (vec type isObstacle ifTrue: ['101'] ifFalse: [vec type asInteger printString]);
-			nextPutAll: crlf.
-	].
+			nextPutAll: crlf.].
+	
 	plotData nextPutAll: 'e'; crlf.
 
 ]
@@ -479,25 +504,6 @@ VMPlotter >> plotHeadlessArrowCollection: aCollection [
 		nextPutAll: 'using 1:2:3:4:5 with vectors arrowstyle var';
 		nextPutAll: ' t '''''.
 
-	plotDataStream
-		nextPutAll: dataID;
-		nextPutAll: ' << EOD';
-		nextPutAll: crlf.
-	aCollection do: [ :vec |
-		plotDataStream
-			nextPutAll: vec pointA x printString;
-			nextPutAll: ' ';
-			nextPutAll: vec pointA y printString;
-			nextPutAll: ' ';
-			nextPutAll: vec direction x printString;
-			nextPutAll: ' ';
-			nextPutAll: vec direction y printString;
-			nextPutAll: ' ';
-			nextPutAll: vec type asInteger printString;
-			nextPutAll: crlf.
-	].
-	plotDataStream nextPutAll: 'EOD', crlf.
-	
 	aCollection doWithIndex: [ :vec :index |
 		plotData
 			nextPutAll: vec pointA x printString;

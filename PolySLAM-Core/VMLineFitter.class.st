@@ -67,7 +67,7 @@ VMLineFitter >> compute: aVectorCollection startVector: aVector [
 
 { #category : #'as yet unclassified' }
 VMLineFitter >> computeInlierChain: errorCollection [
-	"returns a collection of chained vectors that have an error less than 'threshold'"
+	"returns a collection of chained vectors that have an error less than 'inlierThreshold'"
 	| inlierChain |
 	
 	inlierChain := sampleChain species new.
@@ -87,23 +87,23 @@ VMLineFitter >> computeInlierChain: errorCollection [
 
 { #category : #'as yet unclassified' }
 VMLineFitter >> createResultWithLine: line [
-	| errors inlierChain refinedLine refinedErrors refiendInlierChain result |
-	"
-	1) compute errors for chain & determine chain of inliers
-	2) refinment step
-	3) create result and return"
+	| errors inlierChain refinedLine refinedErrors result iterationCounter |
 	
-	"initial error determination"
-	errors := (VMLineFittingErrorComputer compute: sampleChain line: line) errorCollection.
-	inlierChain := self computeInlierChain: errors.
+	iterationCounter := 0.
+	inlierChain := sampleChain.
+	refinedLine := line.
+	"refinement loop"
+	[ iterationCounter < 2 ] whileTrue: [
+		iterationCounter := iterationCounter + 1.
+		"compute square errors for the current line"
+		errors := (VMLineFittingErrorComputer compute: inlierChain line: refinedLine) errorCollection.
+		inlierChain := self computeInlierChain: errors.
+		refinedLine := VMLinearRegression compute: inlierChain.
+		refinedErrors := (VMLineFittingErrorComputer compute: sampleChain line: refinedLine) errorCollection.
+		inlierChain := self computeInlierChain: refinedErrors.
+	].
 	
-	"refinement step (note: this can be turned into a loop on its own if needed)"
-	refinedLine := VMLinearRegression compute: inlierChain.
-	refinedErrors := (VMLineFittingErrorComputer compute: sampleChain line: refinedLine) errorCollection.
-	"refiendInlierChain := self computeInlierChain: errors."
-	refiendInlierChain := self computeInlierChain: refinedErrors.
-	
-	result := VMLineFittingResult vectors: refiendInlierChain errors: refinedErrors line: refinedLine.
+	result := VMLineFittingResult vectors: inlierChain errors: refinedErrors line: refinedLine.
 	
 	result lineHistory add: line.	"add the original 'unrefined' line. used for visualization only"
 	
@@ -145,7 +145,7 @@ VMLineFitter >> evaluateResults [
 { #category : #initialization }
 VMLineFitter >> initialize [
 	resultHistory := OrderedCollection new.
-	inlierThreshold := 0.02. "square distgance"
+	inlierThreshold := 0.02 squared. "square distgance"
 	loopStepFactor := 0.5.
 ]
 

@@ -1,13 +1,16 @@
 "
 contains the result of a vector chain  approximation:
-	- vectorCollection: the vectors that are approximated (e.g. 'inliers' in VMRansac)
+	- vectorCollection: the vectors that are approximated (i.e. 'inliers')
 	- errorCollection: the error for each vector in respect of the approximating line
 	- line: the line that is approximating the vector collection
+	- lineHistory: used for visualization of the line fitting process. serves no further purpose
 	
 additional functionality:
 	- computeVector
 		returns a single vector that spans the full inlier collection. note, that the new vector's  start/end points
-		typically do not match any points in the original colletion
+		typically do not match any points in the original colletion. note, that we usually don't make use of this
+		method when simplifying polygons, since it ignores information about preceeding and following line segments
+		of the polygon.
 	- reduceToSingleChain
 		removes elements from the inlier collection, so that all remaining elements are connected in a single
 		chain of vectors. the chain typically does not form a closed polygon.

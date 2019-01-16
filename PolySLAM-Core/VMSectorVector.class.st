@@ -1,3 +1,9 @@
+"
+A storage class that holds a sector/polygon, one sector-typed vector of that polygon, and the hyperplane to which the vector is collinear.
+This class basically only exists to provide a name to this collection, instead of just returning an Array instance.
+
+The #asPolygon method has been added to make it more convenient when passing around this class
+"
 Class {
 	#name : #VMSectorVector,
 	#superclass : #Object,
@@ -6,7 +12,7 @@ Class {
 		'polygon',
 		'hyperplane'
 	],
-	#category : #'PolySLAM-Core-Collections, Trees & Graphs'
+	#category : #'PolySLAM-Core-Collections'
 }
 
 { #category : #constructing }

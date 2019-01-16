@@ -88,9 +88,13 @@ VMNNVectorGrid >> at: x at: y [
 
 { #category : #accessing }
 VMNNVectorGrid >> at: x at: y put: aVector [
-	((xCollection at: x+xOffset ifAbsent: [ self error: 'invalid x index'. ])
+	| row |
+	row := xCollection at: x+xOffset ifAbsent: [ self error: 'invalid x index'. ].
+	row checkBoundaries: y.
+	(row at: y) add: aVector.
+	"((xCollection at: x+xOffset ifAbsent: [ self error: 'invalid x index'. ])
 		at: y)
-			add: aVector.
+			add: aVector."
 ]
 
 { #category : #accessing }
@@ -253,12 +257,12 @@ VMNNVectorGrid >> checkXSize: aVector [
 	
 	"grow to the left if necessary"
 	[ minX + xOffset <= 0 ] whileTrue: [
-		xCollection addFirst: VMDoubleEndedCollection new.
+		xCollection addFirst: VMDoubleEndedCollectionOld new.
 		xOffset := xOffset + 1.
 	].
 	
 	"grow to the right if necessary"
-	[ maxX >= (xCollection size - xOffset) ] whileTrue: [ xCollection add: VMDoubleEndedCollection new. ].
+	[ maxX >= (xCollection size - xOffset) ] whileTrue: [ xCollection add: VMDoubleEndedCollectionOld new. ].
 	
 	
 ]
@@ -350,6 +354,11 @@ VMNNVectorGrid >> initialize [
 	xCollection := OrderedCollection new.
 	addedVectors := OrderedCollection new.
 	xOffset := 0.
+]
+
+{ #category : #adding }
+VMNNVectorGrid >> insert: aPolygon [
+	^ self add: aPolygon
 ]
 
 { #category : #helper }

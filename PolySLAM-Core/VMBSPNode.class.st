@@ -59,7 +59,7 @@ VMBSPNode class >> rendererClass [
 VMBSPNode >> asCollectionOfSectors [
 	| collection |
 	
-	collection := OrderedCollection new.
+	collection := VMPolygonCollection new.
 	
 	leftChild ifNotNil: [ collection addAll: leftChild asCollectionOfSectors ].
 	rightChild ifNotNil: [ collection addAll: rightChild asCollectionOfSectors ].
@@ -71,6 +71,12 @@ VMBSPNode >> asCollectionOfSectors [
 { #category : #accessing }
 VMBSPNode >> bounds [
 	^ leftChild bounds merge: rightChild bounds
+]
+
+{ #category : #enumerating }
+VMBSPNode >> do: aBlock [
+	leftChild ifNotNil: [ leftChild do: aBlock ].
+	rightChild ifNotNil: [ rightChild do: aBlock ].
 ]
 
 { #category : #accessing }
@@ -217,7 +223,7 @@ VMBSPNode >> initialize [
 
 ]
 
-{ #category : #operations }
+{ #category : #inserting }
 VMBSPNode >> insert: aPolygon [
 	| splitter |
 	
@@ -244,11 +250,6 @@ VMBSPNode >> insert: aPolygon [
 		rightChild := rightChild insert: aSector.
 	].
 
-]
-
-{ #category : #testing }
-VMBSPNode >> isLeaf [
-	^false
 ]
 
 { #category : #accessing }
@@ -284,6 +285,18 @@ VMBSPNode >> parent: aNode [
 ]
 
 { #category : #accessing }
+VMBSPNode >> polygonAt: aPoint [
+	hyperplane ifNil: [ Transcript show: 'hyperplane is nil'; cr. ^ nil ].
+	hyperplane point: aPoint
+		ifOnLeftSideDo: [ ^ leftChild polygonAt: aPoint ]
+		ifOnRightSideDo: [ ^ rightChild polygonAt: aPoint ]
+		ifOnLineDo: [ | temp |
+			temp := leftChild polygonAt: aPoint.
+			temp ifNotNil: [ ^ temp ].
+			^ rightChild polygonAt: aPoint ].
+]
+
+{ #category : #accessing }
 VMBSPNode >> rightChild [
 	^rightChild
 ]
@@ -296,4 +309,9 @@ VMBSPNode >> rightChild: aNodeOrLeaf [
 { #category : #accessing }
 VMBSPNode >> sectorCount [
 	^ leftChild sectorCount + rightChild sectorCount
+]
+
+{ #category : #accessing }
+VMBSPNode >> size [
+	^ leftChild size + rightChild size
 ]

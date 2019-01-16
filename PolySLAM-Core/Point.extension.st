@@ -80,6 +80,11 @@ Point >> isEqual: aPoint [
 ]
 
 { #category : #'*PolySLAM-Core' }
+Point >> lineTo: aPoint [
+	^ VMLine pointA: self pointB: aPoint
+]
+
+{ #category : #'*PolySLAM-Core' }
 Point >> transform: aVMTFMatrix [
 	| tf |
 	

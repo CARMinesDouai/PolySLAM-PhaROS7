@@ -4,7 +4,7 @@ An isolated point is - as the name implies - a single point with no length or vo
 Class {
 	#name : #VMIsolatedPoint,
 	#superclass : #VMVerticesPolygon,
-	#category : #'PolySLAM-Core-kernel'
+	#category : #'PolySLAM-Extra-Deprecated'
 }
 
 { #category : #'instance creation' }

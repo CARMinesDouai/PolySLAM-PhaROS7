@@ -1,3 +1,6 @@
+"
+This class is for convenience, and allows to load multiple VMPointCloud2d files (stored via FUEL) at once.
+"
 Class {
 	#name : #VMPointCloudLoader,
 	#superclass : #Object,

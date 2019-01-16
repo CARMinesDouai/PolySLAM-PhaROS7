@@ -1,3 +1,6 @@
+"
+This class was used to load .vmap files. This file format is no longer used.
+"
 Class {
 	#name : #VMRawMap,
 	#superclass : #Object,
@@ -8,7 +11,7 @@ Class {
 		'bounds',
 		'lineSegments'
 	],
-	#category : #'PolySLAM-Core-kernel'
+	#category : #'PolySLAM-Extra-Deprecated'
 }
 
 { #category : #'instance creation' }

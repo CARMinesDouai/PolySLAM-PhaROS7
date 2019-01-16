@@ -8,7 +8,7 @@ Class {
 		'img',
 		'polygons'
 	],
-	#category : #'PolySLAM-Core-temp'
+	#category : #'PolySLAM-Core-SLAM - Maps'
 }
 
 { #category : #'as yet unclassified' }

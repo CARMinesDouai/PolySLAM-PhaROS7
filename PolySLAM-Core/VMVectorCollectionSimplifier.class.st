@@ -40,7 +40,12 @@ Class {
 		'resultCollection',
 		'chainCollection',
 		'result',
-		'inlierThreshold'
+		'inlierThreshold',
+		'resultPoints',
+		'resultTypes',
+		'minAngle',
+		'maxAngle',
+		'maxDistance'
 	],
 	#category : #'PolySLAM-Core-Line- & Vector Approximation'
 }
@@ -93,18 +98,45 @@ VMVectorCollectionSimplifier >> compute: aVectorCollection [
 	"initialize variables"
 	input := aVectorCollection.
 	chainCollection := VMVectorChainCollection fromVectorCollection: aVectorCollection.
-	resultCollection := OrderedCollection new.
+	resultCollection := VMVectorCollection new.
+	resultPoints := VMRenderCollection new.
+	resultTypes := OrderedCollection new.
 	
 	self filterChainCollection.
 	self checkChainLoop.
 	
 	self loop.
-	"
-	1) create chains (i.e. VMRansacResult instances)
-	2) find left/right neighboring chains for all chains
-	3) replace chains with single vector
-	4) return new vector collection
-	"
+	^ result
+
+]
+
+{ #category : #'as yet unclassified' }
+VMVectorCollectionSimplifier >> computeIntersectionResult: resultA withResult: resultB [
+	"computes the point(s) that result from intersecting two neighboring fitting lines.
+	if the fitting lines are intersecting at a flat angle, we may use two projection points
+	instead of the intersection point for a numerically more stable result. otherwise, we
+	will create one point."
+	| lineA lineB type |
+	lineA := resultA line.
+	lineB := resultB line.
+	type := resultB vectorCollection first type.
+	(((lineA deltaAngle: lineB) abs < minAngle) or: [(lineA deltaAngle: lineB) abs > maxAngle])
+		ifTrue: [
+			| projectionPoints |
+			projectionPoints := self projectionPoints: resultB vectorCollection first pointA lineA: lineA lineB: lineB.
+			(projectionPoints first squaredDistanceTo: projectionPoints second) > maxDistance
+				ifTrue: [
+					resultPoints add: projectionPoints first.
+					resultTypes add: type.
+					resultPoints add: projectionPoints second.
+					resultTypes add: type. ]
+				ifFalse: [
+					resultPoints add: (projectionPoints first + projectionPoints second * 0.5).
+					resultTypes add: type. ]. ]
+		ifFalse: [ "we're adding just the intersection point from the two fitting lines"
+			resultPoints add: (VMIntersection intersectLine: lineA withLine: lineB) intersectionPoint.
+			resultTypes add: type.
+		].
 
 ]
 
@@ -206,6 +238,10 @@ VMVectorCollectionSimplifier >> gtInspectorRenderedIn: composite [
 VMVectorCollectionSimplifier >> initialize [
 	super initialize.
 	inlierThreshold := 0.02.
+	minAngle := Float twoPi * 15 / 360. "15 degree angle"
+	maxAngle := Float twoPi * 170 / 360. "170 degree angle"
+	maxDistance := 0.02 squared. "maximum distance before we create a new vector: 2cm"
+
 ]
 
 { #category : #accessing }
@@ -239,12 +275,9 @@ VMVectorCollectionSimplifier >> loop [
 	
 	chainCollection do: [ :vectorChain |
 		self loopOverChain: vectorChain.
-		"[ self abortLoop ] whileFalse: [
-			self iterateOnce.
-		]."
 	].
 	
-	self loopOverResultCollection.
+	self loopOverFittingResults.
 
 ]
 
@@ -270,26 +303,17 @@ VMVectorCollectionSimplifier >> loopOverChain: vectorChain [
 ]
 
 { #category : #'basic algorithm' }
-VMVectorCollectionSimplifier >> loopOverResultCollection [
-	result := input species new.
-	
+VMVectorCollectionSimplifier >> loopOverFittingResults [
 	resultCollection doWithIndex: [ :r :index |
-		self createVectorFromFittingResult: index.
+		self computeIntersectionResult: (resultCollection atWrap: index - 1) withResult: (resultCollection at: index).
 	].
-]
-
-{ #category : #accessing }
-VMVectorCollectionSimplifier >> maxIterations [
-	^maxIterations
-]
-
-{ #category : #accessing }
-VMVectorCollectionSimplifier >> maxIterations: anInteger [
-	maxIterations := anInteger.
+	result := input species fromPoints: resultPoints withTypes: resultTypes.
 ]
 
 { #category : #'as yet unclassified' }
 VMVectorCollectionSimplifier >> projectionPoints: aPoint lineA: lineA lineB: lineB [
+	"computes the projection point from aPoint to lineA and from aPoint to LineB.
+	both projection points are returned in an array"
 	| startPoint endPoint |
 	
 	startPoint := lineA projectionPoint: aPoint.

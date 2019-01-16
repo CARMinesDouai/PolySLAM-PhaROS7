@@ -541,7 +541,7 @@ VMDemosExamples class >> exampleTopologicalGraph [
 	polygons do: [ :p | root := root insert: p ].
 	
 	
-	builder := VMGraphBuilder new.
+	builder := VMGraphBuilderOld new.
 	
 	graph := builder buildGraphFromBSPTree: root.
 	

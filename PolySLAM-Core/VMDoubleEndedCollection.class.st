@@ -1,80 +1,103 @@
 Class {
 	#name : #VMDoubleEndedCollection,
-	#superclass : #OrderedCollection,
+	#superclass : #Object,
 	#instVars : [
-		'offset'
+		'storage',
+		'offset',
+		'newEntryBlock'
 	],
-	#category : #'PolySLAM-Core-Collections, Trees & Graphs'
+	#category : #'PolySLAM-Core-Collections'
 }
 
-{ #category : #'as yet unclassified' }
-VMDoubleEndedCollection >> addFirst: obj [
-	"this #addFirst causes the collection to grow into negative indices"
-	offset := offset + 1.
-	^ super addFirst: obj
+{ #category : #'instance creation' }
+VMDoubleEndedCollection class >> newWithEntryBlock: entryBlock [
+	^ self new
+		newEntryBlock: entryBlock;
+		yourself
 ]
 
 { #category : #'as yet unclassified' }
+VMDoubleEndedCollection >> addFirst: entry [
+	storage addFirst: entry.
+	offset := offset + 1.
+]
+
+{ #category : #'as yet unclassified' }
+VMDoubleEndedCollection >> addLast: entry [
+	storage add: entry.
+]
+
+{ #category : #accessing }
 VMDoubleEndedCollection >> at: index [
-	"note: always returns an OrderedCollection instance, since #checkBoundaries will
-	ensure that the index is valid."
 	| newIndex |
 	
-	self checkBoundaries: index.
-	
+	self checkBoundary: index.
 	newIndex := index + offset.
-	^ super at: newIndex
+	
+	^ storage at: newIndex
+
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
 VMDoubleEndedCollection >> at: index ifAbsent: aBlock [
 	| newIndex |
-	
-	(index + offset) < (lastIndex - firstIndex) ifTrue: [ aBlock value. ^ nil ].
-	(index + offset) < 0 ifTrue: [ aBlock value. ^ nil ].
-	
-	"self checkBoundaries: index."
-	
 	newIndex := index + offset.
-	^ super at: newIndex
+	^ storage at: newIndex ifAbsent: [ aBlock value. ^ nil ]
+]
+
+{ #category : #accessing }
+VMDoubleEndedCollection >> at: index put: entry [
+	| newIndex |
+	
+	self checkBoundary: index.
+	newIndex := index + offset.
+	
+	^ storage at: newIndex put: entry
+
 ]
 
 { #category : #'as yet unclassified' }
-VMDoubleEndedCollection >> at: index put: obj [
-	| newIndex |
-	
-	self checkBoundaries: index.
-	newIndex := index + offset.
-	^ super at: newIndex put: obj
-]
-
-{ #category : #'as yet unclassified' }
-VMDoubleEndedCollection >> checkBoundaries: index [
+VMDoubleEndedCollection >> checkBoundary: index [
 	| newIndex |
 	newIndex := index + offset.
 	
-	"expand boundaries if necessary. we insert empty OrderedCollection instances into newly created entries"
-	[newIndex < firstIndex]
+	"expand boundaries if necessary. we insert 'newEntryBlock value' into newly created entries"
+	[newIndex < 1]
 		whileTrue: [
-			self addFirst: OrderedCollection new.
-			"#addFirst modifies 'offset'."
+			"note: #addFirst modifies 'offset'."
+			self addFirst: newEntryBlock value.
 			newIndex := index + offset. ].
-	[newIndex > (lastIndex - firstIndex)] whileTrue: [ self add: OrderedCollection new. ].
+	
+	[newIndex > (storage size)] whileTrue: [ self addLast: newEntryBlock value. ].
 
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #enumerating }
+VMDoubleEndedCollection >> do: aBlock [
+	storage do: aBlock.
+
+]
+
+{ #category : #enumerating }
+VMDoubleEndedCollection >> doWithIndex: aBlock [
+	| index |
+	index := 1 - offset.
+	storage do: [ :entry |
+		aBlock cull: entry cull: index.
+		index := index + 1. ].
+]
+
+{ #category : #initialization }
 VMDoubleEndedCollection >> initialize [
-	offset := 0.
+	super initialize.
+	
+	storage := OrderedCollection new.
+	offset := 2.
+	newEntryBlock := [ OrderedCollection new ]
 ]
 
-{ #category : #'as yet unclassified' }
-VMDoubleEndedCollection >> offset [
-	^ offset
-]
-
-{ #category : #'as yet unclassified' }
-VMDoubleEndedCollection >> reset [
-	super reset.
-	offset ifNil: [ offset := 0. ].
+{ #category : #accessing }
+VMDoubleEndedCollection >> newEntryBlock: aBlock [
+	"Transcript show: 'setting newEntryBlock'; cr."
+	newEntryBlock := aBlock.
 ]

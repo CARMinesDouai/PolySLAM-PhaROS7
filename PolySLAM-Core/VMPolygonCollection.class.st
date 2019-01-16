@@ -4,7 +4,7 @@ This is an ordered collection with added functionallity to handle polygons.
 Class {
 	#name : #VMPolygonCollection,
 	#superclass : #OrderedCollection,
-	#category : #'PolySLAM-Core-Collections, Trees & Graphs'
+	#category : #'PolySLAM-Core-Collections'
 }
 
 { #category : #'rendering support' }
@@ -49,6 +49,11 @@ VMPolygonCollection >> gtInspectorRenderedIn: composite [
 			(VMViewer openWindowlessOn: { self asRenderableElement })
 				autozoom.
 		].
+]
+
+{ #category : #inserting }
+VMPolygonCollection >> insert: p [
+	1 halt
 ]
 
 { #category : #testing }

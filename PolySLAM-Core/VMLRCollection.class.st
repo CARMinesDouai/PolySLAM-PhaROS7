@@ -9,7 +9,7 @@ Class {
 		'left',
 		'right'
 	],
-	#category : #'PolySLAM-Core-Collections, Trees & Graphs'
+	#category : #'PolySLAM-Core-Collections'
 }
 
 { #category : #copying }
@@ -23,6 +23,26 @@ VMLRCollection >> copy [
 	newCollection right addAll: right.
 	
 	^ newCollection
+]
+
+{ #category : #'GT Inspector' }
+VMLRCollection >> gtInspectorRenderedIn: composite [
+	<gtInspectorPresentationOrder: 50>
+	
+	(composite morph)
+		title: 'Viewer';
+		morph: [
+			| renderObjects |
+			renderObjects := VMRenderCollection new.
+			self left do: [ :v |
+				renderObjects add: (v asRenderableElement color: (Color fromString: '#FFB700'); lineWidth: 0.02). ].
+			self right do: [ :v |
+				renderObjects add: (v asRenderableElement color: (Color fromString: '#9BFF00'); lineWidth: 0.02). ].
+			
+			(VMViewer openWindowlessOn: renderObjects)
+				autozoom.
+		].
+		
 ]
 
 { #category : #initialization }

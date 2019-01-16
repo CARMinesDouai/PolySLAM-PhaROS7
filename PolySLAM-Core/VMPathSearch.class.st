@@ -11,7 +11,7 @@ VMPathSearch class >> compute: visGraph from: start to: goal [
 	|	pQueue					"the priority queue for the A* algorithm"
 		markedVertices		"a Set that we use to remember which vertices we have already marked (inserted into the queue, and possibly already processed)"
 		cur						"the current VMPathSearchNode that we are working with"
-		makeNode			"a block that marks the vertex and creates a VMPathSearchNode, which is returned"
+		makeNode				"a block that marks the vertex and creates a VMPathSearchNode, which is returned"
 	|
 	
 	pQueue := Heap new.		"we use a heap as priority queue"

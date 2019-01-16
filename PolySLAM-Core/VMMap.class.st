@@ -1,10 +1,14 @@
+"
+The VMMap class represents a map that consists of multiple polygons. As such it is pretty much only a storage class, and used to transfer maps (e.g. between ROS nodes)
+
+"
 Class {
 	#name : #VMMap,
 	#superclass : #Object,
 	#instVars : [
 		'polygonCollection'
 	],
-	#category : #'PolySLAM-Core-temp'
+	#category : #'PolySLAM-Core-SLAM - Maps'
 }
 
 { #category : #'rendering support' }

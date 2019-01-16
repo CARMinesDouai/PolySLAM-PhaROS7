@@ -13,7 +13,7 @@ Class {
 		'odomDelta',
 		'odomDelta2'
 	],
-	#category : #'PolySLAM-Core-temp'
+	#category : #'PolySLAM-Core-SLAM - Maps'
 }
 
 { #category : #'as yet unclassified' }

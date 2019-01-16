@@ -1,3 +1,6 @@
+"
+This class is derived from Rectangle, and computes  #center using float-point arithmetic, instead of integer arithmetic.
+"
 Class {
 	#name : #VMRectangle,
 	#superclass : #Rectangle,

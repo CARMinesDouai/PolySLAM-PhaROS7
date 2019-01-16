@@ -4,12 +4,12 @@ Class {
 	#category : #'PolySLAM-Core-Data Structures: Points & Lines'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #converting }
 VMLineTypeFrontier >> asInteger [
 	^2.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 VMLineTypeFrontier >> ifMergeableTypeDo: aBlock otherwiseDo: otherBlock [
 	
 	"this block is executed if the type is not an obstacle border, i.e. when it is a frontier."
@@ -17,22 +17,29 @@ VMLineTypeFrontier >> ifMergeableTypeDo: aBlock otherwiseDo: otherBlock [
 
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 VMLineTypeFrontier >> isFrontier [
 	^true.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 VMLineTypeFrontier >> isObstacle [
 	^false.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 VMLineTypeFrontier >> isSector [
 	^false.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #rendering }
 VMLineTypeFrontier >> renderColor [
 	^Color green
+]
+
+{ #category : #'type hierarchy' }
+VMLineTypeFrontier >> useDominantType: aLineType [
+	aLineType dominatesOverFrontier
+		ifTrue: [ ^aLineType ].
+	^ self
 ]

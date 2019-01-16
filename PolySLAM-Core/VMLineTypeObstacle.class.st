@@ -4,34 +4,51 @@ Class {
 	#category : #'PolySLAM-Core-Data Structures: Points & Lines'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #converting }
 VMLineTypeObstacle >> asInteger [
 	^1.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'type hierarchy' }
+VMLineTypeObstacle >> dominatesOverFrontier [
+	^ true
+]
+
+{ #category : #'type hierarchy' }
+VMLineTypeObstacle >> dominatesOverSector [
+	^ true
+]
+
+{ #category : #testing }
 VMLineTypeObstacle >> ifMergeableTypeDo: aBlock otherwiseDo: otherBlock [
 
 	aBlock value.
 
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 VMLineTypeObstacle >> isFrontier [
 	^false.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 VMLineTypeObstacle >> isObstacle [
 	^true.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #testing }
 VMLineTypeObstacle >> isSector [
 	^false.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #rendering }
 VMLineTypeObstacle >> renderColor [
 	^Color red
+]
+
+{ #category : #'type hierarchy' }
+VMLineTypeObstacle >> useDominantType: aLineType [
+	aLineType dominatesOverObstacle
+		ifTrue: [ ^aLineType ].
+	^ self
 ]

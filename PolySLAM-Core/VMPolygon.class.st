@@ -40,14 +40,14 @@ Class {
 	#category : #'PolySLAM-Core-Data Structures: Polygons'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 VMPolygon class >> fromPoints: pointCollection [
 	^(self new)
 		fromPoints: pointCollection;
 		yourself
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 VMPolygon class >> fromPoints: pointCollection withTypes: typeCollection [
 	^(self new)
 		fromPoints: pointCollection withTypes: typeCollection;
@@ -59,12 +59,17 @@ VMPolygon class >> fromRectangle: rect [
 	^self fromPoints: { rect topLeft.  rect topRight.  rect bottomRight.  rect bottomLeft. }.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'instance creation' }
 VMPolygon class >> fromVectors: vectorCollection [
 	"note: no check is performed on wheather or not the vector collection actually describes a closed polygon"
 	^(self new)
 		addAll: vectorCollection;
 		yourself
+]
+
+{ #category : #'instance creation' }
+VMPolygon class >> fuelFrom: filename [
+	^ self new fuelFrom: filename
 ]
 
 { #category : #'rendering support' }
@@ -94,6 +99,35 @@ VMPolygon >> = aPolygon [
 	
 	^ false
 
+]
+
+{ #category : #adding }
+VMPolygon >> add: aLineSegment [
+	| deltaAngle angle angle2 |
+	self size > 0 ifTrue: [
+		angle := aLineSegment angle.
+		angle2 := (self atWrap: self size) angle.
+
+		deltaAngle := ((angle - angle2) * 360 / Float twoPi) abs.
+		(deltaAngle between: 179.99 and: 180.01)
+			ifTrue: [
+				Transcript show: 'overlapping vector with prev. vector in polygon (delta=';
+					show: deltaAngle printString;
+					show: ')';
+					cr.
+					"1 halt." ].
+		
+		(aLineSegment pointB = self first pointA) ifTrue: [
+			deltaAngle := (angle - (self first angle) * 360 / Float twoPi) abs.
+			(deltaAngle between: 179.99 and: 180.91)
+				ifTrue: [
+					Transcript show: 'overlapping vector with first vector in polygon (delta=';
+						show: deltaAngle printString;
+						show: ')';
+						cr.
+						"1 halt." ]. ]. ].
+	
+	^ super add: aLineSegment
 ]
 
 { #category : #modifying }
@@ -135,7 +169,7 @@ VMPolygon >> bounds [
 	| rectangle |
 	self ifEmpty: [ ^nil ].
 	
-	rectangle := Rectangle point: self first pointA point: self first pointB.
+	rectangle := VMRectangle point: self first pointA point: self first pointB.
 	
 	self allButFirstDo: [ :lineSeg |
 		rectangle := rectangle encompass: lineSeg pointA.
@@ -190,6 +224,14 @@ VMPolygon >> containsDuplicates [
 	
 	^false
 
+]
+
+{ #category : #testing }
+VMPolygon >> containsZeroLengthVectors [
+	self do: [ :v |
+		v pointA = v pointB ifTrue: [ ^ true ].
+	].
+	^ false
 ]
 
 { #category : #'as yet unclassified' }
@@ -338,6 +380,16 @@ VMPolygon >> fromPoints: aCollectionOfPoints withTypes: aCollectionOfTypes [
 	].
 ]
 
+{ #category : #'fuel: save & restore' }
+VMPolygon >> fuelFrom: filename [
+	^ FLMaterializer materializeFromFileNamed: filename
+]
+
+{ #category : #'as yet unclassified' }
+VMPolygon >> fuelTo: filename [
+	^ FLSerializer serialize: self toFileNamed: filename
+]
+
 { #category : #'GT Inspector' }
 VMPolygon >> gtInspectorRenderedIn: composite [
 	<gtInspectorPresentationOrder: 50>
@@ -368,13 +420,18 @@ VMPolygon >> hash [
 ]
 
 { #category : #testing }
-VMPolygon >> ifConvexDo: aBlock otherwiseDo: otherBlock [
+VMPolygon >> ifConvex: aBlock [
+	self ifConvex: aBlock otherwise: [:a :b|]
+]
+
+{ #category : #testing }
+VMPolygon >> ifConvex: aBlock otherwise: otherBlock [
 
 	self isCW
 		ifTrue: [
 			self doWithIndex: [ :lineSeg :index |
 				lineSeg asVMLine fuzzyPoint: (self atWrap: index +1) pointB
-					ifOnLeftSideDo: [ otherBlock value: self value: lineSeg. ^self ]
+					ifOnLeftSideDo: [ otherBlock cull: self cull: lineSeg. ^self ]
 					ifOnRightSideDo: [  ]
 					ifOnLineDo: [  ].
 			].
@@ -382,7 +439,7 @@ VMPolygon >> ifConvexDo: aBlock otherwiseDo: otherBlock [
 			self doWithIndex: [ :lineSeg :index |
 				lineSeg asVMLine fuzzyPoint: (self atWrap: index +1) pointB
 					ifOnLeftSideDo: [  ]
-					ifOnRightSideDo: [ otherBlock value: self value: lineSeg. ^self ]
+					ifOnRightSideDo: [ otherBlock cull: self cull: lineSeg. ^self ]
 					ifOnLineDo: [  ].
 			].
 		].
@@ -441,7 +498,7 @@ VMPolygon >> isCW [
 
 { #category : #testing }
 VMPolygon >> isClosed [
-	
+	"tests if every line segment is connect with its successor, wraping around at the end of the collection"
 	self doWithIndex: [ :obj :index |
 		obj pointB = (self atWrap: index + 1) pointA
 			ifFalse: [ ^false ].
@@ -675,6 +732,22 @@ VMPolygon >> replaceChain: vectorChain with: newVector [
 
 ]
 
+{ #category : #'as yet unclassified' }
+VMPolygon >> replaceVector: oldVector with: newVector [
+	| index |
+	index := self indexOf: oldVector ifAbsent: [ self error: 'vector not found in polygon'. ^self. ].
+	self at: index put: newVector.
+]
+
+{ #category : #'as yet unclassified' }
+VMPolygon >> replaceVector: oldVector withCollection: aCollection [
+	"replaces a vector with all vectors from the provided collection in order."
+	| index |
+	index := self indexOf: oldVector ifAbsent: [ self error: 'vector not found in polygon'. ^self. ].
+	self at: index put: aCollection first.
+	aCollection allButFirstDo: [ :v | self add: v afterIndex: index. index := index + 1.].
+]
+
 { #category : #private }
 VMPolygon >> reversed [
 	| temp |
@@ -699,6 +772,14 @@ VMPolygon >> signedArea [
 	].
 	
 	^0.5 * sum
+]
+
+{ #category : #modifying }
+VMPolygon >> simplify: threshold [
+	^ (VMVectorCollectionSimplifier compute: self inlierThreshold: threshold)
+		result
+	
+	
 ]
 
 { #category : #modifying }

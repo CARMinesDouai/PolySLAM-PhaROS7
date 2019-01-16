@@ -71,7 +71,7 @@ VMPolygonTest >> testFindClosest [
 		| result |
 		result := polygon findNearest: testPoint.
 		self assert: result object isNotNil.
-		self assert: result object equals: expectedPoint.
+		self assert: (result object dist: expectedPoint) < 0.0000001.
 	].
 ]
 
@@ -92,7 +92,7 @@ VMPolygonTest >> testFindClosestObstacle [
 		| result |
 		result := polygon findNearestObstacle: testPoint.
 		self assert: result object isNotNil.
-		self assert: result object equals: expectedPoint.
+		self assert: (result object dist: expectedPoint) < 0.0000001.
 		
 		renderCollection add: "a line, connecting the test point to the expected result. color: purple"
 			((VMLineSegment from: testPoint to: expectedPoint)
@@ -163,8 +163,8 @@ VMPolygonTest >> testIfConvexDoOtherwiseDo [
 		polygon := VMPolygon new fromPoints: points.
 		
 		polygon
-			ifConvexDo: [ :p | result := true ]
-			otherwiseDo: [ :p :l | result := false ].
+			ifConvex: [ :p | result := true ]
+			otherwise: [ :p :l | result := false ].
 		
 		self assert: result equals: (expectedResults at: index).
 	].

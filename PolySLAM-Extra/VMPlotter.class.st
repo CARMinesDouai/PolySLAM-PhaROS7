@@ -53,7 +53,8 @@ Class {
 		'dataSetCounter',
 		'labelCounter',
 		'objectCounter',
-		'range'
+		'range',
+		'backend'
 	],
 	#category : #'PolySLAM-Extra-Gnuplot plotter'
 }
@@ -65,7 +66,7 @@ VMPlotter class >> model: anObject [
 		yourself
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'plotting - helper' }
 VMPlotter >> addInitLine: aString [
 	"adds aString to the init part of the gnuplot command stream. automatically adds crlf at the end.
 	This method is used to add custom settings that are not otherwise implemented."
@@ -80,6 +81,18 @@ VMPlotter >> autoColor [
 { #category : #accessing }
 VMPlotter >> autoColor: aBoolean [
 	autoColor := aBoolean.
+]
+
+{ #category : #accessing }
+VMPlotter >> backend [
+	^ backend
+]
+
+{ #category : #accessing }
+VMPlotter >> backend: aSymbol [
+	"set to #OSSubprocess to use the OSSubprocess backend. every other
+	value (including nil) will use the default backend SystemProcess"
+	backend := aSymbol.
 ]
 
 { #category : #accessing }
@@ -330,11 +343,11 @@ VMPlotter >> plotDot: aPoint radius: radius extra: extraString [
 
 { #category : #'plotting - execution' }
 VMPlotter >> plotExec: process [
-
+	plotCmd crlf.
+	
 	process stdinStream
 		nextPutAll: plotInitStream contents;
 		nextPutAll: plotCmd contents;
-		nextPutAll: crlf;
 		nextPutAll: plotData contents.
 
 ]
@@ -378,10 +391,13 @@ VMPlotter >> plotFilledPolygon: polygon extra: extraString [
 
 { #category : #'plotting - execution' }
 VMPlotter >> plotFinish: process [
+	backend = #OSSubprocess ifTrue: [
+		process stdinStream close.
+		process waitForExit.
+		process closeAndCleanStreams.
+		^ self].
+	
 	process stdinStream nextPutAll: 'exit', crlf.
-"	process stdinStream close."
-	"process waitForExit.
-	process closeAndCleanStreams."
 
 ]
 
@@ -521,6 +537,32 @@ VMPlotter >> plotHeadlessArrowCollection: aCollection [
 
 { #category : #'plotting - execution' }
 VMPlotter >> plotInit [
+	backend = #OSSubprocess ifTrue: [ ^  self plotInitOSSubprocess ].
+	
+	^ self plotInitSystemProcess
+]
+
+{ #category : #'plotting - execution' }
+VMPlotter >> plotInitOSSubprocess [
+	| cmd process |
+	cmd := 'gnuplot -p'.
+	
+	process := OSSUnixSubprocess new
+		shellCommand: cmd;
+		redirectStdin;
+		redirectStdout;
+		run.
+	
+	^process
+]
+
+{ #category : #accessing }
+VMPlotter >> plotInitStream [
+	^ plotInitStream
+]
+
+{ #category : #'plotting - execution' }
+VMPlotter >> plotInitSystemProcess [
 	| cmd process |
 	cmd := {'/usr/bin/gnuplot'. '-p'}.
 	
@@ -530,11 +572,6 @@ VMPlotter >> plotInit [
 	process shellCommand: cmd.
 	
 	^process
-]
-
-{ #category : #accessing }
-VMPlotter >> plotInitStream [
-	^ plotInitStream
 ]
 
 { #category : #'plotting - helper - text' }

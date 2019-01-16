@@ -38,6 +38,18 @@ VMGridCellBSP >> isEmpty [
 	^ root isEmpty
 ]
 
+{ #category : #accessing }
+VMGridCellBSP >> polygonAt: aPoint [
+	root ifNil: [ ^ nil ].
+	Transcript show: 'cell polygonAt'; cr.
+	^ root polygonAt: aPoint
+]
+
+{ #category : #accessing }
+VMGridCellBSP >> root [
+	^ root
+]
+
 { #category : #'as yet unclassified' }
 VMGridCellBSP >> simplify [
 	| collection bounds vectorCount |

@@ -744,7 +744,7 @@ VMDataSet class >> map_7 [
 			"
 	} ).
 	
-	map polygons add: (VMPolygonMerger merge: polygons).
+	map polygons add: (VMPolygonMergerOld merge: polygons).
 	"map polygons add: ( polygons first merge: polygons )."
 	map computeBounds.
 	

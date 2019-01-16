@@ -16,6 +16,14 @@ VMGridStorage class >> gridSize: gridSize [
 		yourself
 ]
 
+{ #category : #'as yet unclassified' }
+VMGridStorage class >> gridSize: gridSize cellClass: cellClass [
+	^ self new
+		gridSize: gridSize;
+		cellClass: cellClass;
+		yourself
+]
+
 { #category : #adding }
 VMGridStorage >> add: aPolygon [
 	^ self splitVerticalPolygon: aPolygon
@@ -115,12 +123,17 @@ VMGridStorage >> do: aBlock [
 { #category : #enumerating }
 VMGridStorage >> doWithIndex: aBlock [
 	columns doWithIndex: [ :row :xIndex |
-		Transcript show: 'xIndex=', xIndex printString; cr.
+		"Transcript show: 'xIndex=', xIndex printString; cr."
 		row ifNotNil: [
 			row doWithIndex: [ :cell :yIndex|
-			Transcript show: '  yIndex=', yIndex printString; cr.
+			"Transcript show: '  yIndex=', yIndex printString; cr."
 				cell ifNotNil: [
 					aBlock cull: cell cull: xIndex cull: yIndex ]. ]. ]. ].
+]
+
+{ #category : #'private - accessing' }
+VMGridStorage >> gridSize [
+	^ gridSize
 ]
 
 { #category : #'private - accessing' }
@@ -141,6 +154,41 @@ VMGridStorage >> initialize [
 { #category : #adding }
 VMGridStorage >> insert: aPolygon [
 	self add: aPolygon
+]
+
+{ #category : #accessing }
+VMGridStorage >> polygonAt: aPoint [
+	| cell |
+	cell := self at: (aPoint x / gridSize) floor at: (aPoint y / gridSize) floor.
+	cell ifNil: [ Transcript show: 'cell is nill'; cr. ^ nil ].
+	
+	^ cell polygonAt: aPoint
+	
+]
+
+{ #category : #printing }
+VMGridStorage >> printStats [
+	| cellCount polygonCount vectorCount |
+	
+	cellCount := 0.
+	polygonCount := 0.
+	vectorCount := 0.
+	
+	self doWithIndex: [ :cell :x :y |
+		cell isEmpty ifFalse: [
+			| polygonCollection |
+			cellCount := cellCount + 1.
+			polygonCollection := cell asVMPolygonCollection.
+			polygonCount := polygonCount + polygonCollection size.
+			polygonCollection do: [ :polygon |
+				vectorCount := vectorCount + polygon size. ]. ].	].
+	
+	Transcript show: self class name;
+		show: ' stats:'; cr;
+		show: '  cellCount='; show: cellCount printString; cr;
+		show: '  polygonCount='; show: polygonCount printString; cr;
+		show: '  vectorCount='; show: vectorCount printString; cr.
+
 ]
 
 { #category : #'as yet unclassified' }

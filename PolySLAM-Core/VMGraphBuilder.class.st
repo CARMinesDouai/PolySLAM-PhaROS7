@@ -32,6 +32,16 @@ Class {
 	#category : #'PolySLAM-Core-Top. Graph'
 }
 
+{ #category : #'as yet unclassified' }
+VMGraphBuilder class >> buildGraphFromGrid: grid [
+	^ self new buildGraphFromGrid: grid
+]
+
+{ #category : #'as yet unclassified' }
+VMGraphBuilder class >> buildGraphFromTree: root [
+	^ self new buildGraph: root
+]
+
 { #category : #'helper methods' }
 VMGraphBuilder >> addGraph: graph fromTree: aBspTree [
 	

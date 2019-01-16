@@ -41,6 +41,11 @@ VMGraph >> asVMGraph [
 ]
 
 { #category : #accessing }
+VMGraph >> atPolygon: aPolygon [
+	^ self atSector: aPolygon
+]
+
+{ #category : #accessing }
 VMGraph >> atSector: aPolygon [
 	| index start |
 	index := start := aPolygon hash \\ array size + 1.

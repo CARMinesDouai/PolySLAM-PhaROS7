@@ -48,20 +48,20 @@ VMSVD >> matrix: m [
 	mmT := m * (m transpose).
 	
 	eigen := VMEigen2d matrix: mmT.
-	u := DhbMatrix rows: 2 columns: 2.
+	u := PMMatrix rows: 2 columns: 2.
 	u at: 1 at: 1 put: (eigen vector1 x).
 	u at: 1 at: 2 put: (eigen vector1 y).
 	u at: 2 at: 1 put: (eigen vector2 x).
 	u at: 2 at: 2 put: (eigen vector2 y).
 	
-	s := DhbMatrix rows: 2 columns: 2.
+	s := PMMatrix rows: 2 columns: 2.
 	s at: 1 at: 1 put: (eigen value1 sqrt).
 	s at: 1 at: 2 put: 0.
 	s at: 2 at: 1 put: 0.
 	s at: 2 at: 2 put: (eigen value2 sqrt).
 	
 	eigen := VMEigen2d matrix: mTm.
-	v := DhbMatrix rows: 2 columns: 2.
+	v := PMMatrix rows: 2 columns: 2.
 	v at: 1 at: 1 put: (eigen vector1 x).
 	v at: 1 at: 2 put: (eigen vector1 y).
 	v at: 2 at: 1 put: (eigen vector2 x).

@@ -18,7 +18,7 @@ VMGridStorage class >> gridSize: gridSize [
 
 { #category : #'as yet unclassified' }
 VMGridStorage class >> gridSize: gridSize cellClass: cellClass [
-	^self new
+	^ self new
 		gridSize: gridSize;
 		cellClass: cellClass;
 		yourself
@@ -55,7 +55,6 @@ VMGridStorage >> at: xCoord at: yCoord [
 VMGridStorage >> at: xCoord at: yCoord add: anObj [
 	| xIndex yIndex |
 	
-	Transcript show: 'adding object at x=', xCoord printString, ' y=', yCoord printString; cr.
 	xIndex := xCoord "\\ gridSize".
 	yIndex := yCoord "\\ gridSize".
 	
@@ -177,6 +176,45 @@ VMGridStorage >> polygonAt: aPoint [
 	cell ifNil: [ Transcript show: 'cell is nill'; cr. ^ nil ].
 	
 	^ cell polygonAt: aPoint
+	
+]
+
+{ #category : #printing }
+VMGridStorage >> printStats [
+	| cellCount polygonCount vectorCount |
+	
+	cellCount := 0.
+	polygonCount := 0.
+	vectorCount := 0.
+	
+	self doWithIndex: [ :cell :x :y |
+		cell isEmpty ifFalse: [
+			| polygonCollection |
+			cellCount := cellCount + 1.
+			polygonCollection := cell asVMPolygonCollection.
+			polygonCount := polygonCount + polygonCollection size.
+			polygonCollection do: [ :polygon |
+				vectorCount := vectorCount + polygon size. ]. ].	].
+	
+	Transcript show: self class name;
+		show: ' stats:'; cr;
+		show: '  cellCount='; show: cellCount printString; cr;
+		show: '  polygonCount='; show: polygonCount printString; cr;
+		show: '  vectorCount='; show: vectorCount printString; cr.
+
+]
+
+{ #category : #'as yet unclassified' }
+VMGridStorage >> simplify [
+	self doWithIndex: [ :cell :x :y |
+		Transcript show: self class name;
+			show: ' simplify x=';
+			show: x printString;
+			show: ' y=';
+			show: y printString;
+			cr.
+			
+		cell simplify. ].
 ]
 
 { #category : #splitting }

@@ -8,7 +8,8 @@ Class {
 		'bounds',
 		'hyperplaneSegments',
 		'showHyperplanes',
-		'showLabels'
+		'showLabels',
+		'showArrowHeads'
 	],
 	#category : #'PolySLAM-Extra-Gnuplot plotter'
 }
@@ -30,6 +31,7 @@ VMPlotBSPTree >> initialize [
 	super initialize.
 	
 	showHyperplanes := true.
+	showArrowHeads := true.
 	showLabels := true.
 ]
 
@@ -50,6 +52,21 @@ VMPlotBSPTree >> plotHyperplaneSegments [
 	self plotVectorCollection: hyperplaneSegments extra: 'nohead dt 2 lt rgb ''#000000'' notitle'.
 	Transcript show: 'hyperplanes size=', hyperplaneSegments size printString; cr.
 	"self plotLineSegment: plane extra: 'nohead dt 2 lt rgb ''#000000'' notitle'."
+]
+
+{ #category : #plotting }
+VMPlotBSPTree >> plotLeaf: node [
+	node isLeaf ifTrue: [
+		node sector isNotNil ifTrue: [
+			self plotFilledPolygon: node sector extra: 'lc rgb "#FFFFFF"'.
+			"showArrowHeads
+				ifTrue: [ self plotArrowCollection: node sector. ]
+				ifFalse: [ self plotHeadlessArrowCollection: node sector. ]."
+			
+			self plotVectorCollection: (node sector select: [:v | v isObstacle]) color: Color black.
+		].
+	].
+
 ]
 
 { #category : #plotting }
@@ -80,8 +97,7 @@ VMPlotBSPTree >> recursivePlot: node planes: lrCollection level: depth [
 	"depth > maxLevel ifTrue: [ ^ self ]."
 	
 	node isLeaf ifTrue: [
-		"^ self plotLeaf: node"
-		^self ].
+		^ self plotLeaf: node ].
 	
 	copyA := (lrCollection copy).
 	copyA left add: node hyperplane.
@@ -91,9 +107,9 @@ VMPlotBSPTree >> recursivePlot: node planes: lrCollection level: depth [
 	self recursivePlot: node leftChild planes: copyA level: depth + 1.
 	self recursivePlot: node rightChild planes: copyB level: depth + 1.
 	
-	"showHyperplanes ifTrue: [
+	showHyperplanes ifTrue: [
 		self plotHyperplane: node planes: lrCollection depth: depth. ].
-	"
+	
 
 ]
 

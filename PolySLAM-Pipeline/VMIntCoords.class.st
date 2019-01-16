@@ -23,7 +23,7 @@ Class {
 		'x',
 		'y'
 	],
-	#category : #'PolySLAM-PhaROS-Examples-Helper'
+	#category : #'PolySLAM-Pipeline-Helper'
 }
 
 { #category : #'as yet unclassified' }

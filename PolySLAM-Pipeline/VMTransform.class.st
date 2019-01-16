@@ -51,7 +51,7 @@ Class {
 		'translation',
 		'orientation'
 	],
-	#category : #'PolySLAM-PhaROS-Examples-Helper'
+	#category : #'PolySLAM-Pipeline-Helper'
 }
 
 { #category : #constructor }
@@ -126,7 +126,7 @@ VMTransform >> inverse [
 	rot := self rotMatrix.
 	invRot := rot transpose.
 	"invRot := rot."
-	trans := DhbMatrix rows: { {translation x. translation y. translation z} }.
+	trans := PMMatrix rows: { {translation x. translation y. translation z} }.
 	
 	trans := trans * -1.0 * invRot.
 	
@@ -157,7 +157,7 @@ VMTransform >> orientation: anOrientation [
 VMTransform >> rotMatrix [
 	| matrix x22 y22 z22 xy2 xz2 yz2 wx2 wy2 wz2 |
 	
-	matrix := DhbMatrix new: 3.
+	matrix := PMMatrix new: 3.
 	
 	x22 := orientation x squared * 2.
 	y22 := orientation y squared * 2.
@@ -188,7 +188,7 @@ VMTransform >> rotMatrix [
 
 { #category : #accessing }
 VMTransform >> transVec [
-	^DhbMatrix rows: { {translation x. translation y. translation z} }.
+	^PMMatrix rows: { {translation x. translation y. translation z} }.
 ]
 
 { #category : #accessing }

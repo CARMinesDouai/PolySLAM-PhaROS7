@@ -90,7 +90,7 @@ VMNNVectorGrid >> at: x at: y [
 VMNNVectorGrid >> at: x at: y put: aVector [
 	| row |
 	row := xCollection at: x+xOffset ifAbsent: [ self error: 'invalid x index'. ].
-	row checkBoundaries: y.
+	row checkBoundary: y.
 	(row at: y) add: aVector.
 	"((xCollection at: x+xOffset ifAbsent: [ self error: 'invalid x index'. ])
 		at: y)

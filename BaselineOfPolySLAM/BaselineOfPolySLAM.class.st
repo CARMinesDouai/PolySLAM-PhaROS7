@@ -7,47 +7,32 @@ Class {
 { #category : #baselines }
 BaselineOfPolySLAM >> baseline: spec [
 	<baseline>
-	
-	spec for: #common do: [ 
-		spec preLoadDoIt: #preload.
-		spec project: 'SciSmalltalk' with: [
-				spec
-					className: #ConfigurationOfSciSmalltalk;
-					versionString: #'stable';
-					repository: 'http://smalltalkhub.com/mc/Pharo/MetaRepoForPharo50/main/' ].
-		
-		spec project: 'PhaROS' with: [ 
-			 spec
-				className: #ConfigurationOfPhaROS;
-				versionString: #'stable';
-				repository: 'http://smalltalkhub.com/mc/CAR/PhaROS/main'
-		].
-		"This package is required for the extra package, that use os subprocess for gnuplot.
-		The package only works on 32bit version"
-		spec
-			baseline: 'OSSubprocess' 
-			with: [ spec repository: 'github://marianopeck/OSSubprocess:master/repository' ].
-		
-		spec
-			package: 'PolySLAM-FixDep';
-			package: 'PolySLAM-Core' with: [ spec requires: #('PolySLAM-FixDep' 'SciSmalltalk') ];
-			package: 'PolySLAM-Tests';
-			package: 'PolySLAM-Extra' with:[ spec requires: #('OSSubprocess') ];
-			package: 'PolySLAM-PhaROS-Examples';
-			"groups"
-			group: 'core'  with: #('PolySLAM-Core');
-			group: 'extra' with: #('PolySLAM-Core' 'PolySLAM-Extra');
-			group: 'test'  with: #('PolySLAM-Core' 'PolySLAM-Tests');
-			group: 'full'  with: #('PolySLAM-Core' 'PolySLAM-Extra' 'PolySLAM-Tests');
-			group: 'pharos' with: #('core' 'PhaROS');
-			group: 'pharosfull' with: #('pharos' 'PolySLAM-PhaROS-Examples')
-		]
-]
-
-{ #category : #preload }
-BaselineOfPolySLAM >> preload [
-
-	(Object lookupSelector: #ifNotNilDo:) ifNotNil: [ ^self ].
-	Object compile: 'ifNotNilDo: ablock
-	^ self ifNotNil: ablock'.
+	spec
+		for: #common
+		do: [
+			spec baseline: 'PolyMath' with: [ spec repository: 'github://PolyMathOrg/PolyMath:master/src' ].
+			spec
+				project: 'PhaROS'
+				with: [ spec
+						className: #ConfigurationOfPhaROS;
+						versionString: #stable;
+						repository: 'http://smalltalkhub.com/mc/CAR/PhaROS/main' ].
+			spec baseline: 'SystemProcess' with: [ spec repository: 'github://lxsang/SystemProcess' ].
+			spec
+				"package: 'PolySLAM-FixDep';"
+				package: 'PolySLAM-Core' with: [ spec requires: #('PolyMath') ];
+				package: 'PolySLAM-Tests';
+				package: 'PolySLAM-Extra' with: [ spec requires: #('SystemProcess') ];
+				package: 'PolySLAM-Pipeline';
+				package: 'PolySLAM-Viz';
+				package: 'PolySLAM-PhaROS-Examples';
+				"groups"
+					group: 'core' with: #('PolySLAM-Core');
+				group: 'extra' with: #('PolySLAM-Core' 'PolySLAM-Extra');
+				group: 'test' with: #('PolySLAM-Core' 'PolySLAM-Tests');
+				group: 'full' with: #('PolySLAM-Core' 'PolySLAM-Extra' 'PolySLAM-Tests' 'PolySLAM-Pipeline');
+				group: 'pipeline' with: #('PolySLAM-Core' 'PolySLAM-Extra' 'PolySLAM-Tests' 'PolySLAM-Pipeline');
+				group: 'pharos' with: #('core' 'PhaROS');
+				group: 'pharosfull' with: #('pharos' 'PolySLAM-PhaROS-Examples');
+				group: 'default' with: #('full') ]
 ]

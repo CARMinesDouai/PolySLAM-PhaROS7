@@ -152,7 +152,7 @@ VMPolygonSplitter >> createPolygonsFromCollection: sourceCollection withBorders:
 					borderSet detect: [ :element | element pointA = tempPolygon last pointB ]
 						ifFound: [ :element | tempPolygon add: (borderSet remove: element) ]
 						ifNone: [
-							1 halt.
+							"1 halt."
 							self error: self class printString, ' - failed to find a matching line segment to create a closed polygon'.
 				]
 			]

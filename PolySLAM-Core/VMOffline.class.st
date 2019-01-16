@@ -136,14 +136,14 @@ VMOffline >> buildMapLazyFrom: startIndex to: endIndex by: stepSize [
 							show: index printString;
 							show: ' e=', e printString;
 							cr.
-							1 halt].
+							"1 halt." ].
 				[ map := map insert: polygon. ]
 					on: Error
 					do: [ :e |
 						Transcript show: 'failed map-building at index=';
 							show: index printString;
 							show: ' e=', e printString; cr.
-							1 halt. ].
+							"1 halt." ].
 			"]."
 			tfIndex := tfIndex + 1.
 		].
@@ -389,7 +389,7 @@ VMOffline >> initialize [
 
 	icpTF := OrderedCollection new.
 	icpScoreHistory := OrderedCollection new.
-	nnc := VMNNVectorGrid new.
+	nnc := PSFFINNCollection new.
 	nncSizeHistory := OrderedCollection new.
 	map := VMBSPLeaf new.
 	noiseGen := nil.

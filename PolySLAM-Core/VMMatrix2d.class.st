@@ -1,6 +1,6 @@
 Class {
 	#name : #VMMatrix2d,
-	#superclass : #DhbMatrix,
+	#superclass : #PMMatrix,
 	#category : #'PolySLAM-Core-LinAlgebra'
 }
 

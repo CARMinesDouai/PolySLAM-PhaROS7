@@ -5,8 +5,9 @@ This class seperates a graph into connected graphs, i.e. splits a graph into par
 Public API and Key Messages
 
 - compute: <VMGraph>
-	answers with an OrderedCollection of connected graphs. if the original graph is already connected,
-	the OrderedCollection instance will contain only a single graph. all returned graphs are (shallow) copies.
+	answers with an OrderedCollection of connected graphs (VMGraph instances). if the original graph is already connected,
+	the OrderedCollection instance will contain only a single graph. all returned graphs are (shallow) copies, the
+	original graph is not modified.
 "
 Class {
 	#name : #VMConnectedGraphs,

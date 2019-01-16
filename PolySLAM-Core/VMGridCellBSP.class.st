@@ -83,6 +83,34 @@ VMGridCellBSP >> root: aTreeRoot [
 	root := aTreeRoot.
 ]
 
+{ #category : #'as yet unclassified' }
+VMGridCellBSP >> simplify [
+	| collection bounds vectorCount |
+	collection := root asCollectionOfSectors.
+	collection size < 2 ifTrue: [ ^ self ].
+	
+	collection do: [ :polygon |
+		polygon do: [ :vector |
+			vector isSector ifFalse: [ ^ self ]. ]. ].
+	
+	bounds := collection first bounds.
+	collection allButFirstDo: [ :polygon |
+		bounds := bounds merge: polygon bounds.	].
+		
+	root := VMBSPLeaf new insert: (VMPolygon fromRectangle: bounds).
+	vectorCount := 0.
+	collection do: [ :polygon | vectorCount := vectorCount + polygon size ].
+	
+	Transcript
+		show: self class name;
+		show: ' simplified, p size=';
+		show: collection size printString;
+		show: ', v size=';
+		show: vectorCount printString;
+		cr.
+
+]
+
 { #category : #testing }
 VMGridCellBSP >> size [
 	^ root size

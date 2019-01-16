@@ -1,8 +1,27 @@
 Class {
 	#name : #VMPlotSearchPath,
 	#superclass : #VMPlotObject,
+	#instVars : [
+		'color'
+	],
 	#category : #'PolySLAM-Extra-Gnuplot plotter'
 }
+
+{ #category : #accessing }
+VMPlotSearchPath >> color [
+	^ color
+]
+
+{ #category : #accessing }
+VMPlotSearchPath >> color: aColor [
+	color := aColor.
+]
+
+{ #category : #initialization }
+VMPlotSearchPath >> initialize [
+	super initialize.
+	color := Color orange.
+]
 
 { #category : #plotting }
 VMPlotSearchPath >> plotParent: parent [
@@ -17,6 +36,6 @@ VMPlotSearchPath >> plotParent: parent [
 		node := node prev.
 	].
 	
-	self plotVectorCollection: edges extra: 'lt 1 dt 3 lw ', lineWidth printString, ' lc rgb ''#', Color orange asHexString ,''' nohead notitle'.
+	self plotVectorCollection: edges extra: 'lt 1 dt 3 lw ', lineWidth printString, ' lc rgb ''#', color asHexString ,''' nohead notitle'.
 
 ]

@@ -75,6 +75,35 @@ VMGraphBuilderTest >> testVectorByXOverlapsWith [
 
 { #category : #tests }
 VMGraphBuilderTest >> testVectorByYOverlapsWith [
+	| vectorAI vectorB builder dir |
+	builder := VMGraphBuilder new.
+	
+	{ 0@0 vectorTo: 1.2@4.3.  1.2@4.3 vectorTo: 0@0 } do: [ :vectorA |
+		vectorAI := vectorA reversed.
+		dir := vectorA direction.
+		Transcript show: 'A='; show: vectorA printString; cr.
+		Transcript show: 'AI='; show: vectorA printString; cr.
+		
+		vectorB := vectorAI.
+		self assert: (builder vector: vectorA byYOverlapsWith: vectorB).
+		
+		vectorB := vectorAI translate: (0.5 * dir).
+		self assert: (builder vector: vectorA byYOverlapsWith: vectorB).
+		
+		vectorB := vectorAI translate: (-0.5 * dir).
+		self assert: (builder vector: vectorA byYOverlapsWith: vectorB).
+		
+		vectorB := vectorAI translate: (1.5 * dir).
+		self assert: (builder vector: vectorA byYOverlapsWith: vectorB) not.
+		
+		vectorB := vectorAI translate: (-1.5 * dir).
+		self assert: (builder vector: vectorA byYOverlapsWith: vectorB) not.
+	].
+
+]
+
+{ #category : #tests }
+VMGraphBuilderTest >> testVectorByYOverlapsWith_Old [
 	| vectorA vectorB builder dir |
 	
 	vectorA := 0@0 vectorTo: 1.2@4.3.

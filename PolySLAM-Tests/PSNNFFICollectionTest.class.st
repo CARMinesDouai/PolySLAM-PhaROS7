@@ -1,15 +1,15 @@
 Class {
-	#name : #VMNNVectorGridTest,
+	#name : #PSNNFFICollectionTest,
 	#superclass : #VMTests,
 	#category : #'PolySLAM-Tests'
 }
 
-{ #category : #'as yet unclassified' }
-VMNNVectorGridTest >> testAdd [
+{ #category : #tests }
+PSNNFFICollectionTest >> testAdd [
 	"testing horizontal vectors"
 	| grid data vectors |
 	
-	grid := VMNNVectorGrid new.
+	grid := PSFFINNCollection new.
 	data := {
 		{ 1.1 @ 0.5.  3.3 @ 0.5 }.
 		{ 2 @ 2.  -2 @ 2 }.
@@ -19,16 +19,17 @@ VMNNVectorGridTest >> testAdd [
 	vectors := data collect: [ :points | VMLineSegment from: points first to: points last ].
 	
 	vectors do: [ :v | grid add: v ].
+	grid cleanup.
 	
 
 ]
 
-{ #category : #'as yet unclassified' }
-VMNNVectorGridTest >> testAdd2 [
+{ #category : #tests }
+PSNNFFICollectionTest >> testAdd2 [
 	"testing non-horizontal vectors (pointing upwards)"
 	| grid data vectors |
 	
-	grid := VMNNVectorGrid new.
+	grid := PSFFINNCollection new.
 	data := {
 		{ 1.1 @ 0.25.  3.3 @ 0.75 }.
 		{ 2 @ 2.  -2 @ 3 }.
@@ -39,16 +40,16 @@ VMNNVectorGridTest >> testAdd2 [
 	vectors := data collect: [ :points | VMLineSegment from: points first to: points last ].
 	
 	vectors do: [ :v | grid add: v ].
-	
+	grid cleanup 
 
 ]
 
-{ #category : #'as yet unclassified' }
-VMNNVectorGridTest >> testAdd3 [
+{ #category : #tests }
+PSNNFFICollectionTest >> testAdd3 [
 	"testing non-horizontal vectors (pointing downwards)"
 	| grid data vectors |
 	
-	grid := VMNNVectorGrid new.
+	grid := PSFFINNCollection new.
 	data := {
 		{ 1.1 @ 0.75.  3.3 @ 0.25 }.
 		{ 2 @ 2.  -2 @ 0 }.
@@ -60,16 +61,17 @@ VMNNVectorGridTest >> testAdd3 [
 	vectors := data collect: [ :points | VMLineSegment from: points first to: points last ].
 	
 	vectors do: [ :v | grid add: v ].
+	grid cleanup 
 	
 
 ]
 
-{ #category : #'as yet unclassified' }
-VMNNVectorGridTest >> testFindNearest [
+{ #category : #tests }
+PSNNFFICollectionTest >> testFindNearest [
 	| points vector grid searchPoints result expectedResults |
 	points := { -1.5 @ -0.5.  3.5 @ 1.1 }.
 	vector := VMLineSegment from: points first to: points last.
-	grid := VMNNVectorGrid new.
+	grid := PSFFINNCollection new.
 	grid add: vector.
 	searchPoints := { -2 @ -1.  -2 @ -0.5.  0 @ 0. }.
 	expectedResults := {}.
@@ -78,11 +80,12 @@ VMNNVectorGridTest >> testFindNearest [
 		result := grid findNearest: sp.
 		self assert: result object equals: (vector closestPoint: sp).
 	].
+	grid cleanup 
 	
 ]
 
-{ #category : #'as yet unclassified' }
-VMNNVectorGridTest >> testFindNearest2 [
+{ #category : #tests }
+PSNNFFICollectionTest >> testFindNearest2 [
 	| points vectors grid searchPoints result nearestVector |
 	
 	points := {
@@ -91,24 +94,24 @@ VMNNVectorGridTest >> testFindNearest2 [
 		{ 0 @ 0.9.  -1.5 @ -0.5 }
 	}.
 	vectors := points collect: [ :pointCollection | VMLineSegment from: pointCollection first to: pointCollection last ].
-	grid := VMNNVectorGrid new.
+	grid := PSFFINNCollection new.
 	vectors do: [ :v | grid add: v ].
-	searchPoints := { -2 @ -1.  -2 @ -0.5.  0 @ 0.  1.5 @ 1.5.  -1 @ 0. }.
+	searchPoints := { -2 @ -1.  -2 @ -0.5. 0 @ 0.  1.5 @ 1.5.   -1 @ 0. }.
 	nearestVector := { 1. 1. 1. 2. 3. }.
 	
 	searchPoints with: nearestVector do: [ :sp :vecIndex |
 		result := grid findNearest: sp.
 		self assert: result object equals: ((vectors at: vecIndex) closestPoint: sp).
 	].
-	
+	grid cleanup
 ]
 
 { #category : #tests }
-VMNNVectorGridTest >> testFindNearest3 [
+PSNNFFICollectionTest >> testFindNearest3 [
 	| vector grid searchPoints result expectedResults |
 
 	vector := VMLineSegment from: 4@0 to: 4@4 type: 1.
-	grid := VMNNVectorGrid new.
+	grid := PSFFINNCollection new.
 	grid add: vector.
 	searchPoints := { 3.5@2 }.
 	expectedResults := {4@2}.
@@ -117,11 +120,11 @@ VMNNVectorGridTest >> testFindNearest3 [
 		result := grid findNearest: sp.
 		self assert: (result object dist: er) < 0.00000001.
 	].
-	
+	grid cleanup
 ]
 
 { #category : #tests }
-VMNNVectorGridTest >> testFindNearestSensorPoint [
+PSNNFFICollectionTest >> testFindNearestSensorPoint [
 	| pc pc2 pc3 rand polygon grid icp tf sensorPoint sensorPoint3 pc4|
 	
 	polygon := VMPolygon fromPoints: { 0@0.  4@0.  4@6.  4.4@6.  4.4@0.  10@0.  10@10.  0@10 } withTypes: { 1.  1.  1.  1.  1.  1.  1.  1. }.
@@ -139,9 +142,9 @@ VMNNVectorGridTest >> testFindNearestSensorPoint [
 	pc3 := pc2 collect: [ :p | p transform: tf ].
 	sensorPoint3 := sensorPoint transform: tf.
 	
-	"{ polygon.  pc asRenderableElement color: Color cyan.  pc3 asRenderableElement color: Color orange. } asRenderableElement inspect."
 	
-	grid := VMNNVectorGrid new.
+	
+	grid := PSFFINNCollection new.
 	grid addAll: polygon.
 	
 	icp := VMVectorICP new maxIterations: 30; outlierThresholdFalloff: 0.1.
@@ -152,5 +155,5 @@ VMNNVectorGridTest >> testFindNearestSensorPoint [
 	self assert: (icp finalTF * tf) angle < 0.002.
 	self assert: ((icp finalTF * tf) translate asPoint dist: 0@0) < 0.02.
 	"icp inspect."
-
+	grid cleanup 
 ]

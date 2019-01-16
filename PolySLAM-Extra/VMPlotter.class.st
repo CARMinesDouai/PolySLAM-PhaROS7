@@ -53,7 +53,8 @@ Class {
 		'dataSetCounter',
 		'labelCounter',
 		'objectCounter',
-		'range'
+		'range',
+		'backend'
 	],
 	#category : #'PolySLAM-Extra-Gnuplot plotter'
 }
@@ -65,7 +66,7 @@ VMPlotter class >> model: anObject [
 		yourself
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'plotting - helper' }
 VMPlotter >> addInitLine: aString [
 	"adds aString to the init part of the gnuplot command stream. automatically adds crlf at the end.
 	This method is used to add custom settings that are not otherwise implemented."
@@ -80,6 +81,18 @@ VMPlotter >> autoColor [
 { #category : #accessing }
 VMPlotter >> autoColor: aBoolean [
 	autoColor := aBoolean.
+]
+
+{ #category : #accessing }
+VMPlotter >> backend [
+	^ backend
+]
+
+{ #category : #accessing }
+VMPlotter >> backend: aSymbol [
+	"set to #OSSubprocess to use the OSSubprocess backend. every other
+	value (including nil) will use the default backend SystemProcess"
+	backend := aSymbol.
 ]
 
 { #category : #accessing }
@@ -112,7 +125,7 @@ VMPlotter >> createDataID [
 
 { #category : #accessing }
 VMPlotter >> crlf [
-	^ crlf
+	1 halt
 ]
 
 { #category : #accessing }
@@ -127,10 +140,11 @@ VMPlotter >> initStream [
 
 { #category : #initialization }
 VMPlotter >> initialize [
-	crlf := Character cr asString, Character lf asString.
+	"crlf := Character cr asString, Character lf asString."
 	plotInitStream := String new writeStream.
 	plotCmd := String new writeStream.
 	plotData := String new writeStream.
+	backend := nil. "use default"
 	
 	lineWidth := 1.
 	autoColor := true.
@@ -141,12 +155,9 @@ VMPlotter >> initialize [
 	
 	plotInitStream
 		nextPutAll: 'set encoding utf8';
-		nextPutAll: crlf;
-		nextPutAll: 'set lable size 14';
-		nextPutAll: crlf.
-	
-
-
+		crlf.
+		"nextPutAll: 'set lable size 14';
+		nextPutAll: crlf."
 ]
 
 { #category : #accessing }
@@ -229,7 +240,7 @@ VMPlotter >> plotArrow: aVector extra: extraString [
 		nextPutAll: aVector direction x printString;
 		nextPutAll: ' ';
 		nextPutAll: aVector direction y printString;
-		nextPutAll: crlf.
+		crlf.
 	plotData nextPutAll: 'e'; crlf.
 
 ]
@@ -238,10 +249,10 @@ VMPlotter >> plotArrow: aVector extra: extraString [
 VMPlotter >> plotArrowCollection: aCollection [
 	
 	autoColor ifTrue: [
-		plotInitStream	
-			nextPutAll: 'set style arrow 1 lt 1 lc rgb "red" lw ', lineWidth printString, crlf;
-			nextPutAll: 'set style arrow 2 lt 1 lc rgb "green" lw ', lineWidth printString, crlf;
-			nextPutAll: 'set style arrow 3 lt 1 lc rgb "#FFCAA300" nohead ', lineWidth printString, crlf.
+		plotInitStream
+			nextPutAll: 'set style arrow 1 lt 1 lc rgb "red" lw '; nextPutAll: lineWidth printString; crlf;
+			nextPutAll: 'set style arrow 2 lt 1 lc rgb "green" lw '; nextPutAll: lineWidth printString; crlf;
+			nextPutAll: 'set style arrow 3 lt 1 lc rgb "#FFCAA300" nohead '; nextPutAll: lineWidth printString; crlf.
 	].
 	
 	plotCmd
@@ -260,7 +271,7 @@ VMPlotter >> plotArrowCollection: aCollection [
 			nextPutAll: vec direction y printString;
 			nextPutAll: ' ';
 			nextPutAll: vec type asInteger printString;
-			nextPutAll: crlf.
+			crlf.
 	].
 	plotData nextPutAll: 'e'; crlf.
 
@@ -284,7 +295,7 @@ VMPlotter >> plotArrowCollection: aCollection extra: extraString [
 			nextPutAll: vec direction x printString;
 			nextPutAll: ' ';
 			nextPutAll: vec direction y printString;
-			nextPutAll: crlf.
+			crlf.
 	].
 	plotData nextPutAll: 'e'; crlf.
 
@@ -292,8 +303,10 @@ VMPlotter >> plotArrowCollection: aCollection extra: extraString [
 
 { #category : #'plotting - helper' }
 VMPlotter >> plotBackground [
+	| rect |
 	range ifNil: [ ^ self ].
-	self plotFilledPolygon: (VMPolygon fromRectangle: range) extra: 'lc rgb "#CCCCCC"'.
+	rect := range "expandBy: (range width max: range height) * -0.01".
+	self plotFilledPolygon: (VMPolygon fromRectangle: rect) extra: 'lc rgb "#CCCCCC"'.
 ]
 
 { #category : #plotting }
@@ -317,7 +330,7 @@ VMPlotter >> plotConnectedPoints: aCollection extra: extraString [
 			nextPutAll: aPoint x printString;
 			nextPutAll: ' ';
 			nextPutAll: aPoint y printString;
-			nextPutAll: crlf.
+			crlf.
 	].
 	plotData nextPutAll: 'e'; crlf.
 
@@ -333,11 +346,11 @@ VMPlotter >> plotDot: aPoint radius: radius extra: extraString [
 
 { #category : #'plotting - execution' }
 VMPlotter >> plotExec: process [
-
+	plotCmd crlf.
+	
 	process stdinStream
 		nextPutAll: plotInitStream contents;
 		nextPutAll: plotCmd contents;
-		nextPutAll: crlf;
 		nextPutAll: plotData contents.
 
 ]
@@ -354,7 +367,7 @@ VMPlotter >> plotFilledPolygon: polygon [
 			nextPutAll: vec pointA x printString;
 			nextPutAll: ' ';
 			nextPutAll: vec pointA y printString;
-			nextPutAll: crlf.
+			crlf.
 	].
 	plotData nextPutAll: 'e'; crlf.
 
@@ -373,7 +386,7 @@ VMPlotter >> plotFilledPolygon: polygon extra: extraString [
 			nextPutAll: vec pointA x printString;
 			nextPutAll: ' ';
 			nextPutAll: vec pointA y printString;
-			nextPutAll: crlf.
+			crlf.
 	].
 	plotData nextPutAll: 'e'; crlf.
 
@@ -381,9 +394,13 @@ VMPlotter >> plotFilledPolygon: polygon extra: extraString [
 
 { #category : #'plotting - execution' }
 VMPlotter >> plotFinish: process [
-	process stdinStream close.
-	process waitForExit.
-	process closeAndCleanStreams.
+	backend = #OSSubprocess ifTrue: [
+		process stdinStream close.
+		process waitForExit.
+		process closeAndCleanStreams.
+		^ self].
+	
+	process stdinStream nextPutAll: 'exit', crlf.
 
 ]
 
@@ -431,7 +448,7 @@ VMPlotter >> plotHeadlessArrowCollection2: aCollection [
 	
 	autoColor ifTrue: [
 		plotInitStream	
-			nextPutAll: 'set style arrow 101 lt 1 lc rgb "black" nohead lw ', lineWidth printString, crlf.].
+			nextPutAll: 'set style arrow 101 lt 1 lc rgb "black" nohead lw ', lineWidth printString; crlf.].
 	
 	plotCmd
 		nextPutAll: (plotCmd isEmpty ifTrue: [ 'plot ''-'' '] ifFalse: [ ', ''-'' ' ]);
@@ -450,7 +467,7 @@ VMPlotter >> plotHeadlessArrowCollection2: aCollection [
 			nextPutAll: vec direction y printString;
 			nextPutAll: ' ';
 			nextPutAll: '101';
-			nextPutAll: crlf.].].
+			crlf.].].
 	
 	plotData nextPutAll: 'e'; crlf.
 
@@ -460,9 +477,9 @@ VMPlotter >> plotHeadlessArrowCollection2: aCollection [
 VMPlotter >> plotHeadlessArrowCollection3: aCollection [
 	autoColor ifTrue: [
 		plotInitStream	
-			nextPutAll: 'set style arrow 101 lt 1 lc rgb "black" nohead lw ', lineWidth printString, crlf;
-			nextPutAll: 'set style arrow 2 lt 1 lc rgb "green" nohead lw ', lineWidth printString, crlf;
-			nextPutAll: 'set style arrow 3 lt 1 lc rgb "#CAA300" nohead lw ', lineWidth printString, crlf.].
+			nextPutAll: 'set style arrow 101 lt 1 lc rgb "black" nohead lw ', lineWidth printString; crlf;
+			nextPutAll: 'set style arrow 2 lt 1 lc rgb "green" nohead lw ', lineWidth printString; crlf;
+			nextPutAll: 'set style arrow 3 lt 1 lc rgb "#CAA300" nohead lw ', lineWidth printString; crlf.].
 	
 	plotCmd
 		nextPutAll: (plotCmd isEmpty ifTrue: [ 'plot ''-'' '] ifFalse: [ ', ''-'' ' ]);
@@ -480,7 +497,7 @@ VMPlotter >> plotHeadlessArrowCollection3: aCollection [
 			nextPutAll: vec direction y printString;
 			nextPutAll: ' ';
 			nextPutAll: (vec type isObstacle ifTrue: ['101'] ifFalse: [vec type asInteger printString]);
-			nextPutAll: crlf.].
+			crlf.].
 	
 	plotData nextPutAll: 'e'; crlf.
 
@@ -494,9 +511,9 @@ VMPlotter >> plotHeadlessArrowCollection: aCollection [
 	
 	autoColor ifTrue: [
 		plotInitStream	
-			nextPutAll: 'set style arrow 1 lt 1 lc rgb "red" nohead lw ', lineWidth printString, crlf;
-			nextPutAll: 'set style arrow 2 lt 1 lc rgb "green" nohead lw ', lineWidth printString, crlf;
-			nextPutAll: 'set style arrow 3 lt 1 lc rgb "#FFCAA300" nohead lw ', lineWidth printString, crlf.
+			nextPutAll: 'set style arrow 1 lt 1 lc rgb "red" nohead lw ', lineWidth printString; crlf;
+			nextPutAll: 'set style arrow 2 lt 1 lc rgb "green" nohead lw ', lineWidth printString; crlf;
+			nextPutAll: 'set style arrow 3 lt 1 lc rgb "#FFCAA300" nohead lw ', lineWidth printString; crlf.
 	].
 	
 	plotCmd
@@ -515,7 +532,7 @@ VMPlotter >> plotHeadlessArrowCollection: aCollection [
 			nextPutAll: vec direction y printString;
 			nextPutAll: ' ';
 			nextPutAll: vec type asInteger printString;
-			nextPutAll: crlf.
+			crlf.
 	].
 	plotData nextPutAll: 'e'; crlf.
 
@@ -523,6 +540,13 @@ VMPlotter >> plotHeadlessArrowCollection: aCollection [
 
 { #category : #'plotting - execution' }
 VMPlotter >> plotInit [
+	backend = #OSSubprocess ifTrue: [ ^  self plotInitOSSubprocess ].
+	
+	^ self plotInitSystemProcess
+]
+
+{ #category : #'plotting - execution' }
+VMPlotter >> plotInitOSSubprocess [
 	| cmd process |
 	cmd := 'gnuplot -p'.
 	
@@ -532,15 +556,25 @@ VMPlotter >> plotInit [
 		redirectStdout;
 		run.
 	
-"	process stdinStream
-		nextPutAll: plotInitStream contents.
-"	
 	^process
 ]
 
 { #category : #accessing }
 VMPlotter >> plotInitStream [
 	^ plotInitStream
+]
+
+{ #category : #'plotting - execution' }
+VMPlotter >> plotInitSystemProcess [
+	| cmd process |
+	cmd := {'/usr/bin/gnuplot'. '-p'}.
+	
+	process := SystemProcess  new.
+	process redirectStdin.
+	process onFinishDo: [ process cleanup  ].
+	process shellCommand: cmd.
+	
+	^process
 ]
 
 { #category : #'plotting - helper - text' }
@@ -586,7 +620,7 @@ VMPlotter >> plotLasers: aPointCloud [
 			nextPutAll: delta x printString;
 			nextPutAll: ' ';
 			nextPutAll: delta y printString;
-			nextPutAll: crlf.
+			crlf.
 	].
 	plotData nextPutAll: 'e'; crlf.
 	
@@ -607,7 +641,7 @@ VMPlotter >> plotLineSegment: aVMLineSegment [
 		nextPutAll: aVMLineSegment direction x printString;
 		nextPutAll: ' ';
 		nextPutAll: aVMLineSegment direction y printString;
-		nextPutAll: crlf;
+		crlf;
 		nextPutAll: 'e'; crlf.
 	
 ]
@@ -629,9 +663,9 @@ VMPlotter >> plotLineSegment: aVMLineSegment extra: extraString [
 		nextPutAll: aVMLineSegment direction x printString;
 		nextPutAll: ' ';
 		nextPutAll: aVMLineSegment direction y printString;
-		nextPutAll: crlf;
+		crlf;
 		nextPutAll: '# line=', aVMLineSegment printString;
-		nextPutAll: crlf;
+		crlf;
 		nextPutAll: 'e'; crlf.
 	
 ]
@@ -655,7 +689,7 @@ VMPlotter >> plotLineSegmentFrom: pointA to: pointB extra: extraString [
 		nextPutAll: direction x printString;
 		nextPutAll: ' ';
 		nextPutAll: direction y printString;
-		nextPutAll: crlf;
+		crlf;
 		nextPutAll: 'e'; crlf.
 	
 ]
@@ -673,7 +707,7 @@ VMPlotter >> plotLines: aCollection extra: extraString [
 			nextPutAll: aPoint x printString;
 			nextPutAll: ' ';
 			nextPutAll: aPoint y printString;
-			nextPutAll: crlf.
+			crlf.
 	].
 	plotData nextPutAll: 'e'; crlf.
 
@@ -705,7 +739,7 @@ VMPlotter >> plotOn: aSubProcess arrowCollection2: aCollection [
 			nextPutAll: vec pointB x printString;
 			nextPutAll: ',';
 			nextPutAll: vec pointB y printString;
-			nextPutAll: crlf.
+			crlf.
 	].
 
 ]
@@ -723,7 +757,7 @@ VMPlotter >> plotPointCollection: aCollection [
 			nextPutAll: aPoint x printString;
 			nextPutAll: ' ';
 			nextPutAll: aPoint y printString;
-			nextPutAll: crlf.
+			crlf.
 	].
 	plotData nextPutAll: 'e'; crlf.
 
@@ -743,7 +777,7 @@ VMPlotter >> plotPointCollection: aCollection color: aColor [
 			nextPutAll: aPoint x printString;
 			nextPutAll: ' ';
 			nextPutAll: aPoint y printString;
-			nextPutAll: crlf.
+			crlf.
 	].
 	plotData nextPutAll: 'e'; crlf.
 
@@ -762,7 +796,7 @@ VMPlotter >> plotPointCollection: aCollection extra: extraString [
 			nextPutAll: aPoint x printString;
 			nextPutAll: ' ';
 			nextPutAll: aPoint y printString;
-			nextPutAll: crlf.
+			crlf.
 	].
 	plotData nextPutAll: 'e'; crlf.
 
@@ -896,14 +930,14 @@ VMPlotter >> plotRobotAt: center angle: theta radius: radius [
 		nextPutAll: (center x + (angle cos * radius2)) printString;
 		nextPutAll: ', ';
 		nextPutAll: (center y + (angle sin * radius2)) printString;
-		nextPutAll: crlf.
+		crlf.
 	plotInitStream
-		nextPutAll: crlf.
+		crlf.
 	plotInitStream
 		nextPutAll: 'set object ';
 		nextPutAll: objectCounter printString;
 		nextPutAll: ' fc rgb "#000000" fillstyle solid lw 0';
-		nextPutAll: crlf.
+		crlf.
 	
 	"create orientation marker"
 	objectCounter := objectCounter + 1.
@@ -937,14 +971,14 @@ VMPlotter >> plotRobotAt: center angle: theta radius: radius [
 		nextPutAll: (center x - (angle cos * width)) printString;
 		nextPutAll: ', ';
 		nextPutAll: (center y - (angle sin * width)) printString;
-		nextPutAll: crlf.
+		crlf.
 	
 	
 	plotInitStream
 		nextPutAll: 'set object ';
 		nextPutAll: objectCounter printString;
 		nextPutAll: ' fc rgb "#000000" fillstyle solid lw 0';
-		nextPutAll: crlf.
+		crlf.
 	
 
 ]
@@ -966,7 +1000,7 @@ VMPlotter >> plotSensor: aVMTFMatrix [
 		nextPutAll: aPoint x printString;
 		nextPutAll: ' ';
 		nextPutAll: aPoint y printString;
-		nextPutAll: crlf.
+		crlf.
 	plotData nextPutAll: 'e'; crlf.
 	
 
@@ -978,14 +1012,14 @@ VMPlotter >> plotVectorCollection: aCollection [
 		nextPutAll: (plotCmd isEmpty ifTrue: [ 'plot ''-'' '] ifFalse: [ ', ''-'' ' ]);
 		nextPutAll: 'using 1:2 with with lines ';
 		nextPutAll: ' t ''''';
-		nextPutAll: crlf.
+		crlf.
 	
 	aCollection do: [ :vec |
 		plotData
 			nextPutAll: vec pointA x printString;
 			nextPutAll: ' ';
 			nextPutAll: vec pointA y printString;
-			nextPutAll: crlf.
+			crlf.
 	].
 	plotData nextPutAll: 'e'; crlf.
 
@@ -1024,7 +1058,7 @@ VMPlotter >> setRatio: aNumber [
 	plotInitStream
 		nextPutAll: 'set size ratio ';
 		nextPutAll: aNumber printString;
-		nextPutAll: crlf.
+		crlf.
 ]
 
 { #category : #initialization }
@@ -1040,8 +1074,9 @@ VMPlotter >> setTerminal: terminal [
 			plot.
 	"
 	plotInitStream
-		nextPutAll: 'set terminal ', terminal;
-		nextPutAll: crlf.
+		nextPutAll: 'set terminal ';
+		nextPutAll: terminal;
+		crlf.
 
 ]
 
@@ -1058,9 +1093,9 @@ VMPlotter >> setTerminal: terminal filename: filename [
 	"
 	plotInitStream
 		nextPutAll: 'set terminal ', terminal;
-		nextPutAll: crlf;
+		crlf;
 		nextPutAll: 'set output "', filename, '"';
-		nextPutAll: crlf.
+		crlf.
 ]
 
 { #category : #'plotting - helper - text' }

@@ -93,7 +93,7 @@ VMBSPLeaf >> checkLineTypes: aSectorOrPolygon [
 	| maxDist |
 	
 	maxDist := 0.00001.
-	Transcript show: 'checkLineTypes'; cr.
+	"Transcript show: 'checkLineTypes'; cr."
 	aSectorOrPolygon do: [ :lineSeg |
 		lineSeg type isFrontier ifFalse: [ "frontiers never change the type of other line segments"
 			sector do: [ :sectorLineSeg |

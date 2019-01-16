@@ -286,14 +286,13 @@ VMBSPNode >> parent: aNode [
 
 { #category : #accessing }
 VMBSPNode >> polygonAt: aPoint [
-	hyperplane
-		point: aPoint
+	hyperplane ifNil: [ Transcript show: 'hyperplane is nil'; cr. ^ nil ].
+	hyperplane point: aPoint
 		ifOnLeftSideDo: [ ^ leftChild polygonAt: aPoint ]
 		ifOnRightSideDo: [ ^ rightChild polygonAt: aPoint ]
-		ifOnLineDo: [
-			| leftResult |
-			leftResult := leftChild polygonAt: aPoint.
-			leftResult ifNotNil: [ ^ leftResult ].
+		ifOnLineDo: [ | temp |
+			temp := leftChild polygonAt: aPoint.
+			temp ifNotNil: [ ^ temp ].
 			^ rightChild polygonAt: aPoint ].
 ]
 

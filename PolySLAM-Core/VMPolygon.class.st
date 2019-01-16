@@ -111,20 +111,20 @@ VMPolygon >> add: aLineSegment [
 		deltaAngle := ((angle - angle2) * 360 / Float twoPi) abs.
 		(deltaAngle between: 179.99 and: 180.01)
 			ifTrue: [
-				Transcript show: 'overlapping vector with prev. vector in polygon (delta=';
+				"Transcript show: 'overlapping vector with prev. vector in polygon (delta=';
 					show: deltaAngle printString;
 					show: ')';
-					cr.
+					cr."
 					"1 halt." ].
 		
 		(aLineSegment pointB = self first pointA) ifTrue: [
 			deltaAngle := (angle - (self first angle) * 360 / Float twoPi) abs.
 			(deltaAngle between: 179.99 and: 180.91)
 				ifTrue: [
-					Transcript show: 'overlapping vector with first vector in polygon (delta=';
+					"Transcript show: 'overlapping vector with first vector in polygon (delta=';
 						show: deltaAngle printString;
 						show: ')';
-						cr.
+						cr."
 						"1 halt." ]. ]. ].
 	
 	^ super add: aLineSegment

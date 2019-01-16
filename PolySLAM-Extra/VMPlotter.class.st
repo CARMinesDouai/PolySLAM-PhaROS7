@@ -44,6 +44,7 @@ Class {
 	#superclass : #Object,
 	#instVars : [
 		'model',
+		'crlf',
 		'plotCmd',
 		'plotData',
 		'plotInitStream',
@@ -65,7 +66,7 @@ VMPlotter class >> model: anObject [
 		yourself
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'plotting - helper' }
 VMPlotter >> addInitLine: aString [
 	"adds aString to the init part of the gnuplot command stream. automatically adds crlf at the end.
 	This method is used to add custom settings that are not otherwise implemented."
@@ -345,12 +346,11 @@ VMPlotter >> plotDot: aPoint radius: radius extra: extraString [
 
 { #category : #'plotting - execution' }
 VMPlotter >> plotExec: process [
-	"plotCmd cr."
-	plotCmd crlf"; cr".
+	plotCmd crlf.
+	
 	process stdinStream
 		nextPutAll: plotInitStream contents;
 		nextPutAll: plotCmd contents;
-		"crlf;"
 		nextPutAll: plotData contents.
 
 ]
@@ -400,7 +400,7 @@ VMPlotter >> plotFinish: process [
 		process closeAndCleanStreams.
 		^ self].
 	
-	process stdinStream nextPutAll: 'exit'; crlf.
+	process stdinStream nextPutAll: 'exit', crlf.
 
 ]
 

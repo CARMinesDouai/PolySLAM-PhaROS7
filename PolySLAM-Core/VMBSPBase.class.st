@@ -225,7 +225,8 @@ VMBSPBase >> parent: aNode [
 
 { #category : #accessing }
 VMBSPBase >> polygonAt: aPoint [
-	^ self subclassResponsibility
+	"returns the polygon that is encompasing 'aPoint'. returns nil if no such polygon exists"
+	self subclassResponsibility
 ]
 
 { #category : #accessing }

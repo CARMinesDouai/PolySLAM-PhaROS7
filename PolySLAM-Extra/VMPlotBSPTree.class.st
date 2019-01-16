@@ -96,7 +96,8 @@ VMPlotBSPTree >> recursivePlot: node planes: lrCollection level: depth [
 	
 	"depth > maxLevel ifTrue: [ ^ self ]."
 	
-	node isLeaf ifTrue: [ ^ self plotLeaf: node ].
+	node isLeaf ifTrue: [
+		^ self plotLeaf: node ].
 	
 	copyA := (lrCollection copy).
 	copyA left add: node hyperplane.
@@ -106,9 +107,9 @@ VMPlotBSPTree >> recursivePlot: node planes: lrCollection level: depth [
 	self recursivePlot: node leftChild planes: copyA level: depth + 1.
 	self recursivePlot: node rightChild planes: copyB level: depth + 1.
 	
-	"showHyperplanes ifTrue: [
+	showHyperplanes ifTrue: [
 		self plotHyperplane: node planes: lrCollection depth: depth. ].
-	"
+	
 
 ]
 

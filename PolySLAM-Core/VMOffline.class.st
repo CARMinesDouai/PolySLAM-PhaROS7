@@ -117,10 +117,19 @@ VMOffline >> buildMapFrom: startIndex to: endIndex by: stepSize [
 
 { #category : #'map building' }
 VMOffline >> buildMapLazyFrom: startIndex to: endIndex by: stepSize [
+	^ self buildMapLazyFrom: startIndex to: endIndex by: stepSize tfStepSize: 1
+]
+
+{ #category : #'map building' }
+VMOffline >> buildMapLazyFrom: startIndex to: endIndex by: stepSize tfStepSize: tfStepSize [
 	| polygon  tfIndex |
 	
 	tfIndex := 1.
-	Transcript show: 'building map from:', startIndex printString, ' to:', endIndex printString, ' by:', stepSize printString; cr.
+	Transcript
+		show: 'building map from:'; show: startIndex printString;
+		show: ' to:'; show: endIndex printString;
+		show: ' by:'; show: stepSize printString;
+		show: ' tfStepSize:'; show: tfStepSize printString; cr.
 	
 	map ifNil: [ map := VMBSPLeaf new. ].
 	"{0.  2.  1.  4} do: [ :k |"
@@ -145,7 +154,7 @@ VMOffline >> buildMapLazyFrom: startIndex to: endIndex by: stepSize [
 							show: ' e=', e printString; cr.
 							"1 halt." ].
 			"]."
-			tfIndex := tfIndex + 1.
+			tfIndex := tfIndex + tfStepSize.
 		].
 	"]."
 ]

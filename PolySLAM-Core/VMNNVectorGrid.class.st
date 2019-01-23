@@ -257,12 +257,12 @@ VMNNVectorGrid >> checkXSize: aVector [
 	
 	"grow to the left if necessary"
 	[ minX + xOffset <= 0 ] whileTrue: [
-		xCollection addFirst: VMDoubleEndedCollectionOld new.
+		xCollection addFirst: VMDoubleEndedCollection new.
 		xOffset := xOffset + 1.
 	].
 	
 	"grow to the right if necessary"
-	[ maxX >= (xCollection size - xOffset) ] whileTrue: [ xCollection add: VMDoubleEndedCollectionOld new. ].
+	[ maxX >= (xCollection size - xOffset) ] whileTrue: [ xCollection add: VMDoubleEndedCollection new. ].
 	
 	
 ]

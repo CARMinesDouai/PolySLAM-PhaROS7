@@ -275,7 +275,7 @@ VMGridStorage >> splitVerticalPolygon: aPolygon [
 	
 	left to: right do: [ :xIndex |
 		currentCollection do: [ :currentPolygon |
-			Transcript show: 'splitting at x='; show: xIndex printString; show: '+1'; cr.
+			"Transcript show: 'splitting at x='; show: xIndex printString; show: '+1'; cr."
 			splitter split: currentPolygon onPlane: ((xIndex+1)*gridSize @ -1 lineTo: (xIndex+1)*gridSize @ 1).
 			result addAll: (self splitHorizontalPolygonCollection: splitter leftPolygons xIndex: xIndex).
 			remainderCollection addAll: splitter rightPolygons.

@@ -45,6 +45,14 @@ PSKeyframeSampling >> initialize [
 ]
 
 { #category : #accessing }
+PSKeyframeSampling >> lastScan [
+	|coll|
+	coll := self allScans.
+	coll ifNil:[^nil].
+	^ coll last
+]
+
+{ #category : #accessing }
 PSKeyframeSampling >> linearDelta [
 	^scanMan linearDelta
 ]

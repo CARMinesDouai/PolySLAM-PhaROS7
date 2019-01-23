@@ -3,9 +3,7 @@ Class {
 	#superclass : #RHModule,
 	#instVars : [
 		'sub',
-		'samplingModule',
-		'localizationModule',
-		'mappingModule',
+		'SLAM',
 		'odom_keyframe_color',
 		'time_scale_milliseconds',
 		'obstacle_dist_m',
@@ -13,12 +11,10 @@ Class {
 		'linear_delta_m',
 		'angular_delta_deg',
 		'myshapes',
-		'running',
 		'correct_key_frame_color',
 		'outlier_threshold_falloff',
 		'outlier_threshold_start',
-		'max_iteration',
-		'tfOff'
+		'max_iteration'
 	],
 	#category : #'PolySLAM-Viz'
 }
@@ -32,7 +28,7 @@ PSKeyframeView >> angular_delta_deg [
 { #category : #accessing }
 PSKeyframeView >> angular_delta_deg: anObject [
 	angular_delta_deg := anObject.
-	samplingModule angularDelta: angular_delta_deg 
+	SLAM angular_delta_deg: angular_delta_deg 
 ]
 
 { #category : #drawing }
@@ -53,11 +49,24 @@ PSKeyframeView >> correct_key_frame_color: anObject [
 
 { #category : #initialization }
 PSKeyframeView >> desynchronize [
-	samplingModule stop.
-	localizationModule stop.
-	mappingModule stop.
+	SLAM stop.
 	self proxy controller node unsubscribe: sub.
 	self undraw
+]
+
+{ #category : #drawing }
+PSKeyframeView >> draw: scan [
+| tl pos|
+	tl := scan correctPose translate.
+	tl := {tl at:1. tl at:2. 0. 1 }.
+	"tl := tfOff+*tl."
+	pos := self canvasPos: tl.
+	self drawArrowFrom: pos orientation: scan correctPose angle color: self correct_key_frame_color.
+	tl := scan odomPose translate.
+	tl := {tl at:1. tl at:2. 0. 1 }.
+	"tl := tf+*tl."
+	pos := self canvasPos: tl.
+	self drawArrowFrom: pos orientation: scan odomPose angle color: self odom_keyframe_color.
 ]
 
 { #category : #drawing }
@@ -77,21 +86,18 @@ PSKeyframeView >> drawArrowFrom: pos orientation: o color: aColor [
 { #category : #initialization }
 PSKeyframeView >> initialize [
 	super initialize.
-	samplingModule := PSKeyframeSampling new.
-	localizationModule := PSLocalization new.
-	mappingModule := PSMapping new.
+	SLAM := PolySLAM new.
 	topic := '/scan_odom_sync'.
 	odom_keyframe_color := Color blue.
 	correct_key_frame_color := Color red.
-	time_scale_milliseconds := samplingModule timeScale.
+	time_scale_milliseconds := SLAM time_scale_milliseconds.
 	angular_delta_deg := 20.
-	linear_delta_m := samplingModule linearDelta.
+	linear_delta_m := SLAM linear_delta_m.
 	myshapes := OrderedCollection new.
-	running := false.
 	"localization module "
 	outlier_threshold_falloff := 0.2.
 	outlier_threshold_start := 0.1.
-	obstacle_dist_m := samplingModule obstacleDist.
+	obstacle_dist_m := SLAM obstacle_dist_m.
 	simplifier_th := 0.02 squared.
 	max_iteration := 20
 ]
@@ -105,7 +111,7 @@ PSKeyframeView >> linear_delta_m [
 { #category : #accessing }
 PSKeyframeView >> linear_delta_m: anObject [
 	linear_delta_m := anObject.
-	samplingModule linearDelta: linear_delta_m 
+	SLAM linear_delta_m: linear_delta_m 
 ]
 
 { #category : #accessing }
@@ -117,7 +123,7 @@ PSKeyframeView >> max_iteration [
 { #category : #accessing }
 PSKeyframeView >> max_iteration: anObject [
 	max_iteration := anObject.
-	localizationModule maxIterations: max_iteration 
+	SLAM max_iteration: max_iteration 
 ]
 
 { #category : #accessing }
@@ -134,7 +140,7 @@ PSKeyframeView >> obstacle_dist_m [
 { #category : #accessing }
 PSKeyframeView >> obstacle_dist_m: anObject [
 	obstacle_dist_m := anObject.
-	samplingModule obstacleDist: obstacle_dist_m
+	SLAM obstacle_dist_m: obstacle_dist_m
 ]
 
 { #category : #accessing }
@@ -157,7 +163,7 @@ PSKeyframeView >> outlier_threshold_falloff [
 { #category : #accessing }
 PSKeyframeView >> outlier_threshold_falloff: anObject [
 	outlier_threshold_falloff := anObject.
-	localizationModule outlierThresholdFalloff: outlier_threshold_falloff 
+	SLAM outlier_threshold_falloff: outlier_threshold_falloff 
 ]
 
 { #category : #accessing }
@@ -169,41 +175,7 @@ PSKeyframeView >> outlier_threshold_start [
 { #category : #accessing }
 PSKeyframeView >> outlier_threshold_start: anObject [
 	outlier_threshold_start := anObject.
-	localizationModule outlierStartThreshold: outlier_threshold_start 
-]
-
-{ #category : #processing }
-PSKeyframeView >> processLocalizedData [
-[ running ] whileTrue: [
-	localizationModule iostream ifNil: [ ^self ].
-	localizationModule iostream atEnd ifFalse:[
-		self processLocalizedKeyframe: localizationModule iostream next	
-	] ifTrue:[ 150 milliSeconds wait ]
-]
-]
-
-{ #category : #processing }
-PSKeyframeView >> processLocalizedKeyframe: 	anArray [
-	| tl pos scan|
-	"kf inspect."
-	"tf := self tfFrom:'odom' to: self parent localframe."
-	"trigger event"
-	scan := samplingModule allScans at:( anArray at:1).
-	scan correctPose: (anArray at:2).
-	scan polygon: (anArray at:3).
-	mappingModule addPolygon: scan polygon.
-	self announcer announce: (MapAvailableEvent for: mappingModule map).
-	tl := scan correctPose translate.
-	tl := {tl at:1. tl at:2. 0. 1 }.
-	"tl := tfOff+*tl."
-	pos := self canvasPos: tl.
-	self drawArrowFrom: pos orientation: scan correctPose angle color: self correct_key_frame_color.
-	tl := scan odomPose translate.
-	tl := {tl at:1. tl at:2. 0. 1 }.
-	"tl := tf+*tl."
-	pos := self canvasPos: tl.
-	self drawArrowFrom: pos orientation: scan odomPose angle color: self odom_keyframe_color.
-	
+	SLAM outlier_threshold_start: outlier_threshold_start 
 ]
 
 { #category : #event }
@@ -222,23 +194,19 @@ PSKeyframeView >> simplifier_th [
 { #category : #accessing }
 PSKeyframeView >> simplifier_th: anObject [
 	simplifier_th := anObject.
-	localizationModule simplifierTh: simplifier_th 
+	SLAM simplifier_th: simplifier_th 
 ]
 
-{ #category : #initialization }
+{ #category : #sync }
 PSKeyframeView >> synchronize [
-	"samplingModule controller: self proxy controller."
-	samplingModule callback: [:k | localizationModule addKeyFrame: k ].
-	samplingModule start.
-	mappingModule start.
-	"localizationModule start."
-	running := true.
+	SLAM controller: self proxy controller.
+	SLAM onKeyframeAvailable: [:kf| self draw:kf].
+	SLAM start.
 	"process the new keyframe in the background"
 	sub :=  (self proxy controller node buildConnectionFor: self topic)
 		typedAs: 'scan_odom_sync/ScanOdomSync';
-		for:[:msg| samplingModule sample: msg scan odom: msg odom  ];
-		connect.
-	[ self processLocalizedData  ] forkAt: Processor userBackgroundPriority
+		for:[:msg| SLAM sample: msg scan odom: msg odom  ];
+		connect
 ]
 
 { #category : #accessing }
@@ -250,7 +218,7 @@ PSKeyframeView >> time_scale_milliseconds [
 { #category : #accessing }
 PSKeyframeView >> time_scale_milliseconds: anObject [
 	time_scale_milliseconds := anObject.
-	samplingModule timeScale: time_scale_milliseconds
+	SLAM time_scale_milliseconds: time_scale_milliseconds
 ]
 
 { #category : #drawing }

@@ -91,7 +91,7 @@ PSScanPolygonView >> initialize [
 	super initialize.
 	topic := '/scan'.
 	localframe := 'laser'.
-	update_after_n_messages := 25.
+	update_after_n_messages := 20.
 	obstacle_color := Color red.
 	frontier_color := Color green.
 	obstacle_distance := 0.4.

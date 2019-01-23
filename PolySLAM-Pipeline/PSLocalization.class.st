@@ -110,7 +110,7 @@ PSLocalization >> processKeyframe: data [
 	Transcript show: 'Process keyframe: ', (data at:1) asString;cr.
 	lastCorrectPose ifNil: [
 		polygon:= polygon transform: odomPose.
-		polygon:= (VMVectorCollectionSimplifier compute: polygon inlierThreshold: simplifierTh ) result debugCopy.
+		polygon:= (VMVectorCollectionSimplifier compute: polygon inlierThreshold: simplifierTh ) result debugCopy .
 		nnc addAll: (polygon select:[:v| v isObstacle]).
 		"nnc inspect."
 		lastCorrectPose := odomPose.

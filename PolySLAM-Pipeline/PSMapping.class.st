@@ -3,23 +3,27 @@ Class {
 	#superclass : #Object,
 	#instVars : [
 		'map',
-		'polygons',
-		'running'
+		'update_per_n_kf',
+		'interval'
 	],
 	#category : #'PolySLAM-Pipeline-Core'
 }
 
 { #category : #accessing }
 PSMapping >> addPolygon: p [
-	polygons nextPut: p
+	<master>
+	"self iostream ifNil: [ ^self ].
+	self iostream isOpen ifFalse:[^self].
+	self iostream  nextPut: p"
+	self processData: p
 ]
 
 { #category : #initialization }
 PSMapping >> initialize [
 	super initialize.
-	polygons := SharedQueue new.
-	running := false.
-	map := VMBSPLeaf new. 
+	map := VMBSPLeaf new.
+	update_per_n_kf := 5. 
+	interval := 0.
 ]
 
 { #category : #accessing }
@@ -27,34 +31,43 @@ PSMapping >> map [
 	^ map
 ]
 
-{ #category : #accessing }
-PSMapping >> map: anObject [
-	map := anObject
+{ #category : #process }
+PSMapping >> processData: d [
+	|p|
+	p := d.
+	[
+		VMBSPLeaf new insert: d.
+		map := map insert: d.
+		interval := interval + 1.
+		interval > update_per_n_kf ifTrue:[
+			"self iostream nextPut: "self rasterize.
+			interval := 0
+		]
+	] on: Error do: [ Transcript show: 'Slave VM: Error on adding polygon'; cr ]
+
 ]
 
 { #category : #process }
-PSMapping >> process [
-	|polygon|
-	[ running ] whileTrue: [ 
-		polygons atEnd ifFalse:[
-			polygon := polygons next.
-			"[	"
-				VMBSPLeaf new insert: polygon.
-				map := map insert: polygon.
-				map inspect.
-				self halt.
-			"] on: Error do: [ Transcript show: ' Error on adding polygon'; cr ]. "
-		]
-	]
+PSMapping >> rasterize [
+	|sectors canvas|
+	"draw everything on a canvas
+	then rasterize it to a bitmap"
+	sectors := self maps asCollectionOfSectors.
+	sectors inspect.
+	"canvas := TRCanvas new."
+	
 ]
 
 { #category : #process }
 PSMapping >> start [
-	running := true.
-	[ self process ] forkAt: Processor userBackgroundPriority 
+	<master>
+	"do nothing cause it already running"
+	Transcript show: 'Running mappinng module'; cr.
 ]
 
 { #category : #process }
 PSMapping >> stop [
-	running := false
+	<master>
+	"self close.
+	self iostream: nil"
 ]

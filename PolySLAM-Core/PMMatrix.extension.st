@@ -10,7 +10,7 @@ PMMatrix >> indicesDo: aBlock [
 ]
 
 { #category : #'*PolySLAM-Core' }
-PMMatrix classSide >> rows: rows columns: columns [
+PMMatrix class >> rows: rows columns: columns [
 	"Answer a new Matrix of the given dimensions filled with random numbers"
 	|a b|
 	a:=	(1 to: rows) collect: [:row |b:=PMVector new:columns .

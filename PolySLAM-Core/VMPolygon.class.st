@@ -797,6 +797,13 @@ VMPolygon >> transform: aVMTFMatrix [
 	
 ]
 
+{ #category : #modifying }
+VMPolygon >> translate: aPoint [
+	^self transform: (VMTFMatrix angle: 0 translation: aPoint).
+	
+	
+]
+
 { #category : #testing }
 VMPolygon >> windingNumber: p [
 	"computes the winding number for a point with respect to the polygon. does only make sense if we have a closed polygon."

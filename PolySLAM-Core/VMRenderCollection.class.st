@@ -7,6 +7,11 @@ Class {
 	#category : #'PolySLAM-Core-Collections'
 }
 
+{ #category : #'as yet unclassified' }
+VMRenderCollection >> asRenderableElement [
+	^ VMCollectionRenderer new model: self
+]
+
 { #category : #accessing }
 VMRenderCollection >> bounds [
 	| rect index |
@@ -20,4 +25,16 @@ VMRenderCollection >> bounds [
 		(self at: i) bounds ifNotNil: [ :tempRect | rect := rect merge: tempRect ] ].
 	
 	^ rect
+]
+
+{ #category : #'as yet unclassified' }
+VMRenderCollection >> gtInspectorRenderedIn: composite [
+	<gtInspectorPresentationOrder: 50>
+	
+	(composite morph)
+		title: 'Viewer';
+		morph: [
+			(VMViewer openWindowlessOn: { self asRenderableElement })
+				autozoom.
+		].
 ]

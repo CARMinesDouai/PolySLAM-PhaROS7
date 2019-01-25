@@ -19,5 +19,4 @@ PSMapview >> synchronize [
 		map ifNil: [ map := e data ].
 		self announcer unsubscribe: self
 	].
-	[ self draw ]
 ]

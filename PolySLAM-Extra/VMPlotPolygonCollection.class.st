@@ -6,7 +6,9 @@ Class {
 	#superclass : #VMPlotObject,
 	#instVars : [
 		'showLabels',
-		'labelColor'
+		'labelColor',
+		'showSectors',
+		'showFrontiers'
 	],
 	#category : #'PolySLAM-Extra-Gnuplot plotter'
 }
@@ -15,17 +17,19 @@ Class {
 VMPlotPolygonCollection >> initialize [
 	super initialize.
 	showLabels := false.
+	showSectors := false.
+	showFrontiers := false.
 	labelColor := Color blue.
 ]
 
-{ #category : #accessing }
+{ #category : #plotting }
 VMPlotPolygonCollection >> plotFrontiers [
 	model do: [ :polygon |
 		self plotVectorCollection: (polygon select: [ :v | v isFrontier ]) color: Color green ].
 
 ]
 
-{ #category : #accessing }
+{ #category : #plotting }
 VMPlotPolygonCollection >> plotObstacles [
 	model do: [ :polygon |
 		self plotVectorCollection: (polygon select: [ :v | v isObstacle ]) ].
@@ -42,18 +46,28 @@ VMPlotPolygonCollection >> plotParent: parentPlotter [
 			self plotLabel: index printString at: polygon centroid color: labelColor ].
 		].
 	
-	self plotSectors.
+	showSectors ifTrue: [ self plotSectors ].
 	self plotObstacles.
-	self plotFrontiers.
+	showFrontiers ifTrue: [ self plotFrontiers ].
 	
 
 ]
 
-{ #category : #accessing }
+{ #category : #plotting }
 VMPlotPolygonCollection >> plotSectors [
 	model do: [ :polygon |
 		self plotVectorCollection: (polygon select: [ :v | v isSector ]) color: (Color r:0.95 g:0.85 b:0) ].
 
+]
+
+{ #category : #accessing }
+VMPlotPolygonCollection >> showFrontiers [
+	^ showFrontiers
+]
+
+{ #category : #accessing }
+VMPlotPolygonCollection >> showFrontiers: boolean [
+	showFrontiers := boolean.
 ]
 
 { #category : #accessing }
@@ -64,4 +78,14 @@ VMPlotPolygonCollection >> showLabels [
 { #category : #accessing }
 VMPlotPolygonCollection >> showLabels: boolean [
 	showLabels := boolean.
+]
+
+{ #category : #accessing }
+VMPlotPolygonCollection >> showSectors [
+	^ showSectors
+]
+
+{ #category : #accessing }
+VMPlotPolygonCollection >> showSectors: boolean [
+	showSectors := boolean.
 ]

@@ -76,8 +76,34 @@ VMGraph >> bounds [
 
 { #category : #'as yet unclassified' }
 VMGraph >> checkEdges [
+	^ self checkEdges2
+]
+
+{ #category : #'as yet unclassified' }
+VMGraph >> checkEdges2 [
 	"this method ensures that all edges are bidirectional. this should be already the case,
-	but for some unkown reasons (ie a bug in the code) this is currently not the case."
+	but for some unkown reasons (ie a bug in the code) this is currently not the case.
+	
+	note: in this method we REMOVE edges that are not bi-directional"
+	| errorCounter |
+	errorCounter := 0.
+	
+	self do: [ :node |
+		node neighbors do: [ :neighbor |
+			(neighbor neighbors includes: node)
+				ifFalse: [
+					node remove: neighbor.
+					errorCounter := errorCounter + 1.] ]. ].
+	
+	Transcript show: 'edges removed=', errorCounter printString; cr.
+]
+
+{ #category : #'as yet unclassified' }
+VMGraph >> checkEdges3 [
+	"this method ensures that all edges are bidirectional. this should be already the case,
+	but for some unkown reasons (ie a bug in the code) this is currently not the case.
+	
+	note: in this method we ADD edges to make them bi-directional"
 	| errorCounter |
 	errorCounter := 0.
 	
@@ -89,4 +115,17 @@ VMGraph >> checkEdges [
 					errorCounter := errorCounter + 1.] ]. ].
 	
 	Transcript show: 'missing edges added=', errorCounter printString; cr.
+]
+
+{ #category : #printing }
+VMGraph >> printStats [
+	| edgeCount |
+	edgeCount := 0.
+	self do: [ :node | edgeCount := edgeCount + node neighbors size ].
+	edgeCount := edgeCount / 2.
+	Transcript
+		show: self class name asString; show: ' stats:'; cr;
+		show: '  nodes size='; show: self size printString; cr;
+		show: '  edges size='; show: edgeCount printString; cr.
+	
 ]

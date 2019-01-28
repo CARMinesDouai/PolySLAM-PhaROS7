@@ -42,7 +42,7 @@ PSLineSegmentsView >> draw: aCollection [
 		"self cleanup."
 		collection do:[:e| lines add:e.self canvas addShape: e].
 		self canvas signalUpdate
-	]
+	].
 ]
 
 { #category : #initialization }

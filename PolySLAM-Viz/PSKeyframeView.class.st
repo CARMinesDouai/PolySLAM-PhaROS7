@@ -14,7 +14,9 @@ Class {
 		'correct_key_frame_color',
 		'outlier_threshold_falloff',
 		'outlier_threshold_start',
-		'max_iteration'
+		'max_iteration',
+		'maps',
+		'running'
 	],
 	#category : #'PolySLAM-Viz'
 }
@@ -49,9 +51,10 @@ PSKeyframeView >> correct_key_frame_color: anObject [
 
 { #category : #initialization }
 PSKeyframeView >> desynchronize [
+	running := false.
 	SLAM stop.
 	self proxy controller node unsubscribe: sub.
-	self undraw
+	self undraw.
 ]
 
 { #category : #drawing }
@@ -67,6 +70,8 @@ PSKeyframeView >> draw: scan [
 	"tl := tf+*tl."
 	pos := self canvasPos: tl.
 	self drawArrowFrom: pos orientation: scan odomPose angle color: self odom_keyframe_color.
+	"draw map if any"
+	"self updateMap."
 ]
 
 { #category : #drawing }
@@ -83,6 +88,31 @@ PSKeyframeView >> drawArrowFrom: pos orientation: o color: aColor [
 	].
 ]
 
+{ #category : #drawing }
+PSKeyframeView >> drawMap: collection [
+	|shapes pointA pointB shape c|
+	shapes := OrderedCollection new.
+	collection do:[:polygon|
+		polygon do:[ :line|
+				c := (self queryColor: line).
+				c ifNotNil: [ 
+					pointA := { line pointA x. line pointA y. 0 .1 }.
+					pointB := { line pointB x. line pointB y. 0 .1 }.
+					shape := TRLineShape new from: (self canvasPos: pointA) to: (self canvasPos: pointB).
+					shape color: c.
+					shapes add: shape.
+				]
+		]
+	].
+	Transcript show: 'Drawing map';cr.
+	self lock critical:[
+		maps do:[:l | self canvas removeShape: l].
+		maps := shapes.
+		maps do:[:l| self canvas addShape: l].
+		self canvas signalUpdate
+	].
+]
+
 { #category : #initialization }
 PSKeyframeView >> initialize [
 	super initialize.
@@ -94,12 +124,14 @@ PSKeyframeView >> initialize [
 	angular_delta_deg := 20.
 	linear_delta_m := SLAM linear_delta_m.
 	myshapes := OrderedCollection new.
+	maps := OrderedCollection new.
 	"localization module "
 	outlier_threshold_falloff := 0.2.
 	outlier_threshold_start := 0.1.
 	obstacle_dist_m := SLAM obstacle_dist_m.
 	simplifier_th := 0.02 squared.
-	max_iteration := 20
+	max_iteration := 20.
+	running := false
 ]
 
 { #category : #accessing }
@@ -185,6 +217,14 @@ PSKeyframeView >> propertyChange: prop [
 	self synchronize 
 ]
 
+{ #category : #drawing }
+PSKeyframeView >> queryColor: line [
+		line type class caseOf: { 
+			VMLineTypeObstacle -> [ ^Color black  ].
+			VMLineTypeFrontier -> [ ^Color green ] 
+	} otherwise: [ ^nil  ] 
+]
+
 { #category : #accessing }
 PSKeyframeView >> simplifier_th [
 	<galleonProperty: #Number>
@@ -201,8 +241,9 @@ PSKeyframeView >> simplifier_th: anObject [
 PSKeyframeView >> synchronize [
 	SLAM controller: self proxy controller.
 	SLAM onKeyframeAvailable: [:kf| self draw:kf].
+	SLAM onMapUpdate: [:d| self drawMap: d  ].
 	SLAM start.
-	"process the new keyframe in the background"
+	running := true.
 	sub :=  (self proxy controller node buildConnectionFor: self topic)
 		typedAs: 'scan_odom_sync/ScanOdomSync';
 		for:[:msg| SLAM sample: msg scan odom: msg odom  ];
@@ -228,4 +269,11 @@ PSKeyframeView >> undraw [
 		self canvas signalUpdate
 	].
 
+]
+
+{ #category : #drawing }
+PSKeyframeView >> updateMap [
+	SLAM mappingModule iostream atEnd  ifFalse:[
+		self drawMap: SLAM mappingModule iostream next
+	]
 ]

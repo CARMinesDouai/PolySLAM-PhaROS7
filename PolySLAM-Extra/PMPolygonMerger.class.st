@@ -1,3 +1,6 @@
+"
+not working as intended
+"
 Class {
 	#name : #PMPolygonMerger,
 	#superclass : #Object,

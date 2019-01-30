@@ -22,11 +22,31 @@ VMPlotSearchPath >> color: aColor [
 { #category : #initialization }
 VMPlotSearchPath >> initialize [
 	super initialize.
-	color := Color orange.
+	color := Color blue.
 	
 	nodeColor := Color r: 1 g: 0 b: 1.
 	nodeSize := 0.75.
 
+]
+
+{ #category : #accessing }
+VMPlotSearchPath >> nodeColor [
+	^ nodeColor
+]
+
+{ #category : #accessing }
+VMPlotSearchPath >> nodeColor: aColor [
+	nodeColor := aColor.
+]
+
+{ #category : #accessing }
+VMPlotSearchPath >> nodeSize [
+	^ nodeSize
+]
+
+{ #category : #accessing }
+VMPlotSearchPath >> nodeSize: float [
+	nodeSize := float.
 ]
 
 { #category : #plotting }

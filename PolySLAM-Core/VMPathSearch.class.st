@@ -12,10 +12,12 @@ VMPathSearch class >> compute: visGraph from: start to: goal [
 		markedVertices		"a Set that we use to remember which vertices we have already marked (inserted into the queue, and possibly already processed)"
 		cur						"the current VMPathSearchNode that we are working with"
 		makeNode				"a block that marks the vertex and creates a VMPathSearchNode, which is returned"
+		counter
 	|
 	
 	pQueue := Heap new.		"we use a heap as priority queue"
 	markedVertices := Set new.
+	counter := 0.
 	makeNode := [ :v :p |
 		markedVertices add: v.
 		VMSearchPathNode vertex: v previous: p goal: goal.
@@ -25,6 +27,7 @@ VMPathSearch class >> compute: visGraph from: start to: goal [
 	
 	[ cur vertex ~= goal ] whileTrue: [
 		"check all neighbors of 'cur vertex', add all new edges to the priority queue"
+		counter := counter + 1.
 		cur vertex neighbors do: [ :n |
 			(markedVertices includes: n) ifFalse: [
 				pQueue add: (makeNode value: n value: cur).
@@ -41,7 +44,7 @@ VMPathSearch class >> compute: visGraph from: start to: goal [
 	
 	self logCr: 'found path from ', start printString, ' to ', goal printString.
 	self logCr: 'path: ', cur printString.
-	
+	Transcript show: 'Path search counter='; show: counter printString; cr.
 	^cur.
 	
 ]

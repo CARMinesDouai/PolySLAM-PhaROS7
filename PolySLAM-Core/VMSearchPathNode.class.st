@@ -62,7 +62,8 @@ Class {
 		'weight',
 		'prev',
 		'goal',
-		'estimate'
+		'estimate',
+		'cost'
 	],
 	#category : #'PolySLAM-Core-kernel'
 }
@@ -75,17 +76,27 @@ VMSearchPathNode class >> vertex: v previous: p goal: g [
 		goal: g;
 		computeWeight;
 		computeEstimate;
+		computeCost;
 		yourself.
 ]
 
 { #category : #'comparing (for the heap)' }
 VMSearchPathNode >> <= aSearchNode [
 	"this comparison operator is used by the heap to sort the elements by its estimated cost"
-	^((self estimate + (self weight)) <= (aSearchNode estimate + (aSearchNode weight))).
+	^((self estimate + (self cost)) <= (aSearchNode estimate + (aSearchNode cost))).
 	
 	"the compatison below would be the cost with an estimate of 0 (resulting in A* to degrade
 	into dijkstras)."
 	"^((self weight) <= (aSearchNode weight))."
+]
+
+{ #category : #computing }
+VMSearchPathNode >> computeCost [
+	prev ifNil: [
+		cost := 0.
+	] ifNotNil: [
+		cost := prev cost + weight.
+	].
 ]
 
 { #category : #computing }
@@ -106,6 +117,19 @@ VMSearchPathNode >> computeEstimate [
 ]
 
 { #category : #computing }
+VMSearchPathNode >> computeLength [
+	| length node |
+	length := 0.
+	node := self.
+	[ node prev isNil ] whileFalse: [
+		length := length + (node vertex center dist: node prev vertex center).
+		node := node prev.
+	].
+	^ length
+	
+]
+
+{ #category : #computing }
 VMSearchPathNode >> computeWeight [
 	"computes the weight of this node, which is the euklidian distance from this vertex to the previous node's vertex.
 	if we don't have a previos vertex, the weight is set to 0. Note: only the starting node should have no previous vertex."
@@ -114,6 +138,16 @@ VMSearchPathNode >> computeWeight [
 	] ifNotNil: [
 		weight := self vertex asPoint dist: (prev vertex asPoint).
 	].
+]
+
+{ #category : #accessing }
+VMSearchPathNode >> cost [
+	^ cost
+]
+
+{ #category : #accessing }
+VMSearchPathNode >> cost: aNumber [
+	cost := aNumber.
 ]
 
 { #category : #accessing }

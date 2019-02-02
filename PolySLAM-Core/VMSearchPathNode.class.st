@@ -62,7 +62,8 @@ Class {
 		'weight',
 		'prev',
 		'goal',
-		'estimate'
+		'estimate',
+		'cost'
 	],
 	#category : #'PolySLAM-Core-kernel'
 }
@@ -82,11 +83,20 @@ VMSearchPathNode class >> vertex: v previous: p goal: g [
 { #category : #'comparing (for the heap)' }
 VMSearchPathNode >> <= aSearchNode [
 	"this comparison operator is used by the heap to sort the elements by its estimated cost"
-	^((self estimate + (self cost) -weight) <= (aSearchNode estimate + (aSearchNode cost)-weight)).
+	^((self estimate + (self cost) - weight) <= (aSearchNode estimate + (aSearchNode cost) - weight)).
 	
 	"the compatison below would be the cost with an estimate of 0 (resulting in A* to degrade
 	into dijkstras)."
 	"^((self weight) <= (aSearchNode weight))."
+]
+
+{ #category : #computing }
+VMSearchPathNode >> computeCost [
+	prev ifNil: [
+		cost := 0.
+	] ifNotNil: [
+		cost := prev cost + weight.
+	].
 ]
 
 { #category : #computing }

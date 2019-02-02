@@ -77,13 +77,13 @@ VMSearchPathNode class >> vertex: v previous: p goal: g [
 		computeWeight;
 		computeEstimate;
 		computeCost;
-		yourself.
+		yourself
 ]
 
 { #category : #'comparing (for the heap)' }
 VMSearchPathNode >> <= aSearchNode [
 	"this comparison operator is used by the heap to sort the elements by its estimated cost"
-	^((self estimate + (self cost)) <= (aSearchNode estimate + (aSearchNode cost))).
+	^((self estimate + (self cost) -weight) <= (aSearchNode estimate + (aSearchNode cost)-weight)).
 	
 	"the compatison below would be the cost with an estimate of 0 (resulting in A* to degrade
 	into dijkstras)."
@@ -112,7 +112,8 @@ VMSearchPathNode >> computeEstimate [
 	self assert: ( dx isNotNil ).
 	self assert: ( dy isNotNil ).
 	
-	estimate := dx max: dy.
+	"estimate := dx + dy."
+	estimate := (dx squared + dy squared) sqrt.
 
 ]
 
@@ -150,6 +151,18 @@ VMSearchPathNode >> cost: aNumber [
 	cost := aNumber.
 ]
 
+{ #category : #computing }
+VMSearchPathNode >> countNodes [
+	| counter node |
+	counter := 1.
+	node := self prev.
+	[ node isNotNil ] whileTrue: [
+		counter := counter + 1.
+		node := node prev ].
+	
+	^ counter
+]
+
 { #category : #accessing }
 VMSearchPathNode >> estimate [
 	^estimate.
@@ -173,6 +186,14 @@ VMSearchPathNode >> prev [
 { #category : #accessing }
 VMSearchPathNode >> prev: p [
 	prev := p.
+]
+
+{ #category : #printing }
+VMSearchPathNode >> printStats [
+	Transcript
+		show: 'Path stats:'; cr;
+		show: '  length='; show: self computeLength printString; cr;
+		show: '  node count='; show: self countNodes printString; cr.
 ]
 
 { #category : #printing }

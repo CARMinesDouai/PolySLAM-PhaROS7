@@ -112,7 +112,8 @@ VMSearchPathNode >> computeEstimate [
 	self assert: ( dx isNotNil ).
 	self assert: ( dy isNotNil ).
 	
-	estimate := dx max: dy.
+	"estimate := dx max: dy."
+	estimate := (dx squared + dy squared) sqrt
 
 ]
 
@@ -148,6 +149,18 @@ VMSearchPathNode >> cost [
 { #category : #accessing }
 VMSearchPathNode >> cost: aNumber [
 	cost := aNumber.
+]
+
+{ #category : #computing }
+VMSearchPathNode >> countNodes [
+	| counter node |
+	counter := 1.
+	node := self prev.
+	[ node isNotNil ] whileTrue: [
+		counter := counter + 1.
+		node := node prev ].
+	
+	^ counter
 ]
 
 { #category : #accessing }

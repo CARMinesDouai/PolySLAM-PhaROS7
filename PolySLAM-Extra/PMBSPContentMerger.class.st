@@ -33,9 +33,6 @@ PMBSPContentMerger >> merge: root [
 
 { #category : #'as yet unclassified' }
 PMBSPContentMerger >> mergeLeft: left withRight: right onPlane: hyperplane [
-	"takes two collections of polygons ('left' & 'right') and a hyperplane (VMLine instance).
-	Polygons that share a vector on the hyperplane are merged.
-	This method returns a collection of polygons"
 	| pairCollection rightCopy leftCopy |
 	rightCopy := OrderedCollection new addAll: right; yourself.
 	leftCopy := left collect: [ :p | p copy ].
@@ -65,7 +62,7 @@ PMBSPContentMerger >> mergeLeft: left withRight: right onPlane: hyperplane [
 			].
 		].
 	].
-	^ OrderedCollection new
+	^ VMPolygonCollection new
 		addAll: leftCopy;
 		addAll: rightCopy;
 		yourself

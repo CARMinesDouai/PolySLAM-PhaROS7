@@ -20,27 +20,12 @@ PSMapping >> addPolygon: p [
 	self iostream  nextPut: p"
 	"self processData: p"
 	queue nextPut: p.
-	interval := interval + 1.
-	interval = 20 ifTrue:[
-		TimeProfiler spyOn: [ self bench ]	
-	]
-]
-
-{ #category : #benchmarking }
-PSMapping >> bench [
-	|d|
-	[queue atEnd ] whileFalse: [ 
-		d := queue next.
-		[
-			map := map insert: d.
-		] 	on: Error do: [ Transcript show: 'Slave VM: Error on adding polygon'; cr.].
-	]
 ]
 
 { #category : #initialization }
 PSMapping >> initialize [
 	super initialize.
-	map := ((VMGridStorage gridSize: 2.0) cellClass: VMGridCellBSP; yourself)"VMBSPLeaf new".
+	map := VMBSPLeaf new.
 	update_per_n_kf := 5. 
 	interval := 0.
 	onMapUpdate := nil.
@@ -105,7 +90,7 @@ PSMapping >> start [
 	"do nothing cause it already running"
 	Transcript show: 'Running mappinng module'; cr.
 	running := true.
-	"[ self process ] forkAt: Processor userBackgroundPriority "
+	[ self process ] forkAt: Processor userBackgroundPriority 
 ]
 
 { #category : #process }

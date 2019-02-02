@@ -75,7 +75,7 @@ VMGraphBuilder >> buildGraph: aBspTree [
 VMGraphBuilder >> buildGraphFromGrid: aGridStorage [
 	| graph |
 	
-	graph := self loopOverGrid: aGridStorage.
+	self loopOverGrid: aGridStorage.
 		
 	"workaround to add missing edges"
 	graph checkEdges.

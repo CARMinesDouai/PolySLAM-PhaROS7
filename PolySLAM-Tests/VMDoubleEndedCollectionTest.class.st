@@ -7,7 +7,7 @@ Class {
 { #category : #'as yet unclassified' }
 VMDoubleEndedCollectionTest >> testAtPut [
 	| collection data |
-	collection := VMDoubleEndedCollection new.
+	collection := VMDoubleEndedCollectionOld new.
 	data := {
 		{3.  'a'}.
 		{0.  'b'}.

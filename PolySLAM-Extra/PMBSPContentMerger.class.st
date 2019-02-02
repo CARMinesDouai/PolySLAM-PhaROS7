@@ -62,7 +62,7 @@ PMBSPContentMerger >> mergeLeft: left withRight: right onPlane: hyperplane [
 			].
 		].
 	].
-	^ VMPolygonCollection new
+	^ OrderedCollection new
 		addAll: leftCopy;
 		addAll: rightCopy;
 		yourself

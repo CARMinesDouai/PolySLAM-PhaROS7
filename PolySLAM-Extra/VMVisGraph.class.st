@@ -10,7 +10,7 @@ Class {
 		'vertices',
 		'polygons'
 	],
-	#category : #'PolySLAM-Core-kernel'
+	#category : #'PolySLAM-Extra-Deprecated'
 }
 
 { #category : #'instance creation' }

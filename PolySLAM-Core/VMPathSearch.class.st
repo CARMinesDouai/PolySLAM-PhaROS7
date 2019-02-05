@@ -1,7 +1,7 @@
 Class {
 	#name : #VMPathSearch,
 	#superclass : #Object,
-	#category : #'PolySLAM-Core-kernel'
+	#category : #'PolySLAM-Core-Top. Graph'
 }
 
 { #category : #'as yet unclassified' }

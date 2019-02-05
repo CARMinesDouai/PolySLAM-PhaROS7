@@ -2,6 +2,8 @@
 VMGraphVertex
 This class is used to represent a single vortex in the graph.
 
+DEPRECATED: use VMGraphNode instead (this class was used for visibility graphs)
+
 
 It is derived from the Point class and uses the coordinates from the Point class as the 2D position of the vertex. every vertex stores its immediate neighbors in the 'neighbors' instance variable. Note that the class provides a class-side constructor using a point as parameter.
 
@@ -84,7 +86,7 @@ Class {
 		'polygons',
 		'edgeWeight'
 	],
-	#category : #'PolySLAM-Core-kernel'
+	#category : #'PolySLAM-Extra-Deprecated'
 }
 
 { #category : #'instance creation' }

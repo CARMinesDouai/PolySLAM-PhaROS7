@@ -186,6 +186,35 @@ VMOffline >> buildMapWG [
 	].
 ]
 
+{ #category : #'map building' }
+VMOffline >> buildWithProgressBarFrom: startIndex to: endIndex by: stepSize tfStepSize: tfStepSize [
+	| tfIndex polygon |
+	map ifNil: [ map := VMBSPLeaf new. ].
+	tfIndex := 1.
+	
+	SystemProgressMorph show: self class asString from: startIndex to: endIndex during: [ :bar |
+		startIndex to: endIndex by: stepSize do: [ :index |
+			bar current: index.
+			bar label: self class asString, ' ', index printString, '/', endIndex printString.
+				polygon := (self polygonAt: index) transform: (icpTF at: tfIndex).
+				polygon := (VMVectorCollectionSimplifier compute: polygon inlierThreshold: simplifierThreshold) result debugCopy.
+				[ VMBSPLeaf new insert: polygon. ]
+					on: Error
+					do: [ :e |
+						Transcript show: 'failed pre-test at index=';
+							show: index printString;
+							show: ' e=', e printString;
+							cr. ].
+				[ map := map insert: polygon. ]
+					on: Error
+					do: [ :e |
+						Transcript show: 'failed map-building at index=';
+							show: index printString;
+							show: ' e=', e printString; cr. ].
+			tfIndex := tfIndex + tfStepSize. ]. ].
+
+]
+
 { #category : #accessing }
 VMOffline >> distanceTraveled [
 	^ self distanceTraveledFrom: 1 to: icpTF size

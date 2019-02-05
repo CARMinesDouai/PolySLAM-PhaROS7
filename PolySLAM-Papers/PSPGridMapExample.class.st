@@ -7,7 +7,8 @@ Class {
 		'goal',
 		'data',
 		'nodeCollection',
-		'graph'
+		'graph',
+		'fullFilename'
 	],
 	#category : #'PolySLAM-Papers-2019IntelliSys'
 }
@@ -39,8 +40,9 @@ PSPGridMapExample >> buildNodes [
 
 { #category : #computing }
 PSPGridMapExample >> checkGraph [
-	nodeCollection := nodeCollection select: [ :e | e isNotNil ].
-	graph:= VMGraph new addAll: nodeCollection; yourself.
+	| validNodes |
+	validNodes := nodeCollection select: [ :e | e isNotNil ].
+	graph:= VMGraph new addAll: validNodes; yourself.
 	
 	Transcript show: 'graph size='; show: graph size printString; cr.
 	graph := (VMConnectedGraphs compute: graph) first.
@@ -54,6 +56,21 @@ PSPGridMapExample >> computePath [
 	
 	timeSpent := [
 		path := VMPathSearch compute: graph from: start to: goal. ] timeToRun.
+	Transcript
+		show: 'time spent on graph search: ';
+		show: timeSpent totalSeconds asFloat asTimeString;
+		cr.
+
+]
+
+{ #category : #computing }
+PSPGridMapExample >> computePath2 [
+	| timeSpent |
+	
+	((start isNil) or: [goal isNil]) ifTrue: [ 1 halt. ^ self ].
+	
+	timeSpent := [
+		path := PSGraphSearch computeGraph: graph from: start to: goal. ] timeToRun.
 	Transcript
 		show: 'time spent on graph search: ';
 		show: timeSpent totalSeconds asFloat asTimeString;
@@ -101,7 +118,25 @@ PSPGridMapExample >> connectingNeighbors [
 
 { #category : #acccessing }
 PSPGridMapExample >> getNodeX: x y: y [
-	^ nodeCollection at:(x* data width) + y + 1 ifAbsent: [nil]
+	^ nodeCollection at:(y* data width) + x + 1 ifAbsent: [nil]
+]
+
+{ #category : #acccessing }
+PSPGridMapExample >> goal [
+	^ goal
+]
+
+{ #category : #acccessing }
+PSPGridMapExample >> goal: endNode [
+	goal := endNode.
+]
+
+{ #category : #initialization }
+PSPGridMapExample >> initialize [
+	super initialize.
+	
+	fullFilename := '/opt/shared/developer/data/grid_maps/officeMap.png'.
+
 ]
 
 { #category : #plotting }
@@ -115,13 +150,13 @@ PSPGridMapExample >> plot [
 	   "plotChild: (VMPlotPolygonCollection model: map asVMPolygonCollection);"
 	   "plotChild: (VMPlotGridStorage model: map);"
 	   "plotChild: (VMPlotBSPTree model: map);" "if map is a BSP-Tree instead of a PolyGridMap"
-	   "plotChild: ((VMPlotGraph model: graph) nodeSize: 0.15; nodeColor: (Color r: 1 g: 0.667 b: 1); edgeColor: (Color r: 1 g: 0.8 b: 1));"
+	   plotChild: ((VMPlotGraph model: graph) nodeSize: 0.15; nodeColor: (Color r: 1 g: 0.667 b: 1); edgeColor: (Color r: 1 g: 0.8 b: 1));
 	   plotChild: ((VMPlotSearchPath model: path) lineWidth: 2);
-	   plotChild: (VMPlotPointTarget model: start asPoint);
-	   plotChild: (VMPlotPointTarget model: goal asPoint);
-	   "setTerminal: 'eps size 20.0,32.0 enhanced font ''Arial.ttf,14''' filename: '/opt/shared/developer/data/plots/officeGraphOccupancyGrid.eps';"
-		setTerminal: 'png size 1000,1000 enhanced font ''Arial.ttf,18''' filename: '/opt/shared/developer/data/plots/testOffice_graphGridMap2.png';
-	   "addInitLine: 'set term qt size 900,900 enhanced';"
+	   plotChild: ((VMPlotPointTarget model: start asPoint) labelText: 'start');
+	   plotChild: ((VMPlotPointTarget model: goal asPoint) labelText: 'goal');
+	   setTerminal: 'eps size 20.0,32.0 enhanced font ''Arial.ttf,24''' filename: '/opt/shared/developer/data/plots/temp.eps';
+		"setTerminal: 'png size 1000,1000 enhanced font ''Arial.ttf,18''' filename: '/opt/shared/developer/data/plots/testOffice_graphGridMap2.png';"
+		"addInitLine: 'set term qt size 900,900 enhanced';"
 	   plot. 
 
 	] timeToRun.
@@ -135,9 +170,8 @@ PSPGridMapExample >> plot [
 
 { #category : #reading }
 PSPGridMapExample >> readGridMap [
-	| fullFilename timeSpent |
+	| timeSpent |
 	
-	fullFilename := '/opt/shared/developer/data/grid_maps/officeMap_mini.png'.
 	timeSpent := [
 		data := fullFilename asFileReference binaryReadStreamDo: [ :stream| PNGReadWriter formFromStream: stream ]. ] timeToRun.
 	
@@ -164,15 +198,30 @@ PSPGridMapExample >> run [
 	self buildNodes.
 	self connectingNeighbors.
 	self checkGraph.
-
-	start := self getNodeX: 87 y: 293.
-	goal := self getNodeX: 110 y: 12.
-	"start := self getNodeX: 20 y: 50.
-	goal := self getNodeX: 45 y: 5."
+	self setDefaultStartGoal.
 	self computePath.
 	
 	path printStats.
 
 	self plot.
 
+]
+
+{ #category : #initialization }
+PSPGridMapExample >> setDefaultStartGoal [
+	start := self getNodeX: 87 y: 293.
+	goal := self getNodeX: 110 y: 12.
+	"start := self getNodeX: 20 y: 50.
+	goal := self getNodeX: 45 y: 5."
+
+]
+
+{ #category : #acccessing }
+PSPGridMapExample >> start [
+	^ start
+]
+
+{ #category : #acccessing }
+PSPGridMapExample >> start: startNode [
+	start := startNode.
 ]

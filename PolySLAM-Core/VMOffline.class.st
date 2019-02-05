@@ -730,19 +730,21 @@ VMOffline >> runICPFrom: startIndex to: endIndex by: stepSize path: pathString [
 	iterationCounter := 0.
 	
 	Transcript show: 'running offline ICP'; cr.
-	
 	data := self loadDataAt: startIndex path: fullPath.
 	self initICPWithData: data.
 	
-	"[" startIndex+stepSize to: endIndex by: stepSize do: [ :index |
-		iterationCounter := iterationCounter + 1.
-		nncSizeHistory add: nnc addedVectors size.
-		
-		Transcript show: ((iterationCounter \\\ 10 = 0) ifTrue: [ index printString ] ifFalse: [ '.' ]).
-		(iterationCounter \\\ 40 = 0) ifTrue: [Transcript cr. ].
-		
-		data := self icpLoopIterationAt: index lastData: data.
-	]"] on: Error do: [ :e | Transcript show: 'icp loop interrupted'; cr; show: e printString. ]".
+	
+	SystemProgressMorph show: 'Running ICP' from: startIndex to: endIndex during: [ :bar |
+		startIndex+stepSize to: endIndex by: stepSize do: [ :index |
+			bar current: index.
+			iterationCounter := iterationCounter + 1.
+			nncSizeHistory add: nnc addedVectors size.
+			
+			Transcript show: ((iterationCounter \\\ 10 = 0) ifTrue: [ index printString ] ifFalse: [ '.' ]).
+			(iterationCounter \\\ 40 = 0) ifTrue: [Transcript cr. ].
+			
+			data := self icpLoopIterationAt: index lastData: data.
+	]. ].
 	Transcript show: 'finished ICP'; cr.
 
 

@@ -39,6 +39,17 @@ VMGridStorage >> add: aPolygon [
 
 ]
 
+{ #category : #converting }
+VMGridStorage >> asVMPolygonCollection [
+	| collection |
+	
+	collection := VMPolygonCollection new.
+	self do: [ :cell |
+		collection addAll: cell asVMPolygonCollection. ].
+	
+	^ collection
+]
+
 { #category : #accessing }
 VMGridStorage >> at: xCoord at: yCoord [
 	| xIndex yIndex |

@@ -196,7 +196,7 @@ VMOffline >> buildWithProgressBarFrom: startIndex to: endIndex by: stepSize tfSt
 		startIndex to: endIndex by: stepSize do: [ :index |
 			bar current: index.
 			bar label: self class asString, ' ', index printString, '/', endIndex printString.
-				polygon := (self polygonAt: index) transform: (icpTF at: tfIndex).
+				polygon := (self polygonAt: index) transform: ((icpTF at: tfIndex) * offsetTF).
 				polygon := (VMVectorCollectionSimplifier compute: polygon inlierThreshold: simplifierThreshold) result debugCopy.
 				[ VMBSPLeaf new insert: polygon. ]
 					on: Error

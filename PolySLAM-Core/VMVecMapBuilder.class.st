@@ -339,7 +339,7 @@ VMVecMapBuilder >> polygons: aCollection [
 ]
 
 { #category : #'as yet unclassified' }
-VMVecMapBuilder >> printStatistics [
+VMVecMapBuilder >> printStats [
 	| polygonCount lineSegCount |
 	
 	polygonCount := polygons size.

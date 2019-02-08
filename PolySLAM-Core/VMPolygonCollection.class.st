@@ -3,7 +3,7 @@ This is an ordered collection with added functionallity to handle polygons.
 "
 Class {
 	#name : #VMPolygonCollection,
-	#superclass : #OrderedCollection,
+	#superclass : #VMRenderCollection,
 	#category : #'PolySLAM-Core-Collections'
 }
 
@@ -63,7 +63,7 @@ VMPolygonCollection >> polygonIsIsolated: aPolygon [
 ]
 
 { #category : #printing }
-VMPolygonCollection >> printStatistics [
+VMPolygonCollection >> printStats [
 	| polygonCount lineSegCount |
 	
 	polygonCount := self size.

@@ -7,10 +7,7 @@ This class is an extension to a normal OrderedCollection that provides to key me
 "
 Class {
 	#name : #VMPointCollection,
-	#superclass : #OrderedCollection,
-	#instVars : [
-		'collection'
-	],
+	#superclass : #VMRenderCollection,
 	#category : #'PolySLAM-Core-Collections'
 }
 

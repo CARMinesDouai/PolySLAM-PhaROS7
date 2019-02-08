@@ -425,7 +425,7 @@ VMOffline >> initialize [
 		maxIterations: 20;
 		yourself.
 
-	icpTF := OrderedCollection new.
+	icpTF := VMTFCollection new.
 	icpScoreHistory := OrderedCollection new.
 	nnc := PSFFINNCollection new.
 	nncSizeHistory := OrderedCollection new.

@@ -39,23 +39,6 @@ VMPolygonCollection >> bounds [
 
 ]
 
-{ #category : #'GT Inspector' }
-VMPolygonCollection >> gtInspectorRenderedIn: composite [
-	<gtInspectorPresentationOrder: 50>
-	
-	(composite morph)
-		title: 'Viewer';
-		morph: [
-			(VMViewer openWindowlessOn: { self asRenderableElement })
-				autozoom.
-		].
-]
-
-{ #category : #inserting }
-VMPolygonCollection >> insert: p [
-	1 halt
-]
-
 { #category : #testing }
 VMPolygonCollection >> polygonIsIsolated: aPolygon [
 	"a polygon is considered isolated if all line segments are frontiers"

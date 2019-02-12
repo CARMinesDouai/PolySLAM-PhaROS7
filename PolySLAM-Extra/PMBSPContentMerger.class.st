@@ -4,7 +4,26 @@ Class {
 	#category : #'PolySLAM-Extra-Experimental'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #actions }
+PMBSPContentMerger class >> merge: aCollection [
+	^ self new
+		merge: aCollection
+]
+
+{ #category : #'merging - helper' }
+PMBSPContentMerger >> collectVectorsHyperplane: hyperplane vectorCollection: vectors [
+	| pairCollection |
+
+	pairCollection := OrderedCollection new.
+	vectors do: [ :rightPolygon |
+		rightPolygon select: [ :vec | vec type isSector ] thenDo: [ :rightVector |
+			(hyperplane isCollinearWith: rightVector)
+				ifTrue: [ pairCollection add: { rightVector. rightPolygon }. ]. ]. ].
+	
+	^ pairCollection
+]
+
+{ #category : #'merging - helper' }
 PMBSPContentMerger >> findMatchesFor: aVector in: pairCollection [
 	| matches |
 	
@@ -14,7 +33,7 @@ PMBSPContentMerger >> findMatchesFor: aVector in: pairCollection [
 
 ]
 
-{ #category : #actions }
+{ #category : #merging }
 PMBSPContentMerger >> merge: root [
 	| left right |
 	
@@ -31,17 +50,13 @@ PMBSPContentMerger >> merge: root [
 	
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'merging - helper' }
 PMBSPContentMerger >> mergeLeft: left withRight: right onPlane: hyperplane [
 	| pairCollection rightCopy leftCopy |
 	rightCopy := OrderedCollection new addAll: right; yourself.
 	leftCopy := left collect: [ :p | p copy ].
 	
-	pairCollection := OrderedCollection new.
-	rightCopy do: [ :rightPolygon |
-		rightPolygon select: [ :vec | vec type isSector ] thenDo: [ :rightVector |
-			(hyperplane isCollinearWith: rightVector)
-				ifTrue: [ pairCollection add: { rightVector. rightPolygon }. ]. ]. ].
+	pairCollection := self collectVectorsHyperplane: hyperplane vectorCollection: rightCopy.
 	
 	leftCopy do: [ :leftPolygon |
 		(leftPolygon select: [ :vec | vec type isSector ]) do: [ :leftVector |
@@ -54,15 +69,11 @@ PMBSPContentMerger >> mergeLeft: left withRight: right onPlane: hyperplane [
 					vectors := OrderedCollection new.
 					offset := pair second indexOf: pair first.
 					1 to: pair second size - 1 do: [ :index |
-						vectors add: (pair second atWrap: index + offset).
-					].
+						vectors add: (pair second atWrap: index + offset). ].
 					leftPolygon replaceVector: leftVector withCollection: vectors.
-					rightCopy remove: pair second.
-				].
-			].
-		].
-	].
-	^ OrderedCollection new
+					rightCopy remove: pair second. ]. ]. ]. ].
+	
+	^ VMPolygonCollection new
 		addAll: leftCopy;
 		addAll: rightCopy;
 		yourself

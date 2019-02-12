@@ -16,9 +16,19 @@ VMPoint class >> x: xCoord y: yCoord type: pointType [
 	type: pointType
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #transforming }
 VMPoint >> applyTransform: aVMTFMatrix [
 	^ self transform: aVMTFMatrix
+]
+
+{ #category : #converting }
+VMPoint >> asRenderableElement [
+	^ VMPointRenderer model: self
+]
+
+{ #category : #accessing }
+VMPoint >> bounds [
+	^ VMRectangle origin: self corner: self
 ]
 
 { #category : #hooks }
@@ -36,7 +46,7 @@ VMPoint >> isObstacle [
 	^ type isObstacle
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #transforming }
 VMPoint >> negated [
 	"Answer a copy whose x and y coordinates are the negatives of those of the receiver."
 	^ self species x: (0 - x) y: (0 - y) type: type
@@ -47,7 +57,7 @@ VMPoint >> species [
 	^ self class
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #transforming }
 VMPoint >> transform: aVMTFMatrix [
 	| tf |
 	

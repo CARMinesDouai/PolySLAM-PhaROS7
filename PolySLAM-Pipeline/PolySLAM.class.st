@@ -4,7 +4,6 @@ Class {
 	#instVars : [
 		'samplingModule',
 		'localizationModule',
-		'mappingModule',
 		'time_scale_milliseconds',
 		'obstacle_dist_m',
 		'simplifier_th',
@@ -14,7 +13,6 @@ Class {
 		'outlier_threshold_falloff',
 		'outlier_threshold_start',
 		'max_iteration',
-		'controller',
 		'onKeyframeAvailable',
 		'pub',
 		'map'
@@ -34,22 +32,11 @@ PolySLAM >> angular_delta_deg: anObject [
 	samplingModule angularDelta: angular_delta_deg 
 ]
 
-{ #category : #accessing }
-PolySLAM >> controller [
-	^ controller 
-]
-
-{ #category : #accessing }
-PolySLAM >> controller:c [
-	^ controller := c 
-]
-
 { #category : #initialization }
 PolySLAM >> initialize [
 	super initialize.
 	samplingModule := PSKeyframeSampling new.
 	localizationModule := PSLocalization new.
-	mappingModule := PSMapping new "headfull: 8 Mb".
 	time_scale_milliseconds := samplingModule timeScale.
 	angular_delta_deg := 20.
 	linear_delta_m := samplingModule linearDelta.
@@ -77,11 +64,6 @@ PolySLAM >> linear_delta_m: anObject [
 { #category : #accessing }
 PolySLAM >> map [
 	^  map
-]
-
-{ #category : #accessing }
-PolySLAM >> mappingModule [
-	^ mappingModule 
 ]
 
 { #category : #accessing }
@@ -117,11 +99,6 @@ PolySLAM >> onKeyframeAvailable: anObject [
 ]
 
 { #category : #accessing }
-PolySLAM >> onMapUpdate: block [
-	mappingModule onMapUpdate: block
-]
-
-{ #category : #accessing }
 PolySLAM >> outlier_threshold_falloff [
 	^ outlier_threshold_falloff
 ]
@@ -146,7 +123,7 @@ PolySLAM >> outlier_threshold_start: anObject [
 { #category : #processing }
 PolySLAM >> processLocalizedData [
 	[ running ]
-		whileTrue: [ self publishTF.
+		whileTrue: [ "self publishTF."
 			localizationModule iostream ifNil: [ ^ self ].
 			localizationModule iostream atEnd
 				ifFalse: [ self processLocalizedKeyframe: localizationModule iostream next ]
@@ -165,7 +142,6 @@ PolySLAM >> processLocalizedKeyframe: 	anArray [
 	scan := samplingModule allScans at:( anArray at:1).
 	scan correctPose: (anArray at:2).
 	scan polygon: (anArray at:3).
-	mappingModule addPolygon: scan polygon.
 	"self announcer announce: (MapAvailableEvent for: mappingModule map)."
 	self onKeyframeAvailable ifNil: [ ^self ].
 	self onKeyframeAvailable value: scan
@@ -216,7 +192,6 @@ PolySLAM >> simplifier_th: anObject [
 PolySLAM >> start [
 	running := true.
 	samplingModule start.
-	mappingModule start.
 	[ self processLocalizedData  ] forkAt: Processor userBackgroundPriority
 ]
 
@@ -224,7 +199,6 @@ PolySLAM >> start [
 PolySLAM >> stop [
 	samplingModule stop.
 	localizationModule stop.
-	mappingModule stop.
 	running := false.
 ]
 

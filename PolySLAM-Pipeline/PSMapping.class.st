@@ -13,17 +13,17 @@ Class {
 }
 
 { #category : #accessing }
-PSMapping >> addPolygon: p [
-	<master>
+PSMapping >> addKeyframe: s [
+	"<master>"
 	"self iostream ifNil: [ ^self ].
 	self iostream isOpen ifFalse:[^self].
 	self iostream  nextPut: p"
-	"self processData: p"
-	queue nextPut: p.
-	interval := interval + 1.
-	interval = 20 ifTrue:[
+	"self processData: s"
+	queue nextPut: s.
+	"interval := interval + 1."
+	"interval = 20 ifTrue:[
 		TimeProfiler spyOn: [ self bench ]	
-	]
+	]"
 ]
 
 { #category : #benchmarking }
@@ -51,8 +51,8 @@ PSMapping >> benchGrid [
 { #category : #initialization }
 PSMapping >> initialize [
 	super initialize.
-	map := "VMBSPLeaf new"((VMGridStorage gridSize: 2.0) cellClass: VMGridCellBSP; yourself).
-	update_per_n_kf := 5. 
+	map := ((VMGridStorage gridSize: 2.0) cellClass: VMGridCellBSP; yourself).
+	update_per_n_kf := 3. 
 	interval := 0.
 	onMapUpdate := nil.
 	queue := SharedQueue new.
@@ -77,21 +77,22 @@ PSMapping >> onMapUpdate: anObject [
 { #category : #process }
 PSMapping >> process [
 	[ running ] whileTrue: [ 
-		queue atEnd ifFalse: [ self processData: queue next ]
+		queue atEnd ifFalse: [ self processData: queue next ] ifTrue:[100 milliSeconds  wait]
 	]
 ]
 
 { #category : #process }
-PSMapping >> processData: d [
+PSMapping >> processData: scan [
 	|p|
-	p := d.
+	p := scan polygon.
 	[
-		VMBSPLeaf new insert: d.
-		map := map insert: d.
+		"VMBSPLeaf new insert: d."
+		map := map insert: p.
 	] on: Error do: [ Transcript show: 'Slave VM: Error on adding polygon'; cr. ^self ].
 	"self iostream nextPut: map asCollectionOfSectors."
+	Transcript show: 'polygon added to map: ', scan id asString ; cr.
 	interval = 0 ifTrue:["self iostream nextPut: map asCollectionOfSectors"
-		onMapUpdate ifNotNil: [ onMapUpdate value: map asCollectionOfSectors ]	
+		onMapUpdate ifNotNil: [ onMapUpdate value: map asVMPolygonCollection ]	
 	].
 	interval := interval + 1.
 	interval >= update_per_n_kf ifTrue:[ interval := 0 ].
@@ -112,11 +113,10 @@ PSMapping >> rasterize [
 
 { #category : #process }
 PSMapping >> start [
-	<master>
-	"do nothing cause it already running"
+	"<master>"
 	Transcript show: 'Running mappinng module'; cr.
 	running := true.
-	"[ self process ] forkAt: Processor userBackgroundPriority "
+	[ self process ] forkAt: Processor userBackgroundPriority 
 ]
 
 { #category : #process }

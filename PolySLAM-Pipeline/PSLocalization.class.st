@@ -161,6 +161,7 @@ PSLocalization >> start [
 PSLocalization >> stop [
 	<master>
 	"nnc cleanup."
+	Transcript show: 'stopping localization module>>>>>>>>>>>>>>>'; cr.
 	running := false.
 	icp := nil.
 	nnc := nil.

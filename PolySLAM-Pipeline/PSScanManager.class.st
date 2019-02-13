@@ -71,7 +71,7 @@ PSScanManager >> initialize [
 	streams := Dictionary new.
 	obDist := 0.4."meter"
 	linearDelta := 0.4"meter".
-	maxRange := 10. "meter"
+	maxRange := 15. "meter"
 	angularDelta := (Float pi / 180) * 20 "degree".
 ]
 

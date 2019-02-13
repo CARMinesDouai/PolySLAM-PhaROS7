@@ -88,18 +88,8 @@ Point >> isEqual: aPoint [
 ]
 
 { #category : #'*PolySLAM-Core' }
-Point >> length [
-	^ self squareLength sqrt
-]
-
-{ #category : #'*PolySLAM-Core' }
 Point >> lineTo: aPoint [
 	^ VMLine pointA: self pointB: aPoint
-]
-
-{ #category : #'*PolySLAM-Core' }
-Point >> squareLength [
-	^ x * x + (y * y)
 ]
 
 { #category : #'*PolySLAM-Core' }

@@ -62,23 +62,10 @@ Class {
 		'weight',
 		'prev',
 		'goal',
-		'estimate',
-		'cost'
+		'estimate'
 	],
-	#category : #'PolySLAM-Core-Top. Graph'
+	#category : #'PolySLAM-Core-kernel'
 }
-
-{ #category : #'instance creation' }
-VMSearchPathNode class >> node: v previous: p goal: g [
-	^(self new)
-		node: v;
-		prev: p;
-		goal: g;
-		computeWeight;
-		computeEstimate;
-		computeCost;
-		yourself
-]
 
 { #category : #'instance creation' }
 VMSearchPathNode class >> vertex: v previous: p goal: g [
@@ -88,27 +75,17 @@ VMSearchPathNode class >> vertex: v previous: p goal: g [
 		goal: g;
 		computeWeight;
 		computeEstimate;
-		computeCost;
-		yourself
+		yourself.
 ]
 
 { #category : #'comparing (for the heap)' }
 VMSearchPathNode >> <= aSearchNode [
 	"this comparison operator is used by the heap to sort the elements by its estimated cost"
-	^ (self estimate + cost) <= (aSearchNode estimate + aSearchNode cost)
+	^((self estimate + (self weight)) <= (aSearchNode estimate + (aSearchNode weight))).
 	
 	"the compatison below would be the cost with an estimate of 0 (resulting in A* to degrade
 	into dijkstras)."
 	"^((self weight) <= (aSearchNode weight))."
-]
-
-{ #category : #computing }
-VMSearchPathNode >> computeCost [
-	prev ifNil: [
-		cost := 0.
-	] ifNotNil: [
-		cost := prev cost + weight.
-	].
 ]
 
 { #category : #computing }
@@ -124,21 +101,7 @@ VMSearchPathNode >> computeEstimate [
 	self assert: ( dx isNotNil ).
 	self assert: ( dy isNotNil ).
 	
-	"estimate := dx + dy."
-	estimate := (dx squared + dy squared) sqrt.
-
-]
-
-{ #category : #computing }
-VMSearchPathNode >> computeLength [
-	| length node |
-	length := 0.
-	node := self.
-	[ node prev isNil ] whileFalse: [
-		length := length + (node vertex asPoint dist: (node prev vertex asPoint)).
-		node := node prev. ].
-	
-	^ length
+	estimate := dx max: dy.
 
 ]
 
@@ -151,23 +114,6 @@ VMSearchPathNode >> computeWeight [
 	] ifNotNil: [
 		weight := self vertex asPoint dist: (prev vertex asPoint).
 	].
-]
-
-{ #category : #accessing }
-VMSearchPathNode >> cost [
-	^ cost
-]
-
-{ #category : #computing }
-VMSearchPathNode >> countNodes [
-	| counter node |
-	counter := 1.
-	node := self prev.
-	[ node isNotNil ] whileTrue: [
-		counter := counter + 1.
-		node := node prev ].
-	
-	^ counter
 ]
 
 { #category : #accessing }
@@ -186,16 +132,6 @@ VMSearchPathNode >> goal: g [
 ]
 
 { #category : #accessing }
-VMSearchPathNode >> node [
-	^ vertex
-]
-
-{ #category : #accessing }
-VMSearchPathNode >> node: aNode [
-	vertex := aNode.
-]
-
-{ #category : #accessing }
 VMSearchPathNode >> prev [
 	^prev.
 ]
@@ -203,14 +139,6 @@ VMSearchPathNode >> prev [
 { #category : #accessing }
 VMSearchPathNode >> prev: p [
 	prev := p.
-]
-
-{ #category : #printing }
-VMSearchPathNode >> printStats [
-	Transcript
-		show: 'Path stats:'; cr;
-		show: '  length='; show: self computeLength printString; cr;
-		show: '  node count='; show: self countNodes printString; cr.
 ]
 
 { #category : #printing }

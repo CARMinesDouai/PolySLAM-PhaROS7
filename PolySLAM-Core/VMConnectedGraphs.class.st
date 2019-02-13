@@ -35,9 +35,6 @@ VMConnectedGraphs >> compute: aGraph [
 	Transcript show: 'remainder size=', remainder size printString; cr.
 	remainder ifNotEmpty: [ result addAll: (self compute: remainder). ].
 	
-	"sort by size, largest graph first"
-	result sort: [ :a :b | a size > b size ].
-	
 	^ result
 
 ]

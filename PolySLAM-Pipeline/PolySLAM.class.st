@@ -49,7 +49,7 @@ PolySLAM >> initialize [
 	super initialize.
 	samplingModule := PSKeyframeSampling new.
 	localizationModule := PSLocalization new.
-	mappingModule := PSMapping "headfull" new.
+	mappingModule := PSMapping new "headfull: 8 Mb".
 	time_scale_milliseconds := samplingModule timeScale.
 	angular_delta_deg := 20.
 	linear_delta_m := samplingModule linearDelta.
@@ -77,6 +77,11 @@ PolySLAM >> linear_delta_m: anObject [
 { #category : #accessing }
 PolySLAM >> map [
 	^  map
+]
+
+{ #category : #accessing }
+PolySLAM >> mappingModule [
+	^ mappingModule 
 ]
 
 { #category : #accessing }
@@ -112,6 +117,11 @@ PolySLAM >> onKeyframeAvailable: anObject [
 ]
 
 { #category : #accessing }
+PolySLAM >> onMapUpdate: block [
+	mappingModule onMapUpdate: block
+]
+
+{ #category : #accessing }
 PolySLAM >> outlier_threshold_falloff [
 	^ outlier_threshold_falloff
 ]
@@ -135,17 +145,15 @@ PolySLAM >> outlier_threshold_start: anObject [
 
 { #category : #processing }
 PolySLAM >> processLocalizedData [
-[ running ] whileTrue: [
-	self publishTF.
-	localizationModule iostream ifNil: [ ^self ].
-	localizationModule iostream atEnd ifFalse:[
-		self processLocalizedKeyframe: localizationModule iostream next	
-	].
-	"mappingModule iostream atEnd ifFalse: [
+	[ running ]
+		whileTrue: [ self publishTF.
+			localizationModule iostream ifNil: [ ^ self ].
+			localizationModule iostream atEnd
+				ifFalse: [ self processLocalizedKeyframe: localizationModule iostream next ]
+			"mappingModule iostream atEnd ifFalse: [
 		map := mappingModule iostream next.
 		map inspect
-	]"
-]
+	]" ]
 ]
 
 { #category : #processing }

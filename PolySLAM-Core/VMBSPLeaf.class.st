@@ -387,7 +387,7 @@ VMBSPLeaf >> insert: aPolygon [
 	newPlane ifNil: [
 		"this case should only happen if aPolygon lies completly inside sector. they still may share borders, hence the
 		call to #handDownVectors:"
-		self handDownVectors: aPolygon.
+		"self handDownVectors: aPolygon."
 		"Transcript show: 'BSPLeaf: skipping insert - invalid plane (nil)'; cr.
 		{sector asRenderableElement autoColor: false; color: Color orange. aPolygon.} asRenderableElement.
 		1 halt."
@@ -421,7 +421,7 @@ VMBSPLeaf >> insertVector: aVector [
 	
 	chains := VMVectorChainCollection
 		fromTypelessVectorCollection: (sector select: [ :v |
-			(v isCollinearWith: aVector) and: [(v direction normalized + aVector direction normalized) squareLength > 1.0] ]).
+			(v isCollinearWith: aVector) and: [(v direction normalized + aVector direction normalized) length > 1.0] ]).
 	chains do: [ :chain |
 		chain do: [ :v |
 			intersectionA := VMIntersection intersectLine: v withLine: startNormal.

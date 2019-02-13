@@ -1,57 +1,3 @@
-"
-This class provides a nearest neighbor search for a set of vectors (typically obstacles). In this regard, it provides the same service as VMBSPLeaf/Node and VMGridStorage, but tends to be faster on small data sets. The vectors are indexed in a grid structure, the nearest neighbor search first looks up the closest cell(s) and then performs a linear search within the cell(s).
-
-
-Public API and Key Messages
-
-- add: <aVector>
-	adds a single vector to the grid. the vector may be associated with multiple grid cells in the process
-- addAll: <aCollectionOfVectors>
-	iteratively adds all vectors of the collection via #add:
-- insert: <aVector>
-	simply an alias for #add: for compability with some older classes
-- addedVectors
-	a collection of all vector added via #add: (and methods that call #add:)
-- findNearest: <aPoint>
-	returns a VMNNSearchResult instance, which provides the closest point for the provided search query
-- findNearest: <aPoint> sensorPoint: <aPoint>
-	same as #findNearest: , but only considers vectors whose normal is pointing towards the provided sensor point.
-	this method practically performs backface culling, ignoring all vectors that are impossible matches for the
-	provided sensor center.
-- do: <aBlockClosure>
-	the standard #do: method, same as calling 'addedVectors do:'
-- size
-	returns the number of vectors added. same as 'addedVectors size'
-- ifEmpty: <aBlock>
-	executes aBlock if no vectors have been added yet.
-- bounds
-	returns a rectangle that encompasses all added vectors
-- asRenderableElement
-	returns an object that is renderable for the GUI-Athens interface from the PolySLAM-Extra package
-
-
-
-Example
-| vc v1 v2 |
-vc := VMNNVectorGrid new.
-vc addAll: (VMPolygon fromPoints: {0@0.  2@0.  3@3.  0@3} withTypes: {1. 1. 1. 1}).
-v1 := (vc findNearest: 0.5@1) result.
-v2 := (vc findNearest: 0.5@1 sensorPoint: -2@1) result.
-(VMRenderCollection new addAll: {vc. v1. v2}; yourself) inspect.
-
-
- 
-Internal Representation and Key Implementation Points.
-
-	addedVectors: <a collection>
-		a collection that contains all vectors that have been added
-	xCollection: <a 2D grid>
-		a 2d grid (collection of collections) that contains the vectors
-	xOffset: <anInteger>
-		the offset of the xCollection, to allow for negative indices
-
-
-"
 Class {
 	#name : #VMNNVectorGrid,
 	#superclass : #Object,
@@ -406,13 +352,13 @@ VMNNVectorGrid >> ifEmpty: aBlock [
 { #category : #initialization }
 VMNNVectorGrid >> initialize [
 	xCollection := OrderedCollection new.
-	addedVectors := VMRenderCollection new.
+	addedVectors := OrderedCollection new.
 	xOffset := 0.
 ]
 
 { #category : #adding }
-VMNNVectorGrid >> insert: aVector [
-	^ self add: aVector
+VMNNVectorGrid >> insert: aPolygon [
+	^ self add: aPolygon
 ]
 
 { #category : #helper }

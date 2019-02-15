@@ -6,7 +6,9 @@ Class {
 		'color',
 		'label',
 		'lineWidth',
-		'dashStyle'
+		'dashStyle',
+		'font',
+		'textScale'
 	],
 	#category : #'PolySLAM-Extra-GUI-Athens'
 }
@@ -104,8 +106,7 @@ VMBaseRenderer >> initialize [
 	super initialize.
 	color := Color magenta.
 	label := ''.
-	"font := LogicalFont familyName: 'Arial' pointSize: 20.
-	textScale := 0.05."
+	textScale := 0.05.
 	lineWidth := 0.05.
 
 ]
@@ -390,6 +391,27 @@ VMBaseRenderer >> renderRectCanvas: aCanvas [
 		origin: (transform inverseTransform: clipRect origin)
 		corner: (transform inverseTransform: clipRect corner).
 	
+]
+
+{ #category : #rendering }
+VMBaseRenderer >> renderString: aString at: aPoint in: canvas [
+	self renderString: aString at: aPoint in: canvas color: color
+]
+
+{ #category : #rendering }
+VMBaseRenderer >> renderString: aString at: aPoint in: canvas color: customColor [
+	| position |
+	position := aPoint flipY.
+	font ifNil: [ font := LogicalFont familyName: 'Arial' pointSize: 20. ].
+	canvas setFont: font.
+	canvas setPaint: customColor.
+			
+	canvas pathTransform restoreAfter: [
+		canvas pathTransform 
+			translateX: (position x - ((textScale*(font widthOfString: aString))*0.5)) 
+			Y: (position y - (0.4*textScale*font height)) ;
+			scaleBy: textScale.
+		canvas drawString: aString. ]
 ]
 
 { #category : #'rendering - lines' }

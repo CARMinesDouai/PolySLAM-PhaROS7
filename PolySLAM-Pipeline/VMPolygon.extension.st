@@ -52,7 +52,6 @@ anotherPolygon do:[:line| line asPSVertices do:[:v| Q at: (PSVertexKeyY from:v) 
 ].
 "visualize two polygon and intersections point"
 ^intersections 
-
 ]
 
 { #category : #'*PolySLAM-Pipeline-Algo' }

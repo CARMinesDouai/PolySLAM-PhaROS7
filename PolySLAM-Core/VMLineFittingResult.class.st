@@ -29,7 +29,7 @@ Class {
 
 { #category : #'as yet unclassified' }
 VMLineFittingResult class >> rendererClass [
-	^ VMRansacResultRenderer
+	^ VMFittingResultRenderer
 ]
 
 { #category : #'as yet unclassified' }
@@ -38,12 +38,31 @@ VMLineFittingResult class >> vectors: aVectorCollection errors: anErrorCollectio
 		vectorCollection: aVectorCollection;
 		errorCollection: anErrorCollection;
 		line: aLine;
+		checkLineOrientation;
 		yourself
 ]
 
 { #category : #converting }
 VMLineFittingResult >> asRenderableElement [
 	^ self class rendererClass new model: self
+]
+
+{ #category : #accessing }
+VMLineFittingResult >> bounds [
+	^ vectorCollection bounds
+]
+
+{ #category : #'as yet unclassified' }
+VMLineFittingResult >> checkLineOrientation [
+	"if the provided line is orientated against the provided vector collection, we flip the orientation of the line"
+	| baseVector deltaAngle |
+	
+	baseVector := vectorCollection first pointA vectorTo: vectorCollection last pointB.
+	deltaAngle := line asVMLineSegment deltaAngle: baseVector.
+	(deltaAngle between: Float halfPi negated and: Float halfPi) ifTrue: [ ^ self ].
+	
+	line := line reversed.
+	
 ]
 
 { #category : #public }

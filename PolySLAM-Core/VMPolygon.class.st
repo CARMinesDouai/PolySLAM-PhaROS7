@@ -391,6 +391,19 @@ VMPolygon >> fuelTo: filename [
 ]
 
 { #category : #'GT Inspector' }
+VMPolygon >> gtInspector2RenderedIn: composite [
+	<gtInspectorPresentationOrder: 51>
+	
+	(composite morph)
+		title: 'Viewer (thin)';
+		morph: [
+			(VMViewer openWindowlessOn: { self asRenderableElement lineWidth: 0.005 })
+				autozoom.
+		].
+		
+]
+
+{ #category : #'GT Inspector' }
 VMPolygon >> gtInspectorRenderedIn: composite [
 	<gtInspectorPresentationOrder: 50>
 	
@@ -568,7 +581,7 @@ VMPolygon >> isLeft: p a: a b: b [
 
 { #category : #testing }
 VMPolygon >> isPointInside: point [
-	"returns True if the point lies inside the polygon and False otherwise"
+	"returns true if the point lies inside the polygon and False otherwise"
 	
 	| wn |
 	
@@ -577,6 +590,22 @@ VMPolygon >> isPointInside: point [
 	"self logCr: 'winding number=', (wn printString).
 	"
 	^wn ~= 0
+]
+
+{ #category : #testing }
+VMPolygon >> isSelfIntersecting [
+	"returns true if any of the line segments is intersectiong with any of the other line segments"
+	| size |
+	size := self size.
+	
+	self doWithIndex: [ :v :i |
+		"note: we are not testing the two neighbors of the line segment"
+		i+2 to: i+size-3 do: [ :k |
+		(VMIntersection intersectLine: v withLine: (self atWrap: k )) intersectsAsVectors
+			ifTrue: [ ^ true ]. ]. ].
+	
+	^ false
+
 ]
 
 { #category : #comparing }

@@ -1,19 +1,5 @@
-"
-This class is fitting a line to a collection of vectors. This is done in an iterative manner for multiple subsets (all including the first vector in the provided collection).
-
-Public API and Key Messages
-	
-	- compute: <Collection of Vectors> startVector: <Vector>
-		public entry point. performs the line fitting process
-		
-	
-Tuning parameters
-	- in #loop the vaiable minSize can be changed to limit the size of the vector collections that are tested
-	  for line fitting
-	- VMLineFittingResult class' #score method can be changed to favor different line fittings
-"
 Class {
-	#name : #VMLineFitter,
+	#name : #VMLineFitterOld,
 	#superclass : #Object,
 	#instVars : [
 		'input',
@@ -22,26 +8,25 @@ Class {
 		'resultHistory',
 		'sortedResults',
 		'inlierThreshold',
-		'loopStepFactor',
-		'inlierSet'
+		'loopStepFactor'
 	],
 	#category : #'PolySLAM-Core-Line- & Vector Approximation'
 }
 
 { #category : #public }
-VMLineFitter class >> compute: aVectorCollection [ 
+VMLineFitterOld class >> compute: aVectorCollection [ 
 	^(self new)
 		compute: aVectorCollection
 ]
 
 { #category : #public }
-VMLineFitter class >> compute: aVectorCollection startVector: aVector [
+VMLineFitterOld class >> compute: aVectorCollection startVector: aVector [
 	^(self new)
 		compute: aVectorCollection startVector: aVector
 ]
 
 { #category : #public }
-VMLineFitter >> compute: aVectorCollection [
+VMLineFitterOld >> compute: aVectorCollection [
 	
 	input := aVectorCollection.
 	startVector := aVectorCollection first.
@@ -53,7 +38,7 @@ VMLineFitter >> compute: aVectorCollection [
 ]
 
 { #category : #public }
-VMLineFitter >> compute: aVectorCollection startVector: aVector [
+VMLineFitterOld >> compute: aVectorCollection startVector: aVector [
 	
 	"Transcript show: self class printString; show: ' inlierThreshold='; show: inlierThreshold printString; cr."
 	
@@ -66,8 +51,8 @@ VMLineFitter >> compute: aVectorCollection startVector: aVector [
 	^ self result.
 ]
 
-{ #category : #computing }
-VMLineFitter >> computeInlierChain: errorCollection [
+{ #category : #'as yet unclassified' }
+VMLineFitterOld >> computeInlierChain: errorCollection [
 	"returns a collection of chained vectors that have an error less than 'inlierThreshold'"
 	| inlierChain |
 	
@@ -86,8 +71,8 @@ VMLineFitter >> computeInlierChain: errorCollection [
 	^inlierChain
 ]
 
-{ #category : #computing }
-VMLineFitter >> createResultWithLine: line [
+{ #category : #'as yet unclassified' }
+VMLineFitterOld >> createResultWithLine: line [
 	| errors inlierChain refinedLine refinedErrors result refinementCounter lastIterationSize |
 	
 	refinementCounter := 0.
@@ -115,8 +100,8 @@ VMLineFitter >> createResultWithLine: line [
 
 ]
 
-{ #category : #computing }
-VMLineFitter >> createSampleChain [
+{ #category : #'as yet unclassified' }
+VMLineFitterOld >> createSampleChain [
 	"creates a vector chain that contains vectors that are connected to the start vector and
 	share the same type (e.g. only obstacles, or only frontiers)"
 	| offset |
@@ -134,8 +119,8 @@ VMLineFitter >> createSampleChain [
 	]
 ]
 
-{ #category : #computing }
-VMLineFitter >> evaluateResults [
+{ #category : #'as yet unclassified' }
+VMLineFitterOld >> evaluateResults [
 	| index resultCollection |
 	
 	index := 0.
@@ -147,65 +132,70 @@ VMLineFitter >> evaluateResults [
 ]
 
 { #category : #initialization }
-VMLineFitter >> initialize [
+VMLineFitterOld >> initialize [
 	resultHistory := OrderedCollection new.
 	inlierThreshold := 0.02 squared. "square distance"
 	loopStepFactor := 0.5.
-	inlierSet := Set new. "contains the length of inlier chains to check for duplicate results and avoid redundent computations"
 ]
 
 { #category : #accessing }
-VMLineFitter >> inlierThreshold [
+VMLineFitterOld >> inlierThreshold [
 	^ inlierThreshold
 ]
 
 { #category : #accessing }
-VMLineFitter >> inlierThreshold: aNumber [
+VMLineFitterOld >> inlierThreshold: aNumber [
 	inlierThreshold := aNumber.
 ]
 
 { #category : #loop }
-VMLineFitter >> iterateOnce: sampleSize [
+VMLineFitterOld >> iterateOnce: sampleSize [
 	| line |
-	
+	"Transcript show: self class printString; show: ' iterateOnce'; show: ' sampleSize='; show: sampleSize printString; cr."
 	line := VMLinearRegression compute: (sampleChain collect: [:v|v] from: 1 to: sampleSize).
 	resultHistory add: (self createResultWithLine: line).
 
 ]
 
 { #category : #loop }
-VMLineFitter >> loop [
-	"loop over the different start sizes of the vector chains"
-	| size |
+VMLineFitterOld >> loop [
+	| size minSize |
 	
 	size := sampleChain size.
+	minSize := 3.
 	
-	[ size > 0 ] whileTrue: [
+	"one 'loop iteration' outside of the loop to ensure that we always have at least one result
+	in 'resultHistory'."
+	self iterateOnce: size.
+	size := (size * loopStepFactor) floor.
+		
+	[ size > minSize ] whileTrue: [
 		self iterateOnce: size.
 		size := (size * loopStepFactor) floor.
-	]
-
+	].
+	
+	"1 halt."
 ]
 
 { #category : #accessing }
-VMLineFitter >> loopStepFactor [
+VMLineFitterOld >> loopStepFactor [
 	^ loopStepFactor
 ]
 
 { #category : #accessing }
-VMLineFitter >> loopStepFactor: aFloat [
+VMLineFitterOld >> loopStepFactor: aFloat [
 	((aFloat >= 0) or: [aFloat <= 0]) ifTrue: [ ^ self error: 'invalid loopStepFactor. must lie in the interval (0, 1)' ].
 	loopStepFactor := aFloat.
 ]
 
 { #category : #accessing }
-VMLineFitter >> result [
+VMLineFitterOld >> result [
 	^ sortedResults
 		first "top scoring triplet"
 			second "the actual result (first is the iteration index, third is the score)"
 ]
 
 { #category : #accessing }
-VMLineFitter >> resultHistory [
+VMLineFitterOld >> resultHistory [
 	^resultHistory
 ]

@@ -185,6 +185,11 @@ VMIntersection >> intersectionPoint [
 ]
 
 { #category : #testing }
+VMIntersection >> intersectsAsVectors [
+	^ self strictInsideLineASegment and: [self strictInsideLineBSegment]
+]
+
+{ #category : #testing }
 VMIntersection >> isCollinear [
 	"note: this method does not compensate for inaccuracies that may stem from numerical errors"
 	^(crossAB = 0)  and:  [ tr = 0 ].

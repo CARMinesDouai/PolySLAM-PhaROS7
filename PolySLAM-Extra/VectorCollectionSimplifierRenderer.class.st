@@ -4,27 +4,23 @@ Class {
 	#category : #'PolySLAM-Extra-GUI-Athens'
 }
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
 VectorCollectionSimplifierRenderer >> bounds [
 	^self boundsForCollection: model input.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #rendering }
 VectorCollectionSimplifierRenderer >> renderOn: aCanvas [
 	model ifNil: [ ^self ].
 	
-	"render original input"
-	model input asRenderableElement lineWidth: lineWidth; renderOn: aCanvas.
+	"render original input (polygon)"
+	model input asRenderableElement lineWidth: lineWidth / 2; renderOn: aCanvas.
+	
+	"render original input (points)"
+	(VMPointCollectionRenderer new model: model input asPointCollection) lineWidth: lineWidth / 20; color: Color black; renderOn: aCanvas.
 	
 	"render result's vector collection & line"
-	model resultCollection doWithIndex: [ :result :index |
-		| vectors |
-		vectors := result vectorCollection.
-		"(VMLineSegCollectionRenderer new model: vectors) lineWidth: lineWidth / 2; color: (Color byInteger: index); renderOn: aCanvas."
-		
-		self renderArrow: result computeVector on: aCanvas color: Color white.
-		"result line asRenderableElement lineWidth: lineWidth; color: (Color byInteger: index); renderOn: aCanvas."
-	].
+	(VMLineSegCollectionRenderer new model: model result) lineWidth: lineWidth / 8; color: (Color lightGray); renderOn: aCanvas.
 	
 
 ]

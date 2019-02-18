@@ -9,7 +9,7 @@ VMPolygon >> calculateIntersectionOn: L 	except: blackList do: aBlock [
 		lastline
 			ifNotNil: [
 				(blackList includes:{lastline. e}) ifFalse:[
-					Transcript show: 'Intersection of ', lastline asString, ' and ', e asString; cr.
+					"Transcript show: 'Intersection of ', lastline asString, ' and ', e asString; cr."
 					vertex := PSVertex intersectionOf: lastline  and: e.
 					blackList add: {lastline.e}.
 					blackList add: {e. lastline}.
@@ -22,7 +22,6 @@ VMPolygon >> calculateIntersectionOn: L 	except: blackList do: aBlock [
 ]
 
 { #category : #'*PolySLAM-Pipeline-Algo' }
-
 VMPolygon >> intersectWith: anotherPolygon [
 |Q L intersections vertex lut blackList  key|
 
@@ -39,7 +38,7 @@ anotherPolygon do:[:line| line asPSVertices do:[:v| Q at: (PSVertexKeyY from:v) 
 	vertex := Q root first.
 	key := Q root firstKey.
 	Q removeKey: key.
-	Transcript show: 'Remove ', key point asString; cr.
+	"Transcript show: 'Remove ', key point asString; cr."
 	"sweep line event at vertex"
 	self sweepEventAt: vertex on:L lut: lut.
 	"find intersection points"
@@ -62,10 +61,10 @@ VMPolygon >> sweepEventAt: vertex on:L lut: lut [
 		ifTrue:[
 			key := lut at: line ifAbsent:[nil].
 			key 	ifNil: [ 
-						Transcript show: 'start at', vertex asString; cr.
+						"Transcript show: 'start at', vertex asString; cr."
 						key:= (PSVertexKeyX from:vertex). L at: key put: line. lut at: line put: key]
 					ifNotNil: [ 
-						Transcript show: 'end at', vertex asString; cr.
+						"Transcript show: 'end at', vertex asString; cr."
 						L removeKey: key ]
 		]
 		ifFalse:[

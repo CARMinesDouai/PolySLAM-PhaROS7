@@ -28,6 +28,7 @@ PSVertex class >> intersectionOf: lineA and: lineB [
 	intersection := VMIntersection intersectLine: lineA withLine: lineB.
 	(intersection strictInsideLineASegment and: intersection strictInsideLineBSegment ) ifFalse: [ ^nil ].
 	p := intersection intersectionPoint.
+
 	o type: -1.
 	o setX: p x setY: p y.
 	o segments add: lineA; add: lineB.

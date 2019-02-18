@@ -22,8 +22,10 @@ VMPolygon >> calculateIntersectionOn: L 	except: blackList do: aBlock [
 ]
 
 { #category : #'*PolySLAM-Pipeline-Algo' }
+
 VMPolygon >> intersectWith: anotherPolygon [
 |Q L intersections vertex lut blackList  key|
+
 Q := BTree order: 4.
 L := BTree order: 4.
 lut := Dictionary new.
@@ -50,6 +52,7 @@ anotherPolygon do:[:line| line asPSVertices do:[:v| Q at: (PSVertexKeyY from:v) 
 ].
 "visualize two polygon and intersections point"
 ^intersections 
+
 ]
 
 { #category : #'*PolySLAM-Pipeline-Algo' }

@@ -23,11 +23,10 @@ PSVertex class >> endOf: line [
 
 { #category : #'as yet unclassified' }
 PSVertex class >> intersectionOf: lineA and: lineB [
-	|o p intersection|
+	|o p|
 	o := self new.
-	intersection := VMIntersection intersectLine: lineA withLine: lineB.
-	(intersection strictInsideLineASegment and: intersection strictInsideLineBSegment ) ifFalse: [ ^nil ].
-	p := intersection intersectionPoint.
+	p := lineA intersectionPointOrNilWith: lineB.
+	p ifNil: [ ^nil ].
 	o type: -1.
 	o setX: p x setY: p y.
 	o segments add: lineA; add: lineB.

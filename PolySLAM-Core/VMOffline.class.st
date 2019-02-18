@@ -136,7 +136,7 @@ VMOffline >> buildMapLazyFrom: startIndex to: endIndex by: stepSize tfStepSize: 
 		tfIndex := 1.
 		startIndex to: endIndex by: stepSize do: [ :index |
 			"(index/stepSize \\ 4 = k) ifTrue: ["
-				polygon := (self polygonAt: index) transform: (icpTF at: tfIndex).
+				polygon := (self polygonAt: index) transform: ((icpTF at: tfIndex) * offsetTF).
 				polygon := (VMVectorCollectionSimplifier compute: polygon inlierThreshold: simplifierThreshold) result debugCopy.
 				[ VMBSPLeaf new insert: polygon. ]
 					on: Error

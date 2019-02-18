@@ -77,7 +77,7 @@ VMVectorCollectionSimplifier >> asRenderableElement [
 
 { #category : #checking }
 VMVectorCollectionSimplifier >> check [
-	[ result isSelfIntersecting ifTrue: [ 1 halt. ] ] on: Error do: [ Transcript show: 'failed check, possibly not a polygon' ].
+	[ result isSelfIntersecting ifTrue: [ "1 halt." self error: 'polygon is self-intersecting'. ] ] on: Error do: [ Transcript show: 'failed check, possibly not a polygon' ].
 ]
 
 { #category : #checking }

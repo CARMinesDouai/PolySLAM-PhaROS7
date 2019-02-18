@@ -22,8 +22,7 @@ Class {
 		'resultHistory',
 		'sortedResults',
 		'inlierThreshold',
-		'loopStepFactor',
-		'inlierSet'
+		'loopStepFactor'
 	],
 	#category : #'PolySLAM-Core-Line- & Vector Approximation'
 }
@@ -82,6 +81,26 @@ VMLineFitter >> computeInlierChain: errorCollection [
 	].
 	
 	inlierChain ifEmpty: [ inlierChain add: sampleChain first ].
+
+	^inlierChain
+]
+
+{ #category : #computing }
+VMLineFitter >> computeInlierChain: errorCollection withChain: vectorChain [
+	"returns a collection of chained vectors that have an error less than 'inlierThreshold'"
+	| inlierChain |
+	
+	inlierChain := vectorChain species new.
+	
+	errorCollection doWithIndex: [ :e :i |
+		e > inlierThreshold ifTrue: [
+			inlierChain ifEmpty: [ inlierChain add: vectorChain first ].
+			^inlierChain
+		].
+		inlierChain add: (vectorChain at: i).
+	].
+	
+	inlierChain ifEmpty: [ inlierChain add: vectorChain first ].
 
 	^inlierChain
 ]
@@ -146,12 +165,25 @@ VMLineFitter >> evaluateResults [
 
 ]
 
+{ #category : #computing }
+VMLineFitter >> fittingResult: line chain: vectorChain [
+	"creates an inlier chain that only contains vectors from 'vectorChain' (instead of 'sampleChain')
+	and creates a VMLineFittingResult instance from that."
+	| errorCollection truncatedChain result |
+	
+	errorCollection := (VMLineFittingErrorComputer compute: vectorChain line: line) errorCollection.
+	truncatedChain := self computeInlierChain: errorCollection withChain: vectorChain.
+	result := VMLineFittingResult vectors: truncatedChain errors: errorCollection line: line.
+	
+	^ result
+]
+
 { #category : #initialization }
 VMLineFitter >> initialize [
 	resultHistory := OrderedCollection new.
 	inlierThreshold := 0.02 squared. "square distance"
 	loopStepFactor := 0.5.
-	inlierSet := Set new. "contains the length of inlier chains to check for duplicate results and avoid redundent computations"
+
 ]
 
 { #category : #accessing }
@@ -165,11 +197,21 @@ VMLineFitter >> inlierThreshold: aNumber [
 ]
 
 { #category : #loop }
-VMLineFitter >> iterateOnce: sampleSize [
-	| line |
+VMLineFitter >> iterateOnce: initialSize [
+	| line activeChain truncatedResult fullResult refinementCounter sampleSize |
 	
-	line := VMLinearRegression compute: (sampleChain collect: [:v|v] from: 1 to: sampleSize).
-	resultHistory add: (self createResultWithLine: line).
+	sampleSize := initialSize.
+	refinementCounter := 0.
+	[ refinementCounter < 4 ] whileTrue: [
+		refinementCounter := refinementCounter + 1.
+		activeChain := sampleChain collect: [:v|v] from: 1 to: sampleSize.
+		line := VMLinearRegression compute: activeChain.
+		truncatedResult := self fittingResult: line chain: activeChain.
+		resultHistory add: truncatedResult.
+		fullResult := self fittingResult: line chain: sampleChain.
+		resultHistory add: fullResult.
+		sampleSize := fullResult vectorCollection size.
+	].
 
 ]
 
@@ -180,7 +222,10 @@ VMLineFitter >> loop [
 	
 	size := sampleChain size.
 	
-	[ size > 0 ] whileTrue: [
+	self iterateOnce: size.
+	size := (size * loopStepFactor) floor.
+	
+	[ size > 3 ] whileTrue: [
 		self iterateOnce: size.
 		size := (size * loopStepFactor) floor.
 	]

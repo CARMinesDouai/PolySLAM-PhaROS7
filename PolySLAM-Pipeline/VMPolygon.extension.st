@@ -1,15 +1,20 @@
 Extension { #name : #VMPolygon }
 
 { #category : #'*PolySLAM-Pipeline-Algo' }
-VMPolygon >> calculateIntersectionOn: L do: aBlock [
+VMPolygon >> calculateIntersectionOn: L 	except: blackList do: aBlock [
 	|lastline vertex|
 	L isEmpty ifTrue: [ ^self ].
 	lastline := nil.
 	L do: [ :e|
 		lastline
-			ifNotNil: [ 
-				vertex := PSVertex intersectionOf: lastline  and: e.
-				vertex ifNotNil: [ aBlock value: vertex].
+			ifNotNil: [
+				(blackList includes:{lastline. e}) ifFalse:[
+					"Transcript show: 'Intersection of ', lastline asString, ' and ', e asString; cr."
+					vertex := PSVertex intersectionOf: lastline  and: e.
+					blackList add: {lastline.e}.
+					blackList add: {e. lastline}.
+					vertex ifNotNil: [ aBlock value: vertex].
+				]
 			].
 		lastline := e
 	]
@@ -17,49 +22,60 @@ VMPolygon >> calculateIntersectionOn: L do: aBlock [
 ]
 
 { #category : #'*PolySLAM-Pipeline-Algo' }
-VMPolygon >> mergeWith: anotherPolygon [
-|Q L intersections vertex lut|
+VMPolygon >> intersectWith: anotherPolygon [
+|Q L intersections vertex lut blackList  key|
+
 Q := BTree order: 4.
 L := BTree order: 4.
 lut := Dictionary new.
 intersections := OrderedCollection new.
+blackList := Set new.
 "push all events to Q, a B-Tree, each event coresponding to a vertex of the two polygon"
-self do:[:line| line asPSVertices do:[:v| Q at: v y put: v ]].
-anotherPolygon do:[:line| line asPSVertices do:[:v| Q at: v y put: v ]].
+self do:[:line| line asPSVertices do:[:v| Q at: (PSVertexKeyY from:v) put: v ]].
+anotherPolygon do:[:line| line asPSVertices do:[:v| Q at: (PSVertexKeyY from:v) put: v ]].
 "get first, calculate intersection"
 [ Q isEmpty ] whileFalse: [ 
 	vertex := Q root first.
-	Q removeKey: vertex y.
+	key := Q root firstKey.
+	Q removeKey: key.
+	"Transcript show: 'Remove ', key point asString; cr."
 	"sweep line event at vertex"
 	self sweepEventAt: vertex on:L lut: lut.
 	"find intersection points"
-	self calculateIntersectionOn: L do: [:e|
-		"Q at: e y put: e."
+	self calculateIntersectionOn: L except: blackList  do: [:e|
+		Q at:(PSVertexKeyY from:e) put: e.
 		intersections add: e	
 	].
+	"{Q. L} inspect.
+	self halt."
 ].
 "visualize two polygon and intersections point"
-^{ self asRenderableElement. anotherPolygon asRenderableElement. intersections asRenderableElement } asOrderedCollection asRenderableElement 
+^intersections 
 ]
 
 { #category : #'*PolySLAM-Pipeline-Algo' }
 VMPolygon >> sweepEventAt: vertex on:L lut: lut [
-	|line line1|
+	|line line1 key key1|
 	line := vertex segments at: 1.
-	vertex type caseOf: {
-		"start so insert it to L"
-		[ 0 ] -> [ L at: vertex x put: line. lut at: line put: vertex x].
-		"end so remove it from L"
-		[ 1 ] -> [ L removeKey: (lut at: line) ].
-		"intersetct so swap the two line segment"
-		[ -1 ] -> [
-			line1 := vertex segments at: 2.
-			L removeKey: (lut at: line).
-			L removeKey: (lut at: line1).
-			L at: line pointA x put: line1.
-			lut at:line1 put: line pointA x.
-			L at: line1 pointA x put: line.
-			lut at: line put: line1 pointA x.
+	vertex type >= 0 
+		ifTrue:[
+			key := lut at: line ifAbsent:[nil].
+			key 	ifNil: [ 
+						"Transcript show: 'start at', vertex asString; cr."
+						key:= (PSVertexKeyX from:vertex). L at: key put: line. lut at: line put: key]
+					ifNotNil: [ 
+						"Transcript show: 'end at', vertex asString; cr."
+						L removeKey: key ]
 		]
-	} otherwise: [  ]
+		ifFalse:[
+			line1 := vertex segments at: 2.
+			key := lut at: line.
+			key1 := lut at: line1.
+			L removeKey: key.
+			L removeKey: key1.
+			L at: key put: line1.
+			L at: key1 put: line.
+			lut at:line1 put: key.
+			lut at: line put: key1.
+		].
 ]

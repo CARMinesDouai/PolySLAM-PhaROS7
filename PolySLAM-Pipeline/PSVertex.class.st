@@ -15,7 +15,7 @@ Class {
 PSVertex class >> endOf: line [
 	|o|
 	o := self new.
-	o setX: line pointB x setY: line pointB y.
+	o setX: line value pointB x setY: line value pointB y.
 	o type: 1.
 	o segments add: line.
 	^o
@@ -25,7 +25,7 @@ PSVertex class >> endOf: line [
 PSVertex class >> intersectionOf: lineA and: lineB [
 	|o p intersection|
 	o := self new.
-	intersection := VMIntersection intersectLine: lineA withLine: lineB.
+	intersection := VMIntersection intersectLine: lineA value withLine: lineB value.
 	(intersection strictInsideLineASegment and: intersection strictInsideLineBSegment ) ifFalse: [ ^nil ].
 	p := intersection intersectionPoint.
 
@@ -39,7 +39,7 @@ PSVertex class >> intersectionOf: lineA and: lineB [
 PSVertex class >> startOf: line [
 	|o|
 	o := self new.
-	o setX: line pointA x setY: line pointA y.
+	o setX: line value pointA x setY: line value pointA y.
 	o type: 0.
 	o segments add: line.
 	^o

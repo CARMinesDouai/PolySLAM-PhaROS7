@@ -180,8 +180,8 @@ VMPolygonTest >> testIntersect [
 	polygonB := VMPolygon new fromPoints: {6.5@1.3. 6.0@5.0. 1.0@2.0 }.
 	"{ polygonA. polygonB  } asRenderableElement inspect"
 	intersections := polygonA intersectWith:  polygonB.
+	{polygonA. polygonB. intersections} asRenderableElement inspect.
 	self assert: intersections size = 6.
-	{polygonA. polygonB. intersections} asRenderableElement inspect 
 ]
 
 { #category : #tests }
@@ -263,6 +263,14 @@ VMPolygonTest >> testMergeShortVectors [
 	].
 	
 
+]
+
+{ #category : #tests }
+VMPolygonTest >> testMergeWith [
+	|polygonA polygonB intersections|
+	polygonA := VMPolygon new fromPoints: {7.0@2.0. 2.0@5.5. 5.0@1.0 }.
+	polygonB := VMPolygon new fromPoints: {6.5@1.3. 6.0@5.0. 1.0@2.0 }.
+	(polygonA mergeWith:  polygonB) inspect.
 ]
 
 { #category : #tests }

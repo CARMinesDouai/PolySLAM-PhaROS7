@@ -31,7 +31,10 @@ VMPolygon >> calculateIntersectionOn: L 	except: blackList do: aBlock [
 					vertex := PSVertex intersectionOf: lastline  and: e.
 					blackList add: {lastline.e}.
 					blackList add: {e. lastline}.
-					vertex ifNotNil: [ aBlock value: vertex].
+					vertex ifNotNil: [
+						lastline addIntersectionPoint: vertex.
+						e addIntersectionPoint: vertex.
+						aBlock value: vertex].
 				]
 			].
 		lastline := e
@@ -56,8 +59,8 @@ blackList := Set new.
 "push all events to Q, a B-Tree, each event coresponding to a vertex of the two polygon"
 D1 := self asDoublyConnectedEdgeListDo:[:line| line asPSVertices do:[:v| Q at: (PSVertexKeyY from:v) put: v ]].
 D2 := anotherPolygon asDoublyConnectedEdgeListDo:[:line| line asPSVertices do:[:v| Q at: (PSVertexKeyY from:v) put: v ]].
-"D2 close.
-D1 close."
+D2 close.
+D1 close.
 "get first, calculate intersection"
 [ Q isEmpty ] whileFalse: [ 
 	vertex := Q root first.
@@ -81,39 +84,31 @@ aBlock ifNotNil: [ ^ aBlock value: intersections value: D1 value: D2 ].
 
 { #category : #'*PolySLAM-Pipeline-Algo' }
 VMPolygon >> mergeWith: anotherPolygon [
-	| line pivot link link1 c|
+	| line pivot link  D point|
+	D := OrderedCollection new.
+	D asRenderableElement inspect.
 	self intersectWith: anotherPolygon thenDo:[:intersections :D1 :D2|
-		"walkthrough intersection points"
-		intersections do:[:point|
-			pivot := point segments first.
-			line := point segments second.
-			(pivot value isPointOnRightSide: line value pointA)
-				ifFalse:[
-					pivot := point segments second.
-					line := point segments first 
-			].
-			"the head of the list"
-			line previousLink
-				ifNil:[ 
-					line value:(VMLineSegment from: line value pointA to: point ). link := line]
-				ifNotNil: [ 
-					link := (PSLinkedEdge value:(VMLineSegment from: line value pointA to: point )).
-					link previousLink: line previousLink.
-					line previousLink nextLink: link].
-			"second half segment"
-			link1 := (PSLinkedEdge value:(VMLineSegment from: point to: pivot value pointB)).
-			link nextLink: link1.
-			link1 previousLink: link.
-			link1 nextLink: pivot nextLink.
-			Transcript show: (VMLineSegment from: line value pointA to: point ) asString, '----->>>>', (VMLineSegment from: point to: pivot value pointB) asString; cr.
-	].
-	intersections inspect.
-	"c := OrderedCollection new.
-	c asRenderableElement inspect.
-	^ D1 do:[:e|
-		c add:e.
-		self halt.
-	]"
+		"walk through all point"
+		link := D1 firstLink.
+		[
+			link nearestIntersection
+				ifNil: [ D add: link value. link := link nextLink]
+				ifNotNil: [
+					point := link nearestIntersection.
+					pivot := point segments first.
+					line := point segments second.
+					(pivot value isPointOnRightSide: line value pointA)
+					ifFalse:[
+						pivot := point segments second.
+						line := point segments first 
+					].
+					D add: (VMLineSegment from: line value pointA to: point).
+					D add: (VMLineSegment from: point to: pivot value pointB).
+					link := pivot nextLink
+				].
+			"self halt."
+			link = D1 firstLink
+		] whileFalse: [  ].
 	].
 ]
 

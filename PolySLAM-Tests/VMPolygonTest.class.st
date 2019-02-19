@@ -270,7 +270,8 @@ VMPolygonTest >> testMergeWith [
 	|polygonA polygonB intersections|
 	polygonA := VMPolygon new fromPoints: {7.0@2.0. 2.0@5.5. 5.0@1.0 }.
 	polygonB := VMPolygon new fromPoints: {6.5@1.3. 6.0@5.0. 1.0@2.0 }.
-	(polygonA mergeWith:  polygonB) inspect.
+	{ polygonA. polygonB } asRenderableElement inspect.
+	(polygonA mergeWith:  polygonB).
 ]
 
 { #category : #tests }

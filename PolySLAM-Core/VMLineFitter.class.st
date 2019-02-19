@@ -22,7 +22,8 @@ Class {
 		'resultHistory',
 		'sortedResults',
 		'inlierThreshold',
-		'loopStepFactor'
+		'loopStepFactor',
+		'maxRefinementSteps'
 	],
 	#category : #'PolySLAM-Core-Line- & Vector Approximation'
 }
@@ -115,7 +116,7 @@ VMLineFitter >> createResultWithLine: line [
 	lastIterationSize := 0.
 	
 	"refinement loop"
-	[ (refinementCounter < 20) and: [lastIterationSize ~= inlierChain size] ] whileTrue: [
+	[ (refinementCounter < maxRefinementSteps) and: [lastIterationSize ~= inlierChain size] ] whileTrue: [
 		refinementCounter := refinementCounter + 1.
 		lastIterationSize := inlierChain size.
 		"compute square errors for the current line"
@@ -183,6 +184,7 @@ VMLineFitter >> initialize [
 	resultHistory := OrderedCollection new.
 	inlierThreshold := 0.02 squared. "square distance"
 	loopStepFactor := 0.5.
+	maxRefinementSteps := 12.
 
 ]
 

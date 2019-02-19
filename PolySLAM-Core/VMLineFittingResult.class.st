@@ -172,7 +172,7 @@ VMLineFittingResult >> score [
 	size := vectorCollection size.
 	averageSquareError := (errorCollection reduce: [ :a :b | a + b ]) / size.
 	
-	averageSquareError = 0 ifTrue: [ ^ 1 ].
+	"averageSquareError = 0 ifTrue: [ ^ 1 ]."
 	
 	"debug message"
 	"Transcript
@@ -180,7 +180,7 @@ VMLineFittingResult >> score [
 		show: size printString, ' avgSquareError=', averageSquareError printString;
 		show: ' score=', ((size / (size + 3)) / averageSquareError) printString; cr.
 	"
-	^ (size / (size + 3)) / averageSquareError
+	^ ((size / (size + 1)) ** 8) / (averageSquareError + 0.0001)
 ]
 
 { #category : #accessing }

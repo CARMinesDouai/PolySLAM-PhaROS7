@@ -186,6 +186,35 @@ VMOffline >> buildMapWG [
 	].
 ]
 
+{ #category : #'map building' }
+VMOffline >> buildWithProgressBarFrom: startIndex to: endIndex by: stepSize tfStepSize: tfStepSize [
+	| tfIndex polygon |
+	map ifNil: [ map := VMBSPLeaf new. ].
+	tfIndex := 1.
+	
+	SystemProgressMorph show: self class asString from: startIndex to: endIndex during: [ :bar |
+		startIndex to: endIndex by: stepSize do: [ :index |
+			bar current: index.
+			bar label: self class asString, ' ', index printString, '/', endIndex printString.
+				polygon := (self polygonAt: index) transform: ((icpTF at: tfIndex) * offsetTF).
+				polygon := (VMVectorCollectionSimplifier compute: polygon inlierThreshold: simplifierThreshold) result debugCopy.
+				[ VMBSPLeaf new insert: polygon. ]
+					on: Error
+					do: [ :e |
+						Transcript show: 'failed pre-test at index=';
+							show: index printString;
+							show: ' e='; show: e printString;
+							cr. ].
+				[ map := map insert: polygon. ]
+					on: Error
+					do: [ :e |
+						Transcript show: 'failed map-building at index=';
+							show: index printString;
+							show: ' e='; show: e printString; cr. ].
+			tfIndex := tfIndex + tfStepSize. ]. ].
+
+]
+
 { #category : #accessing }
 VMOffline >> distanceTraveled [
 	^ self distanceTraveledFrom: 1 to: icpTF size
@@ -701,19 +730,21 @@ VMOffline >> runICPFrom: startIndex to: endIndex by: stepSize path: pathString [
 	iterationCounter := 0.
 	
 	Transcript show: 'running offline ICP'; cr.
-	
 	data := self loadDataAt: startIndex path: fullPath.
 	self initICPWithData: data.
 	
-	"[" startIndex+stepSize to: endIndex by: stepSize do: [ :index |
-		iterationCounter := iterationCounter + 1.
-		nncSizeHistory add: nnc addedVectors size.
-		
-		Transcript show: ((iterationCounter \\\ 10 = 0) ifTrue: [ index printString ] ifFalse: [ '.' ]).
-		(iterationCounter \\\ 40 = 0) ifTrue: [Transcript cr. ].
-		
-		data := self icpLoopIterationAt: index lastData: data.
-	]"] on: Error do: [ :e | Transcript show: 'icp loop interrupted'; cr; show: e printString. ]".
+	
+	SystemProgressMorph show: 'Running ICP' from: startIndex to: endIndex during: [ :bar |
+		startIndex+stepSize to: endIndex by: stepSize do: [ :index |
+			bar current: index.
+			iterationCounter := iterationCounter + 1.
+			nncSizeHistory add: nnc addedVectors size.
+			
+			Transcript show: ((iterationCounter \\\ 10 = 0) ifTrue: [ index printString ] ifFalse: [ '.' ]).
+			(iterationCounter \\\ 40 = 0) ifTrue: [Transcript cr. ].
+			
+			data := self icpLoopIterationAt: index lastData: data.
+	]. ].
 	Transcript show: 'finished ICP'; cr.
 
 

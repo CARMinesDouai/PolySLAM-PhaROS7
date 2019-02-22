@@ -1,6 +1,21 @@
 Extension { #name : #VMPolygon }
 
 { #category : #'*PolySLAM-Pipeline-Algo' }
+VMPolygon >> addLine: l to: L ifIntersectWith: line [
+|intersection p v key|
+intersection := VMIntersection intersectLine: line withLine: l value.
+			intersection insideLineBSegment ifTrue:[
+				v := PSVertex new.
+				p := intersection intersectionPoint.
+				v setX: p x setY: p y.
+				v type: -1.
+				v segments add: l.
+				key := PSVertexKeyX from:v.
+				L at:key put: l. 	
+		] 
+]
+
+{ #category : #'*PolySLAM-Pipeline-Algo' }
 VMPolygon >> asDoublyConnectedEdgeList [
 	^ self asDoublyConnectedEdgeListDo: nil
 ]
@@ -27,7 +42,7 @@ VMPolygon >> calculateIntersectionOn: L 	except: blackList do: aBlock [
 		lastline
 			ifNotNil: [
 				(blackList includes:{lastline. e}) ifFalse:[
-					"Transcript show: 'Intersection of ', lastline asString, ' and ', e asString; cr."
+					Transcript show: 'Intersection of ', lastline value asString, ' and ', e value asString; cr.
 					vertex := PSVertex intersectionOf: lastline  and: e.
 					blackList add: {lastline.e}.
 					blackList add: {e. lastline}.
@@ -43,16 +58,31 @@ VMPolygon >> calculateIntersectionOn: L 	except: blackList do: aBlock [
 ]
 
 { #category : #'*PolySLAM-Pipeline-Algo' }
+VMPolygon >> ifIntersectAdd:l to:L [
+|intersection line p v key|
+intersection := VMIntersection intersectLine: line withLine: l value.
+			intersection insideLineBSegment ifTrue:[
+				v := PSVertex new.
+				p := intersection intersectionPoint.
+				v setX: p x setY: p y.
+				v type: -1.
+				v segments add: l.
+				key := PSVertexKeyX from:v.
+				L at:key put: l. 	
+		] 
+]
+
+{ #category : #'*PolySLAM-Pipeline-Algo' }
 VMPolygon >> intersectWith: anotherPolygon [
 	^ self intersectWith: anotherPolygon thenDo: nil
 ]
 
 { #category : #'*PolySLAM-Pipeline-Algo' }
 VMPolygon >> intersectWith: anotherPolygon thenDo: aBlock [
-|Q L intersections vertex lut blackList  key D1 D2|
+|C Q L intersections vertex lut blackList  key D1 D2|
 
 Q := BTree order: 4.
-L := BTree order: 4.
+C := OrderedCollection new.
 lut := Dictionary new.
 intersections := OrderedCollection new.
 blackList := Set new.
@@ -61,23 +91,21 @@ D1 := self asDoublyConnectedEdgeListDo:[:line| line asPSVertices do:[:v| Q at: (
 D2 := anotherPolygon asDoublyConnectedEdgeListDo:[:line| line asPSVertices do:[:v| Q at: (PSVertexKeyY from:v) put: v ]].
 D2 close.
 D1 close.
+"D1 firstLink previousLink asPSVertices do:[:v|Q at: (PSVertexKeyY from:v) put: v ].
+D2 firstLink previousLink asPSVertices do:[:v|Q at: (PSVertexKeyY from:v) put: v ]."
 "get first, calculate intersection"
 [ Q isEmpty ] whileFalse: [ 
 	vertex := Q root first.
 	key := Q root firstKey.
 	Q removeKey: key.
-	"Transcript show: 'Remove ', key point asString; cr."
 	"sweep line event at vertex"
-	self sweepEventAt: vertex on:L lut: lut.
+	L := self sweepEventAt: vertex on:C lut: lut.
 	"find intersection points"
 	self calculateIntersectionOn: L except: blackList do: [:e|
 				Q at:(PSVertexKeyY from:e) put: e.
 				intersections add: e	
-	].
-	"{Q. L} inspect.
-	self halt."
+	]
 ].
-"visualize two polygon and intersections point"
 aBlock ifNotNil: [ ^ aBlock value: intersections value: D1 value: D2 ].
 ^intersections
 ]
@@ -92,7 +120,7 @@ VMPolygon >> mergeWith: anotherPolygon [
 		link := D1 firstLink.
 		[
 			link nearestIntersection
-				ifNil: [ D add: link value. link := link nextLink]
+				ifNil: [ D add: link value. link := link next]
 				ifNotNil: [
 					point := link nearestIntersection.
 					pivot := point segments first.
@@ -113,28 +141,43 @@ VMPolygon >> mergeWith: anotherPolygon [
 ]
 
 { #category : #'*PolySLAM-Pipeline-Algo' }
-VMPolygon >> sweepEventAt: vertex on:L lut: lut [
-	|line line1 key key1|
+VMPolygon >> sweepEventAt: vertex on:C lut: lut [
+	|line L c|
 	line := vertex segments at: 1.
+	"tmpline := VMLineSegment from: 2.0@6.0 to:1.0@5.0." 
+	L := BTree order: 4.
 	vertex type >= 0 
 		ifTrue:[
-			key := lut at: line ifAbsent:[nil].
-			key 	ifNil: [ 
-						"Transcript show: 'start at', vertex asString; cr."
-						key:= (PSVertexKeyX from:vertex). L at: key put: line. lut at: line put: key]
-					ifNotNil: [ 
-						"Transcript show: 'end at', vertex asString; cr."
-						L removeKey: key ]
-		]
+			(C includes: line)
+				ifFalse:[ 
+					C add: line.
+					L at: (PSVertexKeyX from:vertex) put: line] 
+				ifTrue: [ C remove: line]]
 		ifFalse:[
-			line1 := vertex segments at: 2.
-			key := lut at: line.
-			key1 := lut at: line1.
-			L removeKey: key.
-			L removeKey: key1.
-			L at: key put: line1.
-			L at: key1 put: line.
-			lut at:line1 put: key.
-			lut at: line put: key1.
-		].
+			self switchLinesAndAddTo:L at: vertex].
+	line := VMLine pointA: 0@(vertex  y) pointB: vertex. 
+	C do:[:l|
+				(vertex segments includes: l)
+					ifFalse: [ 
+						self addLine: l to: L ifIntersectWith: line]].
+	c := OrderedCollection new.
+	^L 
+]
+
+{ #category : #'*PolySLAM-Pipeline-Algo' }
+VMPolygon >> switchLinesAndAddTo:L at: vertex [
+|segA segB lwxA lwxB|
+segA := vertex segments first.
+segB := vertex segments second.
+lwxA := segA value pointA y < segA value pointB y ifTrue: [ segA value pointA x ] ifFalse: [ segA value pointB x ]. 
+lwxB := segB value pointA y < segB value pointB y ifTrue: [ segB value pointA x ] ifFalse: [ segB value pointB x ]. 
+lwxA  < lwxB
+	ifTrue:[
+		L at:(PSVertexKeyX from: (PSVertex new setX: vertex  x setY: 1; type: vertex type; yourself )) put: segA.
+		L at:(PSVertexKeyX from: (PSVertex new setX: vertex  x setY: 0; type: vertex type; yourself )) put: segB.
+	]
+	ifFalse:[
+		L at:(PSVertexKeyX from: (PSVertex new setX: vertex  x setY: 0; type: vertex type; yourself )) put: segA.
+		L at:(PSVertexKeyX from: (PSVertex new setX: vertex  x setY: 1; type: vertex type; yourself )) put: segB.	
+	].
 ]

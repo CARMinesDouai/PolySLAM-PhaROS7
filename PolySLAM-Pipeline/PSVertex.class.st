@@ -46,6 +46,14 @@ PSVertex class >> startOf: line [
 ]
 
 { #category : #initialization }
+PSVertex >> getPivotLine [
+	self segmentsDo: [ :p :l|
+		p ifNotNil: [ ^ p ].
+		^l	
+	]
+]
+
+{ #category : #initialization }
 PSVertex >> initialize [
 	super initialize.
 	type := 0.
@@ -75,6 +83,20 @@ PSVertex >> segments [
 { #category : #accessing }
 PSVertex >> segments: anObject [
 	segments := anObject
+]
+
+{ #category : #initialization }
+PSVertex >> segmentsDo: aBlock [
+	|pivot line|
+	self type = -1 ifFalse:[^aBlock value: nil value: self segments first ].
+	pivot := self segments first.
+	line := self segments second.
+	(pivot value isPointOnRightSide: line value pointA)
+	ifFalse:[
+		pivot := self segments second.
+		line := self segments first 
+	].
+	^ aBlock value: pivot value:line
 ]
 
 { #category : #accessing }

@@ -16,7 +16,7 @@ PSVertex class >> endOf: line [
 	|o|
 	o := self new.
 	o setX: line value pointB x setY: line value pointB y.
-	o type: 1.
+	o vertexType: 1.
 	o segments add: line.
 	^o
 ]
@@ -25,13 +25,17 @@ PSVertex class >> endOf: line [
 PSVertex class >> intersectionOf: lineA and: lineB [
 	|o p intersection|
 	o := self new.
+	
+	(lineA isCollinearWith: lineB) ifTrue:[^nil].
 	intersection := VMIntersection intersectLine: lineA value withLine: lineB value.
-	(intersection strictInsideLineASegment and: intersection strictInsideLineBSegment ) ifFalse: [ ^nil ].
+	
+	(intersection insideLineASegment & intersection insideLineBSegment ) ifFalse: [ ^nil ].
 	p := intersection intersectionPoint.
 
-	o type: -1.
+	o vertexType: -1.
 	o setX: p x setY: p y.
 	o segments add: lineA; add: lineB.
+	"(lineA value pointA = lineB value pointA) ifTrue: [ o inspect. self halt. ]."
 	^o
 ]
 
@@ -40,9 +44,14 @@ PSVertex class >> startOf: line [
 	|o|
 	o := self new.
 	o setX: line value pointA x setY: line value pointA y.
-	o type: 0.
+	o vertexType: 0.
 	o segments add: line.
 	^o
+]
+
+{ #category : #converting }
+PSVertex >> asPoint [
+	^ (self x) @ (self y)
 ]
 
 { #category : #initialization }
@@ -63,6 +72,13 @@ PSVertex >> initialize [
 { #category : #testing }
 PSVertex >> isEnd [
 	^ type = 1
+]
+
+{ #category : #testing }
+PSVertex >> isEndPoint [
+	segments do:[:e|
+		(((self asPoint) = (e value pointA asPoint) ) | ((self asPoint) =( e value pointB asPoint)))	 ifTrue:[^ true]].
+	^ false
 ]
 
 { #category : #testing }
@@ -88,23 +104,30 @@ PSVertex >> segments: anObject [
 { #category : #initialization }
 PSVertex >> segmentsDo: aBlock [
 	|pivot line|
-	self type = -1 ifFalse:[^aBlock value: nil value: self segments first ].
+	self vertexType = -1 ifFalse:[^aBlock value: nil value: self segments first ].
 	pivot := self segments first.
 	line := self segments second.
+	"check for co linear first"
+	self isEndPoint ifTrue:[
+		(pivot value isPointOnRightSide: line value pointB)
+			ifTrue:[
+				^aBlock value: line value: pivot]
+			ifFalse:[
+				^aBlock value: pivot value: line]
+	].
 	(pivot value isPointOnRightSide: line value pointA)
 	ifFalse:[
-		pivot := self segments second.
-		line := self segments first 
+		^aBlock value: line value: pivot 
 	].
 	^ aBlock value: pivot value:line
 ]
 
 { #category : #accessing }
-PSVertex >> type [
+PSVertex >> vertexType [
 	^ type
 ]
 
 { #category : #accessing }
-PSVertex >> type: anObject [
+PSVertex >> vertexType: anObject [
 	type := anObject
 ]

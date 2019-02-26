@@ -174,6 +174,28 @@ VMPolygonTest >> testIfConvexDoOtherwiseDo [
 ]
 
 { #category : #tests }
+VMPolygonTest >> testIntersectWith [
+	|polygonA polygonB|
+	polygonA := VMPolygon new
+		fromPoints:
+			{(10.0 @ 5.0).
+			(8 @ 11).
+			(2 @ 8)}.
+	polygonB := VMPolygon new
+		fromPoints:
+			{
+			(10 @ 5).
+			(6 @ 12).
+			(4 @ 4).
+			}.
+	"{polygonA. polygonB} asRenderableElement inspect."
+	"(polygonA mergeWith:  polygonB)."
+	"{polygonA. polygonB. } asRenderableElement inspect.
+	( polygonA asDoublyConnectedEdgeList  intersectWith:  polygonB) inspect"
+	(polygonA mergeWith: polygonB) asRenderableElement inspect
+]
+
+{ #category : #tests }
 VMPolygonTest >> testIsCW [
 	| data expectedResults polygon |
 	
@@ -256,7 +278,7 @@ VMPolygonTest >> testMergeShortVectors [
 
 { #category : #tests }
 VMPolygonTest >> testMergeWith [
-	|polygonA polygonB intersections|
+	|polygonA polygonB|
 	polygonA := VMPolygon new
 		fromPoints:
 			{(5.0 @ 1.0).
@@ -275,9 +297,9 @@ VMPolygonTest >> testMergeWith [
 			(3.5 @ 2.5).
 			(3 @ 1).
 			}.
-	{polygonA. polygonB} asRenderableElement inspect.
+	"{polygonA. polygonB. polygonA asDoublyConnectedEdgeList intersectWith: polygonB} asRenderableElement inspect."
 	"(polygonA mergeWith:  polygonB)."
-	(polygonA mergeWith:  polygonB).
+	(polygonA mergeWith:  polygonB) asRenderableElement inspect.
 ]
 
 { #category : #tests }

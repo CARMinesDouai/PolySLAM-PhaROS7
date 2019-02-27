@@ -10,11 +10,10 @@ Class {
 
 { #category : #adding }
 PSLinkedEdge >> addIntersectionPoint: vertex [
-	|d p |
+	|d|
 	d := (self value pointA dist:vertex).
-	p := vertex asPoint.
-	p  = self value pointA ifTrue:[d := d + 1e-6 ].
-	p = self value pointB ifTrue:[d := d - 1e-6].
+	(self value pointA inrangeOf: vertex) ifTrue:[d := d + 1e-6 ].
+	(self value pointB inrangeOf: vertex) ifTrue:[d := d - 1e-6].
 	
 	intersectionPoints at: d put: vertex.
 	
@@ -114,6 +113,10 @@ PSLinkedEdge >> nextIntersectionOf: vertex [
 	"find the next intersection point from a vertex"
 	|d|
 	d := self value pointA dist: vertex.
+	((vertex vertexType = -1)&(vertex isEndPoint) ) ifTrue:[
+		(self value pointA inrangeOf: vertex) ifTrue:[d := d + 1e-6 ].
+		(self value pointB inrangeOf: vertex) ifTrue:[^ self value pointB].
+	].
 	intersectionPoints from:d keysAndValuesDo: [ :k :v| k = d ifFalse:[^ v]].
 	^ self value pointB 
 ]

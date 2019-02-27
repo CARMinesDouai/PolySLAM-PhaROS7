@@ -19,6 +19,19 @@ intersection := VMIntersection intersectLine: line withLine: l value.
 		] 
 ]
 
+{ #category : #accessing }
+DoublyConnectedEdgeList >> area [
+	"see: https://en.wikipedia.org/wiki/Shoelace_formula"
+	| sum |
+	
+	sum := 0.
+	self linksDo:[:edge|
+		sum := sum + ((edge value pointA x) * ( (edge value pointB y) - ( edge previousLink value pointA y ) ))	
+	].
+	
+	^0.5 * sum
+]
+
 { #category : #converting }
 DoublyConnectedEdgeList >> asDoublyConnectedEdgeList [
 	^ self
@@ -166,14 +179,44 @@ DoublyConnectedEdgeList >> mergeWith: anotherPolygon [
 		"
 		D add: (self polygonalChainAt: p atIntersectionPointDo: [:e| (intersections includes:e) ifTrue:[ intersections remove:e]])."
 		"{D. intersections} asRenderableElement inspect."
-		[intersections isEmpty ] whileFalse: [
+		[intersections size >=2 ] whileTrue: [
 			p := intersections first.
 			D add: (self polygonalChainAt: p atIntersectionPointDo:[:e|
 					l := intersections select:[:i| i asPoint = e asPoint].		
 					l do:[:i| intersections remove:i ]]).
+			"intersections inspect.
+			self halt."
 		].
 	].
 	^ D
+]
+
+{ #category : #'as yet unclassified' }
+DoublyConnectedEdgeList >> nextPointAndLinkOf: pointA and: aLink do: aBlock [
+	|    pointB  link intersection|
+		link := aLink.
+		pointB := link nextIntersectionOf: pointA.
+		intersection  := nil.
+		((pointB isEndPoint) & (pointB vertexType >= 0))
+			"pointB is an endpoint"
+			ifTrue:[
+				link := link nextLink]
+			"pointB is an intersection"
+			ifFalse:[
+				"event at intersection point here"
+				intersection := pointB.
+				link := pointB getPivotLine.
+				((pointB isEndPoint) & (pointB inrangeOf: pointA)) "pointB asPoint = pointA asPoint"
+					ifTrue:[
+						"a dirty hack"
+						pointB := link nextIntersectionOf: pointB.
+						"find a new link"
+						pointB vertexType >= 0
+							ifTrue: [link := link nextLink]
+							ifFalse:[link := pointB getPivotLine]
+						]
+			].
+		aBlock value: pointB value: intersection value: link.
 ]
 
 { #category : #merging }
@@ -185,38 +228,30 @@ DoublyConnectedEdgeList >> polygonalChainAt: point [
 DoublyConnectedEdgeList >> polygonalChainAt: point atIntersectionPointDo: aBlock [
 	| link  D pointA pointB type|
 	D := DoublyConnectedEdgeList new.
-	"D := OrderedCollection new.
-	D asRenderableElement inspect."
-	link := point getPivotLine.
+	"D asRenderableElement inspect."
 	pointA := point.
+	link := pointA getPivotLine.
+	point isEndPoint ifTrue:[
+		self nextPointAndLinkOf: point and: link  do: [ :p :intersection :l|
+			pointA := p.
+			link := l.
+		] 
+	].
+	aBlock value: pointA.
 	[
-		pointB := link nextIntersectionOf: pointA.
 		type := link value type.
-		((pointB isEndPoint) & (pointB vertexType >= 0))
-			"pointB is an endpoint"
-			ifTrue:[
-				link := link nextLink]
-			"pointB is an intersection"
-			ifFalse:[
-				"event at intersection point here"
-				aBlock ifNotNil: [ aBlock value: pointB ].
-				link := pointB getPivotLine.
-				((pointB isEndPoint) & (pointB asPoint = pointA asPoint))
-					ifTrue:[
-						"a dirty hack"
-						pointB := link nextIntersectionOf: pointB + 1e-6.
-						"find a new link"
-						pointB vertexType >= 0
-							ifTrue: [link := link nextLink]
-							ifFalse:[link := pointB getPivotLine]
-						]
-			].
-			D add: ((VMLineSegment from: pointA to: pointB type: type) asPSLinkedEdge chain:D; yourself).
-			"{pointA. pointB} inspect."
-			"self halt."
-			pointA := pointB.
-		pointA asPoint = point asPoint
+		self nextPointAndLinkOf: pointA and: link  do:[:p :intersection :l|
+			pointB := p.
+			link := l.
+			intersection ifNotNil: [ aBlock value: intersection ].
+		].
+		D add: ((VMLineSegment from: pointA asPoint to: pointB asPoint type: type) asPSLinkedEdge chain:D; yourself).
+		"self halt."
+		pointA := pointB.
+		pointA inrangeOf: point
+		"(pointA asPoint) = (point asPoint )"
 	] whileFalse: [  ].
+	D close.
 	^D
 ]
 

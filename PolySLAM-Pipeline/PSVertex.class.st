@@ -76,8 +76,10 @@ PSVertex >> isEnd [
 
 { #category : #testing }
 PSVertex >> isEndPoint [
+	|t|
+	t := 0.002.
 	segments do:[:e|
-		(((self asPoint) = (e value pointA asPoint) ) | ((self asPoint) =( e value pointB asPoint)))	 ifTrue:[^ true]].
+		((self inrangeOf: e value pointA radius:t  ) | (self inrangeOf: e value pointB radius:t  ))	ifTrue:[^ true]].
 	^ false
 ]
 
@@ -88,7 +90,7 @@ PSVertex >> isIntersection [
 
 { #category : #testing }
 PSVertex >> isStart [
-	^ type = 0
+	^ (type = 0) 
 ]
 
 { #category : #accessing }

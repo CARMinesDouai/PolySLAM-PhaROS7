@@ -15,6 +15,7 @@ VMPolygon >> asDoublyConnectedEdgeListDo: ablock [
 		link chain: list.
 		ablock ifNotNil: [ ablock value: link]	
 	].
+	list close.
 	^ list
 	
 ]

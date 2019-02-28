@@ -28,6 +28,13 @@ PSLinkedEdge >> angle [
 	^ p angle
 ]
 
+{ #category : #'as yet unclassified' }
+PSLinkedEdge >> areaWith: aPoint [
+	|farea|
+	farea := [:a :b :c| (((b x) - ( a x )) * ( (c y) - (a y) ) ) - ( ( (c x) - (a x) )* ( ( b y) - (a y) ) )].
+	^(farea value: self value pointA value: self value pointB value: aPoint) * 0.5.
+]
+
 { #category : #converting }
 PSLinkedEdge >> asPSLinkedEdge [
 	^ self
@@ -77,11 +84,10 @@ PSLinkedEdge >> isCollinearWith: aLine [
 
 { #category : #testing }
 PSLinkedEdge >> isCollinearWithPoint: aPoint [
-	|tolerance farea v1 |
+	|tolerance v1 |
 	"tolerance to 5mm"
 	tolerance := 0.0005.
-	farea := [:a :b :c| (((b x) - ( a x )) * ( (c y) - (a y) ) ) - ( ( (c x) - (a x) )* ( ( b y) - (a y) ) )].
-	v1 := farea value: self value pointA value: self value pointB value: aPoint.
+	v1 := self areaWith: aPoint.
 	^ ((v1 abs) < tolerance) .
 ]
 

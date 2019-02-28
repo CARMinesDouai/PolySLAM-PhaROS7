@@ -1,8 +1,30 @@
 Class {
 	#name : #DoublyConnectedEdgeList,
 	#superclass : #DoubleLinkedList,
+	#instVars : [
+		'bounds',
+		'peak',
+		'type'
+	],
 	#category : #'PolySLAM-Pipeline-Algo'
 }
+
+{ #category : #adding }
+DoublyConnectedEdgeList >> add: anEdge [
+	bounds := bounds encompass: anEdge value pointA.
+	bounds := bounds encompass: anEdge value pointB.
+	peak
+		ifNil:[ peak := PSVertex startOf: anEdge ]
+		ifNotNil: [
+			( (anEdge value pointA y) > (peak y) ) ifTrue:[
+				peak := PSVertex startOf: anEdge]].
+	"type"
+	type
+		ifNil:[type := anEdge value type asInteger]
+		ifNotNil: [ ((type ~= 4) & (type ~= anEdge value type asInteger))
+				ifTrue:[type := 4] ].
+	^super add: anEdge
+]
 
 { #category : #intersection }
 DoublyConnectedEdgeList >> addLine: l to: L ifIntersectWith: line [
@@ -64,17 +86,7 @@ DoublyConnectedEdgeList >> asVMPolygon [
 
 { #category : #accessing }
 DoublyConnectedEdgeList >> bounds [
-	| rectangle |
-	self isEmpty ifTrue: [ ^nil ].
-	
-	rectangle := VMRectangle point: 0@0 point: 0@0.
-	
-	self do:[:edge|
-		rectangle := rectangle encompass: edge pointA.
-		rectangle := rectangle encompass: edge pointB.	
-	].
-	
-	^rectangle
+	^bounds
 
 ]
 
@@ -117,6 +129,12 @@ DoublyConnectedEdgeList >> close [
 
 ]
 
+{ #category : #initialization }
+DoublyConnectedEdgeList >> initialize [
+	super initialize.
+	bounds := VMRectangle point: 0@0 point: 0@0.
+]
+
 { #category : #intersection }
 DoublyConnectedEdgeList >> intersectWith: anotherPolygon [
 	^ self intersectWith: anotherPolygon thenDo: nil
@@ -156,6 +174,31 @@ aBlock ifNotNil: [ ^ aBlock value: intersections value: D1 value: D2 ].
 ^intersections
 ]
 
+{ #category : #testing }
+DoublyConnectedEdgeList >> isCCW [
+	|prv area|
+	prv := self peak segments first previousLink value.
+	area := self peak segments first areaWith: prv pointA.
+	
+	^area > 0
+]
+
+{ #category : #testing }
+DoublyConnectedEdgeList >> isFrontier [
+	^ self type = 2
+]
+
+{ #category : #testing }
+DoublyConnectedEdgeList >> isObstacle [
+	^ self type = 1
+]
+
+{ #category : #testing }
+DoublyConnectedEdgeList >> isPolygon [
+	head previousLink ifNil:[^false].
+	^head nextLink ~= tail
+]
+
 { #category : #enumerating }
 DoublyConnectedEdgeList >> linksDo: block [
 	"Execute block for each of the links that I hold internally."
@@ -179,19 +222,21 @@ DoublyConnectedEdgeList >> mergeWith: anotherPolygon [
 		"
 		D add: (self polygonalChainAt: p atIntersectionPointDo: [:e| (intersections includes:e) ifTrue:[ intersections remove:e]])."
 		"{D. intersections} asRenderableElement inspect."
-		[intersections size >=2 ] whileTrue: [
+		[intersections size >= 2 ] whileTrue: [
 			p := intersections first.
 			D add: (self polygonalChainAt: p atIntersectionPointDo:[:e|
-					l := intersections select:[:i| i asPoint = e asPoint].		
-					l do:[:i| intersections remove:i ]]).
-			"intersections inspect.
-			self halt."
+					l := intersections select:[:i| i inrangeOf: e ].		
+					l do:[:i| intersections remove:i ].
+				]).
+		"intersections inspect.
+		D inspect.
+		self halt."
 		].
 	].
 	^ D
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #enumerating }
 DoublyConnectedEdgeList >> nextPointAndLinkOf: pointA and: aLink do: aBlock [
 	|    pointB  link intersection|
 		link := aLink.
@@ -217,6 +262,11 @@ DoublyConnectedEdgeList >> nextPointAndLinkOf: pointA and: aLink do: aBlock [
 						]
 			].
 		aBlock value: pointB value: intersection value: link.
+]
+
+{ #category : #accessing }
+DoublyConnectedEdgeList >> peak [
+	^peak
 ]
 
 { #category : #merging }
@@ -309,4 +359,9 @@ lwxA  < lwxB
 	].
 
 "(vertex asPoint) = (10@5) ifTrue: [L inspect. self error:'fuuuuuk' ]."
+]
+
+{ #category : #accessing }
+DoublyConnectedEdgeList >> type [
+	^ type
 ]

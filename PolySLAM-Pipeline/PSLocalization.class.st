@@ -110,7 +110,7 @@ PSLocalization >> processKeyframe: data [
 	Transcript show: 'Process keyframe: ', (data at:1) asString;cr.
 	lastCorrectPose ifNil: [
 		polygon:= polygon transform: odomPose.
-		polygon:= (VMVectorCollectionSimplifier compute: polygon inlierThreshold: simplifierTh ) result debugCopy .
+		polygon:= (VMVectorCollectionSimplifier compute: polygon inlierThreshold: simplifierTh ) result "debugCopy" .
 		nnc addAll: (polygon select:[:v| v isObstacle]).
 		"nnc inspect."
 		lastCorrectPose := odomPose.
@@ -121,7 +121,7 @@ PSLocalization >> processKeyframe: data [
 	"run icp"
 	icp compute: ((polygon asPointCollection) removeLast;yourself)  with: nnc  initialGuess: guess sensorPoint: polygon last pointA.
 	polygon:= polygon transform: icp finalTF.
-	polygon:= (VMVectorCollectionSimplifier compute: polygon inlierThreshold: simplifierTh ) result debugCopy.
+	polygon:= (VMVectorCollectionSimplifier compute: polygon inlierThreshold: simplifierTh ) result "debugCopy".
 	Transcript show: 'icp score is ', (VMAlignmentScore computeScoreIcp: icp) asString;cr.
 	"scan score:(VMAlignmentScore computeScoreIcp: icp)."
 	nnc addAll: (polygon select:[:v| v isObstacle]).

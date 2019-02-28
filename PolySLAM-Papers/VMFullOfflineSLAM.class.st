@@ -29,7 +29,7 @@ VMFullOfflineSLAM >> plotNNC [
 		"title: titleString;"
 		plotBackground;
 		plotChild: (VMPlotBackgroundGrid new);
-	   plotChild: (VMPlotVectorCollection model: offline nnc);
+	   plotChild: (VMPlotVectorCollection model: offline nnc addedVectors);
 		setTerminal: 'eps size 10.0,16.0 enhanced font ''Arial.ttf,34''' filename: path,filename, '.eps';
 		"setTerminal: 'png size 2000,2000 enhanced font ''Arial.ttf,24''' filename: path,filename, '.png';"
 		"addInitLine: 'set term qt size 900,900 enhanced';"
@@ -41,8 +41,8 @@ VMFullOfflineSLAM >> plotNNC [
 { #category : #running }
 VMFullOfflineSLAM >> run [
 	{
-		{'benchmark_loop/1/'. 2.  1445. 2.}.
-		"{'benchmark_lcross/1/'. 2.  2820. 2.}."
+		"{'benchmark_loop/1/'. 2.  1445. 2.}."
+		{'benchmark_cross/1/'. 2.  2820. 2.}.
 		"{'benchmark_maze/1/'. 2.  4683. 2.}."
 		"{'benchmark_zigzag/1/'. 2.  3580. 2.}."
 		"{'benchmark_wg/1/'. 2.  5100. 2.}."
@@ -66,10 +66,14 @@ VMFullOfflineSLAM >> runPath: dataPath from: startIndex to: endIndex by: stepSiz
 			outlierThresholdFalloff: 0.9;
 			outlierStartThreshold: 0.15;"0.73"
 			maxIterations: 40.
-		offline runICPFrom: startIndex to: endIndex by: stepSize path: 'testOffice/1/'.
+		offline runICPFrom: startIndex to: endIndex by: stepSize path: dataPath.
 	] timeToRun.
 	Transcript show: 'time spend on ICP: '; show: timeSpentOnICP totalSeconds asTimeString; show: ' (', offline path, ')'; cr.
 	offline fullSave: '/opt/shared/developer/data/offline_objects/experiment_'.(DateAndTime new asUnixTime printString).'.fuel'.
+	
+	self plotNNC.
+	offline nnc: nil.
+	Smalltalk garbageCollect.
 
 	timeSpentOnMapping := [
 		offline map: ((VMGridStorage gridSize: 4.0) cellClass: VMGridCellBSP; yourself).

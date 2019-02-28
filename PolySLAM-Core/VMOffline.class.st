@@ -192,6 +192,7 @@ VMOffline >> buildWithProgressBarFrom: startIndex to: endIndex by: stepSize tfSt
 	map ifNil: [ map := VMBSPLeaf new. ].
 	tfIndex := 1.
 	
+	offsetTF ifNil: [ offsetTF := VMTFMatrix identity. ].
 	SystemProgressMorph show: self class asString from: startIndex to: endIndex during: [ :bar |
 		startIndex to: endIndex by: stepSize do: [ :index |
 			bar current: index.

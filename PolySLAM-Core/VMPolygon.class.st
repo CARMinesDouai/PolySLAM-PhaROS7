@@ -41,6 +41,21 @@ Class {
 }
 
 { #category : #'instance creation' }
+VMPolygon class >> fromPointCloud: pc [
+	^ self new fromPointCloud: pc
+]
+
+{ #category : #'instance creation' }
+VMPolygon class >> fromPointCloud: pc tf: aTFMatrixOrNil [
+	^ self new fromPointCloud: pc tf: aTFMatrixOrNil
+]
+
+{ #category : #'instance creation' }
+VMPolygon class >> fromPointCloud: pc tf: aTFMatrixOrNil obstacleDist: obstacleDist [
+	^ self new fromPointCloud: pc tf: aTFMatrixOrNil obstacleDist: obstacleDist
+]
+
+{ #category : #'instance creation' }
 VMPolygon class >> fromPoints: pointCollection [
 	^(self new)
 		fromPoints: pointCollection;
@@ -151,7 +166,7 @@ VMPolygon >> area [
 
 { #category : #converting }
 VMPolygon >> asPointCollection [
-	^self collect: [ :vec | vec pointA ] as: OrderedCollection
+	^self collect: [ :vec | vec pointA ] as: VMRenderCollection
 ]
 
 { #category : #converting }

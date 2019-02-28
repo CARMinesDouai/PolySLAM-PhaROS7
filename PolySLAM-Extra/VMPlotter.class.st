@@ -154,7 +154,8 @@ VMPlotter >> initialize [
 	range := nil.	"nil = auto / let gnuplot decide"
 	
 	plotInitStream
-		nextPutAll: 'set encoding utf8';
+		nextPutAll: 'set encoding utf8'; crlf;
+		nextPutAll: 'set clip two'; "https://stackoverflow.com/questions/28149602/gnuplot-draw-line-between-points-outside-plot-range"
 		crlf.
 		"nextPutAll: 'set lable size 14';
 		nextPutAll: crlf."

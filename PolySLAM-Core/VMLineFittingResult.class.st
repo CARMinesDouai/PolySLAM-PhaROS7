@@ -22,7 +22,8 @@ Class {
 		'vectorCollection',
 		'errorCollection',
 		'line',
-		'lineHistory'
+		'lineHistory',
+		'cachedError'
 	],
 	#category : #'PolySLAM-Core-Line- & Vector Approximation'
 }
@@ -45,6 +46,17 @@ VMLineFittingResult class >> vectors: aVectorCollection errors: anErrorCollectio
 { #category : #converting }
 VMLineFittingResult >> asRenderableElement [
 	^ self class rendererClass new model: self
+]
+
+{ #category : #'as yet unclassified' }
+VMLineFittingResult >> averageSquareError [
+	| size ase |
+	cachedError ifNotNil: [ ^cachedError ].
+	size := vectorCollection size.
+	ase := (errorCollection reduce: [ :a :b | a + b ]) / size.
+	cachedError := ase.
+	^ ase
+
 ]
 
 { #category : #accessing }
@@ -107,6 +119,7 @@ VMLineFittingResult >> initialize [
 	vectorCollection := OrderedCollection new.
 	errorCollection := OrderedCollection new.
 	lineHistory := OrderedCollection new.
+	cachedError := nil.
 ]
 
 { #category : #accessing }
@@ -166,21 +179,12 @@ VMLineFittingResult >> score [
 	"computes a score value for the result. the score benefits larger collections of inliers
 	(when the average error stays the same) and lower average error (if the inlier count is
 	the same)."
-	| averageSquareError size |
+	| size |
 	vectorCollection ifEmpty: [ ^ 0 ].
 	
 	size := vectorCollection size.
-	averageSquareError := (errorCollection reduce: [ :a :b | a + b ]) / size.
 	
-	"averageSquareError = 0 ifTrue: [ ^ 1 ]."
-	
-	"debug message"
-	"Transcript
-		show: self class printString, ' score -- size=';
-		show: size printString, ' avgSquareError=', averageSquareError printString;
-		show: ' score=', ((size / (size + 3)) / averageSquareError) printString; cr.
-	"
-	^ ((size / (size + 1)) ** 8) / (averageSquareError + 0.0001)
+	^ ((size / (size + 1)) ** 8) / (self averageSquareError + 0.0001)
 ]
 
 { #category : #accessing }

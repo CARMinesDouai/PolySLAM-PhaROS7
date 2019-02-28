@@ -45,7 +45,8 @@ Class {
 		'resultTypes',
 		'minAngle',
 		'maxAngle',
-		'maxDistance'
+		'maxDistance',
+		'scoring'
 	],
 	#category : #'PolySLAM-Core-Line- & Vector Approximation'
 }
@@ -261,6 +262,7 @@ VMVectorCollectionSimplifier >> initialize [
 	minAngle := Float twoPi * 15 / 360. "15 degree angle"
 	maxAngle := Float twoPi * 170 / 360. "170 degree angle"
 	maxDistance := 0.02 squared. "maximum distance before we create a new vector: 2cm"
+	scoring := VMLFScore new.
 
 ]
 
@@ -306,18 +308,15 @@ VMVectorCollectionSimplifier >> loopOverChain: vectorChain [
 	| startIndex fittingResult |
 	startIndex := 1.
 	
-	"debugging"
-	"resultCollection size >= 58 ifTrue: [1 halt]."
-	
 	"initial run with full length"
-	fittingResult := (VMLineFitter new) inlierThreshold: inlierThreshold;
+	fittingResult := (VMLineFitter new) scoring: scoring; inlierThreshold: inlierThreshold;
 		compute: vectorChain startVector: vectorChain first.
 	startIndex := startIndex + fittingResult vectorCollection size.
 	resultCollection add: fittingResult.
 	
 	"if the line fitting does not include all vectors from the chain, we continue with the remaining vectors until all are covered"
 	[startIndex <= vectorChain size] whileTrue: [
-		fittingResult := (VMLineFitter new) inlierThreshold: inlierThreshold;
+		fittingResult := (VMLineFitter new) scoring: scoring; inlierThreshold: inlierThreshold;
 			compute: (vectorChain collect: [:v|v] from: startIndex to: vectorChain size) startVector: (vectorChain at: startIndex).
 		startIndex := startIndex + fittingResult vectorCollection size.
 		resultCollection add: fittingResult.
@@ -359,4 +358,14 @@ VMVectorCollectionSimplifier >> resultCollection [
 	returns a collection of VMLineFittingResult instances.
 	to receive the simplified vectors, use #result instead."
 	^resultCollection
+]
+
+{ #category : #accessing }
+VMVectorCollectionSimplifier >> scoring [
+	^ scoring
+]
+
+{ #category : #accessing }
+VMVectorCollectionSimplifier >> scoring: aVMLFScore [
+	scoring := aVMLFScore
 ]

@@ -23,7 +23,8 @@ Class {
 		'sortedResults',
 		'inlierThreshold',
 		'loopStepFactor',
-		'maxRefinementSteps'
+		'maxRefinementSteps',
+		'scoring'
 	],
 	#category : #'PolySLAM-Core-Line- & Vector Approximation'
 }
@@ -156,10 +157,14 @@ VMLineFitter >> createSampleChain [
 
 { #category : #computing }
 VMLineFitter >> evaluateResults [
+	"computes the score for every result in 'resultCollection' and sorts it. the sorted collection is
+	stored in 'sortedResults'."
 	| index resultCollection |
 	
 	index := 0.
-	resultCollection := resultHistory collect: [ :result | index := index + 1. {index.  result.  result score} ].
+	resultCollection := resultHistory collect: [ :result |
+		index := index + 1. {index.  result.  scoring scoreForResult: result} ].
+	
 	sortedResults := resultCollection copy sort: [ :a :b | a last > b last ].
 	"note: the best result (according to the score) is 'sortedResults first'."
 	
@@ -185,7 +190,7 @@ VMLineFitter >> initialize [
 	inlierThreshold := 0.02 squared. "square distance"
 	loopStepFactor := 0.5.
 	maxRefinementSteps := 12.
-
+	scoring := VMLFScore new.
 ]
 
 { #category : #accessing }
@@ -200,10 +205,12 @@ VMLineFitter >> inlierThreshold: aNumber [
 
 { #category : #loop }
 VMLineFitter >> iterateOnce: initialSize [
+	"note: one iteration step of the main loop contains multiple refinement steps"
 	| line activeChain truncatedResult fullResult refinementCounter sampleSize |
 	
 	sampleSize := initialSize.
 	refinementCounter := 0.
+	
 	[ refinementCounter < 4 ] whileTrue: [
 		refinementCounter := refinementCounter + 1.
 		activeChain := sampleChain collect: [:v|v] from: 1 to: sampleSize.
@@ -227,7 +234,7 @@ VMLineFitter >> loop [
 	self iterateOnce: size.
 	size := (size * loopStepFactor) floor.
 	
-	[ size > 3 ] whileTrue: [
+	[ size > 1 ] whileTrue: [
 		self iterateOnce: size.
 		size := (size * loopStepFactor) floor.
 	]
@@ -255,4 +262,14 @@ VMLineFitter >> result [
 { #category : #accessing }
 VMLineFitter >> resultHistory [
 	^resultHistory
+]
+
+{ #category : #accessing }
+VMLineFitter >> scoring [
+	^ scoring
+]
+
+{ #category : #accessing }
+VMLineFitter >> scoring: aVMLFScore [
+	scoring := aVMLFScore.
 ]

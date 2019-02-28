@@ -70,8 +70,8 @@ VMLFScore >> c: aNumber [
 { #category : #initialization }
 VMLFScore >> initialize [
 	a := 1.
-	b := 8.
-	c := 0.0001.
+	b := 4.
+	c := 0.001.
 ]
 
 { #category : #printing }

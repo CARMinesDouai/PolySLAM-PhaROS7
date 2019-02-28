@@ -24,7 +24,7 @@ PSVertexKey >> <= anotherPoint [
 
 { #category : #accessing }
 PSVertexKey >> = anotherKey [
-	^ ((self compare: anotherKey) = 0) and: (point type = anotherKey point type )
+	^ ((self compare: anotherKey) = 0) and: (point vertexType = anotherKey point vertexType )
 ]
 
 { #category : #accessing }

@@ -174,14 +174,25 @@ VMPolygonTest >> testIfConvexDoOtherwiseDo [
 ]
 
 { #category : #tests }
-VMPolygonTest >> testIntersect [
-	|polygonA polygonB intersections|
-	polygonA := VMPolygon new fromPoints: {7.0@2.0. 2.0@5.5. 5.0@1.0 }.
-	polygonB := VMPolygon new fromPoints: {6.5@1.3. 6.0@5.0. 1.0@2.0 }.
-	"{ polygonA. polygonB  } asRenderableElement inspect"
-	intersections := polygonA intersectWith:  polygonB.
-	{polygonA. polygonB. intersections} asRenderableElement inspect.
-	self assert: intersections size = 6.
+VMPolygonTest >> testIntersectWith [
+	|polygonA polygonB|
+	polygonA := VMPolygon new
+		fromPoints:
+			{(10.0 @ 5.0).
+			(8 @ 11).
+			(2 @ 8)}.
+	polygonB := VMPolygon new
+		fromPoints:
+			{
+			(10 @ 5).
+			(6 @ 12).
+			(4 @ 4).
+			}.
+	"{polygonA. polygonB} asRenderableElement inspect."
+	"(polygonA mergeWith:  polygonB)."
+	"{polygonA. polygonB. } asRenderableElement inspect.
+	( polygonA asDoublyConnectedEdgeList  intersectWith:  polygonB) inspect"
+	(polygonA mergeWith: polygonB) asRenderableElement inspect
 ]
 
 { #category : #tests }
@@ -267,11 +278,28 @@ VMPolygonTest >> testMergeShortVectors [
 
 { #category : #tests }
 VMPolygonTest >> testMergeWith [
-	|polygonA polygonB intersections|
-	polygonA := VMPolygon new fromPoints: {7.0@2.0. 2.0@5.5. 5.0@1.0 }.
-	polygonB := VMPolygon new fromPoints: {6.5@1.3. 6.0@5.0. 1.0@2.0 }.
-	{ polygonA. polygonB } asRenderableElement inspect.
-	(polygonA mergeWith:  polygonB).
+	|polygonA polygonB|
+	polygonA := VMPolygon new
+		fromPoints:
+			{(5.0 @ 1.0).
+			(9 @ 1.5).
+			(6 @ 10)}.
+	polygonB := VMPolygon new
+		fromPoints:
+			{
+			(10 @ 5).
+			(3 @ 10).
+			(4 @ 8).
+			(10.0 @ 5.0).
+			(2.0 @ 6.0).
+			(3.75 @ 4).
+			(10 @ 5).
+			(3.5 @ 2.5).
+			(3 @ 1).
+			}.
+	"{polygonA. polygonB. polygonA asDoublyConnectedEdgeList intersectWith: polygonB} asRenderableElement inspect."
+	"(polygonA mergeWith:  polygonB)."
+	(polygonA mergeWith:  polygonB) asRenderableElement inspect.
 ]
 
 { #category : #tests }

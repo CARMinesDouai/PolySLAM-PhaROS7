@@ -188,30 +188,34 @@ VMOffline >> buildMapWG [
 
 { #category : #'map building' }
 VMOffline >> buildWithProgressBarFrom: startIndex to: endIndex by: stepSize tfStepSize: tfStepSize [
-	| tfIndex polygon |
+	| tfIndex polygon initialMicroseconds lastTimeStamp |
 	map ifNil: [ map := VMBSPLeaf new. ].
 	tfIndex := 1.
+	initialMicroseconds := Time microsecondClockValue.
+	lastTimeStamp := initialMicroseconds.
 	
 	offsetTF ifNil: [ offsetTF := VMTFMatrix identity. ].
 	SystemProgressMorph show: self class asString from: startIndex to: endIndex during: [ :bar |
 		startIndex to: endIndex by: stepSize do: [ :index |
 			bar current: index.
-			bar label: self class asString, ' ', index printString, '/', endIndex printString.
-				polygon := (self polygonAt: index) transform: ((icpTF at: tfIndex) * offsetTF).
-				polygon := (VMVectorCollectionSimplifier compute: polygon inlierThreshold: simplifierThreshold) result debugCopy.
-				[ VMBSPLeaf new insert: polygon. ]
-					on: Error
-					do: [ :e |
-						Transcript show: 'failed pre-test at index=';
-							show: index printString;
-							show: ' e='; show: e printString;
-							cr. ].
-				[ map := map insert: polygon. ]
-					on: Error
-					do: [ :e |
-						Transcript show: 'failed map-building at index=';
-							show: index printString;
-							show: ' e='; show: e printString; cr. ].
+			bar label: self class asString, ' ', index printString, '/', endIndex printString, '\n',
+				(Time microsecondClockValue - initialMicroseconds) totalSeconds asFloat asTimeString, ' (',
+				(Time microsecondClockValue - lastTimeStamp totalSeconds asFloat asTimeString), ')'.
+			
+			polygon := (self polygonAt: index) transform: ((icpTF at: tfIndex) * offsetTF).
+			polygon := (VMVectorCollectionSimplifier compute: polygon inlierThreshold: simplifierThreshold) result debugCopy.
+			[ VMBSPLeaf new insert: polygon. ]
+				on: Error
+				do: [ :e |
+					Transcript show: 'failed pre-test at index=';
+						show: index printString;
+						show: ' e='; show: e printString; cr. ].
+			[ map := map insert: polygon. ]
+				on: Error
+				do: [ :e |
+					Transcript show: 'failed map-building at index=';
+						show: index printString;
+						show: ' e='; show: e printString; cr. ].
 			tfIndex := tfIndex + tfStepSize. ]. ].
 
 ]
@@ -725,10 +729,12 @@ VMOffline >> runICPFrom: startIndex to: endIndex by: stepSize path: pathString [
 	"this method loads data on-the-fly as oposed to #runICP which expects data to be already loaded.
 	point clouds & polygons are discarded after use, making this method require significantly less
 	memory. nnc and icpTF are filled normaly."
-	| fullPath data iterationCounter |
+	| fullPath data iterationCounter initialMicroseconds lastTimeStamp|
 	path := pathString.
 	fullPath := pathPrefix, pathString.
 	iterationCounter := 0.
+	initialMicroseconds := Time microsecondClockValue.
+	lastTimeStamp := initialMicroseconds.
 	
 	Transcript show: 'running offline ICP'; cr.
 	data := self loadDataAt: startIndex path: fullPath.
@@ -738,6 +744,9 @@ VMOffline >> runICPFrom: startIndex to: endIndex by: stepSize path: pathString [
 	SystemProgressMorph show: 'Running ICP' from: startIndex to: endIndex during: [ :bar |
 		startIndex+stepSize to: endIndex by: stepSize do: [ :index |
 			bar current: index.
+			bar label: 'Running ICP (',index printString,'/',endIndex printString,')',String cr,
+				((Time microsecondClockValue - initialMicroseconds) / 1000000) asInteger asTimeString, ' (',
+				((Time microsecondClockValue - lastTimeStamp) / 1000000) asInteger asTimeString, ')'.
 			iterationCounter := iterationCounter + 1.
 			nncSizeHistory add: nnc addedVectors size.
 			
@@ -745,6 +754,7 @@ VMOffline >> runICPFrom: startIndex to: endIndex by: stepSize path: pathString [
 			(iterationCounter \\\ 40 = 0) ifTrue: [Transcript cr. ].
 			
 			data := self icpLoopIterationAt: index lastData: data.
+			lastTimeStamp := Time microsecondClockValue.
 	]. ].
 	Transcript show: 'finished ICP'; cr.
 

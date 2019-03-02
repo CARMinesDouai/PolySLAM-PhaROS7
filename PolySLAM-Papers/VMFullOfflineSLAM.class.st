@@ -53,6 +53,70 @@ VMFullOfflineSLAM >> run [
 ]
 
 { #category : #running }
+VMFullOfflineSLAM >> run: dataArray [
+	| timeSpentOnICP timeSpentOnMapping |
+	offline := (VMOffline new).
+	
+	self runICP: dataArray.
+"
+	timeSpentOnMapping := [
+		offline map: ((VMGridStorage gridSize: 4.0) cellClass: VMGridCellBSP; yourself).
+		offline buildWithProgressBarFrom: startIndex to: endIndex by: stepSize * 2 tfStepSize: stepSize.
+	] timeToRun.
+	Transcript show: 'time spend on mapping: '; show: timeSpentOnMapping totalSeconds asFloat asTimeString; show: ' (', offline path, ')'; cr.
+	offline map printStats.
+"
+
+]
+
+{ #category : #running }
+VMFullOfflineSLAM >> runICP: dataArray [
+	| timeSpentOnICP startIndex endIndex stepSize dataPath |
+	dataPath := dataArray first.
+	startIndex := dataArray second.
+	endIndex := dataArray third.
+	stepSize := dataArray fourth.
+	timeSpentOnICP := [
+		offline
+			"offsetTF: (VMTFMatrix angle: Float halfPi translation: 0@0);"
+			obstacleDistance: 0.1;
+			nnc: VMNNVectorGrid new;
+			simplifierThreshold: 0.02 squared.
+		(offline icp)
+			outlierThresholdFalloff: 0.9;
+			outlierStartThreshold: 0.15;"0.73"
+			maxIterations: 40.
+		offline runICPFrom: startIndex to: endIndex by: stepSize path: dataPath.
+	] timeToRun.
+	Transcript show: 'time spend on ICP: '; show: timeSpentOnICP totalSeconds asTimeString; show: ' (', offline path, ')'; cr.
+	offline fullSave: '/opt/shared/developer/data/offline_objects/experiment_'.(DateAndTime new asUnixTime printString).'.fuel'.
+	
+	self plotNNC.
+	offline nnc: nil.
+	Smalltalk garbageCollect.
+
+]
+
+{ #category : #running }
+VMFullOfflineSLAM >> runMapping: dataArray [
+	| timeSpentOnMapping startIndex endIndex stepSize tfStepSize |
+	
+	startIndex := dataArray second.
+	endIndex := dataArray third.
+	stepSize := dataArray fourth.
+	tfStepSize := 1.
+	
+	timeSpentOnMapping := [
+		offline map: ((VMGridStorage gridSize: 4.0) cellClass: VMGridCellBSP; yourself).
+		offline buildWithProgressBarFrom: startIndex to: endIndex by: stepSize * 2 tfStepSize: tfStepSize.
+	] timeToRun.
+
+	Transcript show: 'time spend on mapping: '; show: timeSpentOnMapping totalSeconds asFloat asTimeString; show: ' (', offline path, ')'; cr.
+	offline map printStats.
+
+]
+
+{ #category : #running }
 VMFullOfflineSLAM >> runPath: dataPath from: startIndex to: endIndex by: stepSize [
 	| timeSpentOnICP timeSpentOnMapping |
 	offline := (VMOffline new).

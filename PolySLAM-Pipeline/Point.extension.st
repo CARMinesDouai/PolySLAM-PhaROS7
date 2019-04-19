@@ -1,6 +1,11 @@
 Extension { #name : #Point }
 
 { #category : #'*PolySLAM-Pipeline-Algo' }
+Point >> asPSVertex [
+	^ PSVertex new setX: self x setY: self y; yourself 
+]
+
+{ #category : #'*PolySLAM-Pipeline-Algo' }
 Point >> asPoint [
 	^ self
 ]

@@ -25,7 +25,10 @@ PolySLAMMapMerger >> addKeyframe: keyframe [
 		newmap := newmap, (self mergeInnerPolygon: chain with: simplifiedPolygon)
 	].
 	Transcript show: 'Processed ', (keyframe id asString); cr.
-	map := newmap 
+	"simplify each 10 keyframe"
+	map := newmap.
+	"self simplifyMap "
+	(keyframe id % 10) = 0 ifTrue:[self simplifyMap ].
 ]
 
 { #category : #accessing }
@@ -89,5 +92,11 @@ PolySLAMMapMerger >> simplifierThreshold: anObject [
 { #category : #'as yet unclassified' }
 PolySLAMMapMerger >> simplifyMap [
 	map := map collect:[:chain|
-		(VMVectorCollectionSimplifier compute: chain asVMPolygon inlierThreshold: self simplifierThreshold) result asDoublyConnectedEdgeList ].
+		(VMVectorCollectionSimplifier 
+			compute: chain 
+			inlierThreshold: self simplifierThreshold)
+			result asDoublyConnectedEdgeList ]
+		thenSelect:[:chain| chain size > 2].
+		
+	
 ]

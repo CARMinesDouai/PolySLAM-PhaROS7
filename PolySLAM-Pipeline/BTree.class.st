@@ -22,6 +22,16 @@ BTree class >> order: aNumber [
 	^ self keys: (BTreeKeysArray new: aNumber)
 ]
 
+{ #category : #converting }
+BTree >> asOrderedCollection [
+	^ self select:[:e| true]
+]
+
+{ #category : #'*PolySLAM-Pipeline-Algo' }
+BTree >> asRenderableElement [
+	^ self asOrderedCollection asRenderableElement 
+]
+
 { #category : #accessing }
 BTree >> at: aMagnitude [
 	^ self at: aMagnitude ifAbsent: [self error: aMagnitude printString, ' not found']
@@ -160,6 +170,15 @@ BTree >> removeKey: aMagnitude ifAbsent: aBlock [
 { #category : #private }
 BTree >> root [
 	^ root
+]
+
+{ #category : #enumerating }
+BTree >> select: aBlock [
+	|collection|
+	collection := OrderedCollection new.
+	self do:[:e|
+		(aBlock value:e) ifTrue:[collection add:e ]].
+	^ collection 
 ]
 
 { #category : #enumerating }

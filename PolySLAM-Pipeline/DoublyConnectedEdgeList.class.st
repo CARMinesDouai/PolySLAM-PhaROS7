@@ -4,26 +4,37 @@ Class {
 	#instVars : [
 		'bounds',
 		'peak',
-		'type'
+		'type',
+		'size'
 	],
 	#category : #'PolySLAM-Pipeline-Algo'
 }
 
+{ #category : #'instance creation' }
+DoublyConnectedEdgeList class >> fromPoints: pointCollection withTypes: typeCollection [
+	^(self new)
+		fromPoints: pointCollection withTypes: typeCollection;
+		yourself
+]
+
 { #category : #adding }
 DoublyConnectedEdgeList >> add: anEdge [
-	bounds := bounds encompass: anEdge value pointA.
-	bounds := bounds encompass: anEdge value pointB.
-	peak
-		ifNil:[ peak := PSVertex startOf: anEdge ]
-		ifNotNil: [
-			( (anEdge value pointA y) > (peak y) ) ifTrue:[
-				peak := PSVertex startOf: anEdge]].
-	"type"
-	type
-		ifNil:[type := anEdge value type asInteger]
-		ifNotNil: [ ((type ~= 4) & (type ~= anEdge value type asInteger))
-				ifTrue:[type := 4] ].
-	^super add: anEdge
+	anEdge ifNil: [ ^self ].
+	super add: anEdge 
+]
+
+{ #category : #adding }
+DoublyConnectedEdgeList >> addFirst: anEdge [
+	self preProcess:anEdge.
+	super addFirst: anEdge.
+	head chain: self
+]
+
+{ #category : #adding }
+DoublyConnectedEdgeList >> addLast: anEdge [
+	self preProcess:anEdge.
+	super addLast: anEdge.
+	tail chain: self
 ]
 
 { #category : #intersection }
@@ -39,6 +50,20 @@ intersection := VMIntersection intersectLine: line withLine: l value.
 				key := PSVertexKeyX from:v.
 				L at:key put: l. 	
 		] 
+]
+
+{ #category : #enumerating }
+DoublyConnectedEdgeList >> allButFirstDo:aBLock [
+	|i|
+	i := 0.
+	self do:[:e|
+		i = 0 
+			ifFalse: [
+				aBLock value:e
+			].
+		i := i+1
+	].
+	^ i
 ]
 
 { #category : #accessing }
@@ -71,7 +96,7 @@ DoublyConnectedEdgeList >> asDoublyConnectedEdgeListDo: ablock [
 
 { #category : #converting }
 DoublyConnectedEdgeList >> asRenderableElement [
-	^ self asVMPolygon asRenderableElement 
+	^ VMPolygon rendererClass new model: self
 ]
 
 { #category : #converting }
@@ -95,19 +120,18 @@ DoublyConnectedEdgeList >> calculateIntersectionOn: L 	except: blackList do: aBl
 	|lastline vertex|
 	L isEmpty ifTrue: [ ^self ].
 	lastline := nil.
-	L do: [ :e|
+	L do: [:e|
 		lastline
 			ifNotNil: [
 				lastline chain = e chain ifFalse:[
 				(blackList includes:{lastline. e}) ifFalse:[
 					"Transcript show: 'Intersection of ', lastline value asString, ' and ', e value asString; cr."
 					vertex := PSVertex intersectionOf: lastline  and: e.
-					blackList add: {lastline.e}.
-					blackList add: {e. lastline}.
+					blackList add: {lastline.e};add: {e. lastline}.
 					vertex ifNotNil: [
 						lastline addIntersectionPoint: vertex.
 						e addIntersectionPoint: vertex.
-						aBlock value: vertex].
+						aBlock value: vertex ].
 				]
 			]].
 		lastline := e
@@ -129,10 +153,78 @@ DoublyConnectedEdgeList >> close [
 
 ]
 
+{ #category : #decomposing }
+DoublyConnectedEdgeList >> decomposeAfterIntersectWith: anotherPolygon [
+	| list vertices  vs|
+	vertices := Dictionary new.
+	self intersectWith: anotherPolygon thenDo:[:intersections :D1 :D2|
+		list := Set new.
+		intersections do:[:vx|
+			(vx segments first isCollinearWith: vx segments last) ifTrue: [
+				self halt	
+			].
+			vertices at: vx asPoint put: Set new.
+			vx segments do:[:l | list add: l] ].
+		list do:[:line| (self surgeryLine: line) do:[:vx|
+			(vertices at: vx key) add: vx value]].
+	
+		vs := OrderedCollection new.
+		vertices keysAndValuesDo: [ :k :v|
+			self relinkEdges: v asOrderedCollection.
+			v do:[:e| vs add: e]].
+		
+		^ self decomposedPolygonsFrom:  vs.
+	].
+]
+
+{ #category : #decomposing }
+DoublyConnectedEdgeList >> decomposedPolygonsFrom: vertices [
+|D edge startEdge chains|
+chains := OrderedCollection new.
+"chains asRenderableElement inspect."
+[ vertices isEmpty ] whileFalse:[
+	startEdge := vertices first segments first.
+	D := DoublyConnectedEdgeList new.
+	chains add:D.
+	"D asRenderableElement inspect."
+	edge := startEdge.
+	[
+		D add: ((PSLinkedEdge from: edge value pointA asPoint to: edge value pointB asPoint  type: edge value type ) chain:D; yourself).
+		(vertices includes: edge value pointA) ifTrue:[ vertices remove: edge value pointA ].
+		(vertices includes: edge value pointB) ifTrue:[ vertices remove: edge value pointB ].
+		edge  := edge nextLink.
+		"self halt."
+		edge = startEdge.
+	] whileFalse:[].
+	D close.
+].
+^ chains
+]
+
+{ #category : #'instance creation' }
+DoublyConnectedEdgeList >> fromPoints: aCollectionOfPoints withTypes: aCollectionOfTypes [
+	self ifEmpty: [self removeAll].
+	aCollectionOfPoints doWithIndex: [ :point :index |
+		self add: (
+			VMLineSegment
+				pointA: point
+				pointB: (aCollectionOfPoints atWrap: index+1)
+				type: (aCollectionOfTypes at: index)
+		) asPSLinkedEdge
+	].
+]
+
+{ #category : #testing }
+DoublyConnectedEdgeList >> ifEmpty:aBlock [
+	self isEmpty ifTrue:[
+		aBlock value	
+	]
+]
+
 { #category : #initialization }
 DoublyConnectedEdgeList >> initialize [
 	super initialize.
-	bounds := VMRectangle point: 0@0 point: 0@0.
+	size := 0.
 ]
 
 { #category : #intersection }
@@ -178,9 +270,15 @@ aBlock ifNotNil: [ ^ aBlock value: intersections value: D1 value: D2 ].
 DoublyConnectedEdgeList >> isCCW [
 	|prv area|
 	prv := self peak segments first previousLink value.
+	prv ifNil: [ prv := tail value ].
 	area := self peak segments first areaWith: prv pointA.
 	
 	^area > 0
+]
+
+{ #category : #testing }
+DoublyConnectedEdgeList >> isCW [
+	^ self isCCW not
 ]
 
 { #category : #testing }
@@ -199,6 +297,14 @@ DoublyConnectedEdgeList >> isPolygon [
 	^head nextLink ~= tail
 ]
 
+{ #category : #testing }
+DoublyConnectedEdgeList >> isSelfIntersecting [
+	"TODO: assume the polygon is not
+	self intersecting, should use sweep line to
+	find if there is any intersection in the polygon"
+	^ false
+]
+
 { #category : #enumerating }
 DoublyConnectedEdgeList >> linksDo: block [
 	"Execute block for each of the links that I hold internally."
@@ -213,35 +319,36 @@ DoublyConnectedEdgeList >> linksDo: block [
 	] whileFalse: [ ]
 ]
 
-{ #category : #private }
+{ #category : #merging }
 DoublyConnectedEdgeList >> mergeWith: anotherPolygon [
-	|   D p l|
+	|   D p l link|
 	D := OrderedCollection new.
 	self intersectWith: anotherPolygon thenDo:[:intersections :D1 :D2|
-		p := PSVertex startOf: D1 lastLink.
-		"
-		D add: (self polygonalChainAt: p atIntersectionPointDo: [:e| (intersections includes:e) ifTrue:[ intersections remove:e]])."
-		"{D. intersections} asRenderableElement inspect."
+		link := self firstLink.
+		[ p := link nearestIntersectionPoint.
+			p ifNil: [ link := link nextLink ].
+			(p isNil) & (link ~= D2 firstLink)  ] whileTrue.
 		[intersections size >= 2 ] whileTrue: [
-			p := intersections first.
 			D add: (self polygonalChainAt: p atIntersectionPointDo:[:e|
 					l := intersections select:[:i| i inrangeOf: e ].		
 					l do:[:i| intersections remove:i ].
 				]).
-		"intersections inspect.
-		D inspect.
-		self halt."
+			intersections isEmpty ifFalse:[
+			p := intersections first.
+			]
+		"{D. intersections} asRenderableElement inspect."
+		"self halt."
 		].
 	].
 	^ D
 ]
 
-{ #category : #enumerating }
+{ #category : #merging }
 DoublyConnectedEdgeList >> nextPointAndLinkOf: pointA and: aLink do: aBlock [
 	|    pointB  link intersection|
 		link := aLink.
 		pointB := link nextIntersectionOf: pointA.
-		intersection  := nil.
+		intersection := pointB.
 		((pointB isEndPoint) & (pointB vertexType >= 0))
 			"pointB is an endpoint"
 			ifTrue:[
@@ -249,7 +356,6 @@ DoublyConnectedEdgeList >> nextPointAndLinkOf: pointA and: aLink do: aBlock [
 			"pointB is an intersection"
 			ifFalse:[
 				"event at intersection point here"
-				intersection := pointB.
 				link := pointB getPivotLine.
 				((pointB isEndPoint) & (pointB inrangeOf: pointA)) "pointB asPoint = pointA asPoint"
 					ifTrue:[
@@ -274,35 +380,190 @@ DoublyConnectedEdgeList >> polygonalChainAt: point [
 	^ self polygonalChainAt: point atIntersectionPointDo: nil
 ]
 
-{ #category : #accessing }
+{ #category : #merging }
 DoublyConnectedEdgeList >> polygonalChainAt: point atIntersectionPointDo: aBlock [
-	| link  D pointA pointB type|
+	| link  D pointA pointB ltype visisted|
 	D := DoublyConnectedEdgeList new.
-	"D asRenderableElement inspect."
+	visisted := Set new.
 	pointA := point.
 	link := pointA getPivotLine.
+	aBlock value: pointA.
 	point isEndPoint ifTrue:[
 		self nextPointAndLinkOf: point and: link  do: [ :p :intersection :l|
+			D add: ((VMLineSegment from: pointA asPoint to: p asPoint type: link value type) asPSLinkedEdgeOf:D).
 			pointA := p.
 			link := l.
 		] 
 	].
-	aBlock value: pointA.
 	[
-		type := link value type.
+		ltype := link value type.
 		self nextPointAndLinkOf: pointA and: link  do:[:p :intersection :l|
 			pointB := p.
 			link := l.
-			intersection ifNotNil: [ aBlock value: intersection ].
+			intersection isIntersection
+				ifTrue: [ aBlock value: intersection]
+				"ifFalse:[ visisted add:p ]".
 		].
-		D add: ((VMLineSegment from: pointA asPoint to: pointB asPoint type: type) asPSLinkedEdge chain:D; yourself).
+		D add: ((VMLineSegment from: pointA asPoint to: pointB asPoint type: ltype) asPSLinkedEdgeOf:D).
+		"D size = 3 ifTrue:[D asRenderableElement inspect]."
 		"self halt."
+		visisted add: pointA.
 		pointA := pointB.
-		pointA inrangeOf: point
+		(pointA inrangeOf: point)" | (visisted includes: pointA)"
 		"(pointA asPoint) = (point asPoint )"
 	] whileFalse: [  ].
 	D close.
 	^D
+]
+
+{ #category : #private }
+DoublyConnectedEdgeList >> postProcess:anEdge [
+	size := size - 1.
+]
+
+{ #category : #private }
+DoublyConnectedEdgeList >> preProcess:anEdge [
+	bounds
+		ifNil:[
+			bounds := VMRectangle point: anEdge value pointA point: anEdge value pointB.
+		]
+		ifNotNil:[
+			bounds := bounds encompass: anEdge value pointA.
+			bounds := bounds encompass: anEdge value pointB.
+		].
+	peak
+		ifNil:[ peak := PSVertex startOf: anEdge ]
+		ifNotNil: [
+			( (anEdge value pointA y) > (peak y) ) ifTrue:[
+				peak := PSVertex startOf: anEdge]].
+	"type"
+	type
+		ifNil:[type := anEdge value type asInteger]
+		ifNotNil: [ ((type ~= 4) & (type ~= anEdge value type asInteger))
+				ifTrue:[type := 4] ].
+	size := size + 1.
+]
+
+{ #category : #'as yet unclassified' }
+DoublyConnectedEdgeList >> relinkAll [
+	^ self relinkAllFrom: nil
+]
+
+{ #category : #'as yet unclassified' }
+DoublyConnectedEdgeList >> relinkAllFrom: aLink [
+	|link|
+	link := aLink.
+	link ifNil: [link := head nextLink previousLink ].
+	link ifNil: [ ^ self ].
+	head := link.
+	size := 0.
+	[
+		size := size + 1.
+		link := link nextLink.
+		link = head
+	] whileFalse.
+	tail := link previousLink.
+]
+
+{ #category : #decomposing }
+DoublyConnectedEdgeList >> relinkEdges: aList [
+	|e1 e2 e3 e4|
+	e1 := (aList  first) segments first.
+	e3 := (aList  second) segments first.
+	e2 := e1 nextLink.
+	e4 := e3 nextLink.
+	
+	e1 nextLink: e4.
+	e4 previousLink: e1.
+	
+	e3 nextLink: e2.
+	e2 previousLink: e3.
+	
+	"aList add: e2 value pointA.
+	aList add: e4 value pointA."
+]
+
+{ #category : #removing }
+DoublyConnectedEdgeList >> removeAll [
+	size := 0.
+	bounds := nil.
+	peak := nil.
+	type := nil.
+	super removeAll
+]
+
+{ #category : #removing }
+DoublyConnectedEdgeList >> removeFirst [
+	self postProcess: head.
+	^super removeFirst
+]
+
+{ #category : #removing }
+DoublyConnectedEdgeList >> removeLast [
+	self postProcess: tail.
+	^super removeLast
+]
+
+{ #category : #removing }
+DoublyConnectedEdgeList >> removeLink:aLink [
+	self postProcess: aLink.
+	^super removeLink: aLink
+]
+
+{ #category : #accessing }
+DoublyConnectedEdgeList >> size [
+	^ size
+]
+
+{ #category : #decomposing }
+DoublyConnectedEdgeList >> surgeryAtIntersectionWith: anotherPolygon [
+	| list|
+	self intersectWith: anotherPolygon thenDo:[:intersections :D1 :D2|
+		list := Set new.
+		intersections do:[:vx|
+			vx segments do:[:l | list add: l] ].
+		list do:[:line| (self surgeryLine: line)].
+		self relinkAll.
+		D2 relinkAll.
+		^ D2
+	].
+]
+
+{ #category : #decomposing }
+DoublyConnectedEdgeList >> surgeryLine: l [
+	|vertex collection firstHalfLine secondHalfLine last2ndHalfLine v1 v2 l1 l2|
+	collection := OrderedCollection new.
+	last2ndHalfLine := l.
+	[ l intersectionPoints isEmpty ] whileFalse: [ 
+		vertex := l intersectionPoints root first.
+		l intersectionPoints removeKey: (l intersectionPoints root firstKey).
+		"surgery at vertex"
+		v1 := vertex asPoint asPSVertex.
+		v2 := vertex asPoint asPSVertex.
+		firstHalfLine  := (PSLinkedEdge from: last2ndHalfLine value pointA to: v1  type: last2ndHalfLine value type  chain: last2ndHalfLine chain).
+		secondHalfLine := (PSLinkedEdge from: v2 to: last2ndHalfLine value pointB  type: last2ndHalfLine value type  chain: last2ndHalfLine chain).
+		"special cases"
+		"(secondHalfLine value pointB inrangeOf: vertex ) ifTrue"
+		l1 := l2 := last2ndHalfLine.
+		firstHalfLine
+			ifNil: [firstHalfLine  := last2ndHalfLine previousLink.
+					l1 := firstHalfLine].
+		secondHalfLine
+			ifNil:[secondHalfLine := last2ndHalfLine nextLink.
+				l2 := secondHalfLine ].
+		"(firstHalfLine  value pointA inrangeOf: vertex) ifTrue:"
+		"linking them"
+		firstHalfLine nextLink: secondHalfLine.
+		firstHalfLine previousLink: l1 previousLink.
+		l1 previousLink nextLink: firstHalfLine.
+		secondHalfLine previousLink: firstHalfLine.
+		secondHalfLine nextLink: l2 nextLink.
+		l2 nextLink previousLink: secondHalfLine.
+		collection add: (vertex asPoint -> firstHalfLine value pointB).
+		last2ndHalfLine := secondHalfLine.
+	].
+
+	^ collection
 ]
 
 { #category : #intersection }
@@ -322,10 +583,10 @@ DoublyConnectedEdgeList >> sweepEventAt: vertex on:C lut: lut [
 			vertex isEndPoint
 				ifTrue: [
 					vertex segments do: [ :l|
-					L at: (PSVertexKeyX from:( l asPSLinkedEdge lowerVertex )) put:l ]]
+					"C add: l."
+					L at: (PSVertexKeyX from:(l asPSLinkedEdge lowerVertex)) put:l ]]
 				ifFalse:[
-					self switchLinesAndAddTo:L at: vertex]
-			].
+					self switchLinesAndAddTo:L at: vertex]].
 	line := VMLine pointA: 0@(vertex  y) pointB: vertex. 
 	C do:[:l|
 				(vertex segments includes: l)
@@ -339,26 +600,33 @@ DoublyConnectedEdgeList >> sweepEventAt: vertex on:C lut: lut [
 ]
 
 { #category : #intersection }
-DoublyConnectedEdgeList >> switchLinesAndAddTo:L at: vertex [
-|segA segB lwxA lwxB|
+DoublyConnectedEdgeList >> switchLinesAndAddTo1:L at: vertex [
+|segA segB  vA vB|
 segA := vertex segments first.
 segB := vertex segments second.
+vA := vertex asPoint asPSVertex.
+vA segments add: segA.
 
-"(vertex asPoint) = (10@5) ifTrue: [ self error:'fuuuuuk' ]."
+vB := vertex asPoint asPSVertex.
+vB segments add: segB.
 
-lwxA := segA value pointA y < segA value pointB y ifTrue: [ segA value pointA x ] ifFalse: [ segA value pointB x ]. 
-lwxB := segB value pointA y < segB value pointB y ifTrue: [ segB value pointA x ] ifFalse: [ segB value pointB x ]. 
-lwxA  < lwxB
-	ifTrue:[
-		L at:(PSVertexKeyX from: (PSVertex new setX: vertex  x setY: 1; vertexType: vertex vertexType; yourself )) put: segA.
-		L at:(PSVertexKeyX from: (PSVertex new setX: vertex  x setY: 0; vertexType: vertex vertexType; yourself )) put: segB.
-	]
-	ifFalse:[
-		L at:(PSVertexKeyX from: (PSVertex new setX: vertex  x setY: 0; vertexType: vertex vertexType; yourself )) put: segA.
-		L at:(PSVertexKeyX from: (PSVertex new setX: vertex  x setY: 1; vertexType: vertex vertexType; yourself )) put: segB.	
-	].
+L at: (PSVertexKeyX from: vA) put: segA.
+L at: (PSVertexKeyX  from: vB) put: segB.
+]
 
-"(vertex asPoint) = (10@5) ifTrue: [L inspect. self error:'fuuuuuk' ]."
+{ #category : #intersection }
+DoublyConnectedEdgeList >> switchLinesAndAddTo:L at: vertex [
+|segA segB  vA vB|
+segA := vertex segments first.
+segB := vertex segments second.
+vA := vertex asPoint asPSVertex.
+vA segments add: segA.
+
+vB := vertex asPoint asPSVertex.
+vB segments add: segB.
+
+L at: (PSVertexKeyX from: vA) put: segA.
+L at: (PSVertexKeyX  from: vB) put: segB.
 ]
 
 { #category : #accessing }

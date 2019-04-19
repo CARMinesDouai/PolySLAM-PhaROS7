@@ -188,10 +188,10 @@ VMPolygonTest >> testIntersectWith [
 			(6 @ 12).
 			(4 @ 4).
 			}.
-	"{polygonA. polygonB} asRenderableElement inspect."
+	{polygonA. polygonB} asRenderableElement inspect.
 	"(polygonA mergeWith:  polygonB)."
-	"{polygonA. polygonB. } asRenderableElement inspect.
-	( polygonA asDoublyConnectedEdgeList  intersectWith:  polygonB) inspect"
+	{ polygonA. polygonB.
+	( polygonA asDoublyConnectedEdgeList  intersectWith:  polygonB) } asRenderableElement inspect.
 	(polygonA mergeWith: polygonB) asRenderableElement inspect
 ]
 
@@ -297,7 +297,7 @@ VMPolygonTest >> testMergeWith [
 			(3.5 @ 2.5).
 			(3 @ 1).
 			}.
-	"{polygonA. polygonB. polygonA asDoublyConnectedEdgeList intersectWith: polygonB} asRenderableElement inspect."
+	{polygonA. polygonB. polygonA asDoublyConnectedEdgeList intersectWith: polygonB} asRenderableElement inspect.
 	"(polygonA mergeWith:  polygonB)."
 	(polygonA mergeWith:  polygonB) asRenderableElement inspect.
 ]

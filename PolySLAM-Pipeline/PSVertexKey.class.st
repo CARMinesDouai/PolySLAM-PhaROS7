@@ -2,14 +2,15 @@ Class {
 	#name : #PSVertexKey,
 	#superclass : #Object,
 	#instVars : [
-		'point'
+		'primary',
+		'secondary'
 	],
 	#category : #'PolySLAM-Pipeline-Algo'
 }
 
 { #category : #'instance creation' }
 PSVertexKey class >> from: aPoint [
-	^ self new point: aPoint; yourself
+	^ self new primary: aPoint asPoint; secondary: (aPoint segments first vertexFarestOf:aPoint ) asPoint; yourself
 ]
 
 { #category : #accessing }
@@ -24,7 +25,7 @@ PSVertexKey >> <= anotherPoint [
 
 { #category : #accessing }
 PSVertexKey >> = anotherKey [
-	^ ((self compare: anotherKey) = 0) and: (point vertexType = anotherKey point vertexType )
+	^ ((self compare: anotherKey) = 0) "and: (point vertexType = anotherKey point vertexType )"
 ]
 
 { #category : #accessing }
@@ -43,11 +44,21 @@ PSVertexKey >> compare: aNotherPoint [
 ]
 
 { #category : #accessing }
-PSVertexKey >> point [
-	^ point
+PSVertexKey >> primary [
+	^ primary
 ]
 
 { #category : #accessing }
-PSVertexKey >> point: anObject [
-	point := anObject
+PSVertexKey >> primary: anObject [
+	primary := anObject
+]
+
+{ #category : #accessing }
+PSVertexKey >> secondary [
+	^ secondary
+]
+
+{ #category : #accessing }
+PSVertexKey >> secondary: anObject [
+	secondary := anObject
 ]

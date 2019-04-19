@@ -17,6 +17,6 @@ VMPlotVectorCollection >> initialize [
 VMPlotVectorCollection >> plotParent: parent [
 	super plotParent: parent.
 	
-	self plotVectorCollection: model color: Color
+	self plotVectorCollection: model color: color
 
 ]

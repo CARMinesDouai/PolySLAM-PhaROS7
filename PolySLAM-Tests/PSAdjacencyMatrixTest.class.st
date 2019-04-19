@@ -22,7 +22,7 @@ PSAdjacencyMatrixTest >> testEigen [
 	polygonA asDoublyConnectedEdgeListDo: [ :l| collection add:l ].
 	polygonB asDoublyConnectedEdgeListDo: [ :l| collection add:l ].
 	matrix := PSAdjacencyMatrix fromLines: collection.
-	matrix binaryAdjacencyMatrix eigen inspect.
+	matrix  binaryAdjacencyMatrix makeSymetric eigen inspect.
 	"matrix eigen inspect"
 ]
 
@@ -37,10 +37,10 @@ PSAdjacencyMatrixTest >> testInit [
 	collection := OrderedCollection new.
 	polygonA asDoublyConnectedEdgeListDo: [ :l| collection add:l ].
 	matrix := PSAdjacencyMatrix fromLines: collection .
-	matrix2 := PSAdjacencyMatrix rows: #(#(0 1 1 ) #(1 0 1 ) #(1 1 0 ) ).
+	matrix2 := PSAdjacencyMatrix rows: #(#(0 1 0 ) #(0 0 1 ) #(1 0 0 ) ).
 	self assert: matrix = matrix2.
-	self assert: matrix nonVaninshingElements size = 6.
-	self assert: matrix nonVaninshingElements sum = 6.
+	self assert: matrix nonVaninshingElements size = 3.
+	self assert: matrix nonVaninshingElements sum = 3.
 	self assert: matrix mean = 1.
 	self assert: matrix variance  = 0.
 	self assert: matrix entropy  = 0.

@@ -1,6 +1,6 @@
 Class {
 	#name : #PSAdjacencyMatrix,
-	#superclass : #PMSymmetricMatrix,
+	#superclass : #PMMatrix,
 	#instVars : [
 		'mean',
 		'variance',
@@ -46,7 +46,7 @@ PSAdjacencyMatrix >> binaryAdjacencyMatrix [
 	self rowsDo: [ :r|
 		brows add:(
 			r collect:[:e| e >= th ifTrue:[ 1 ] ifFalse:[0] ]) ].
-	^self class rows: brows.
+	^PSBinaryAdjacencyMatrix rows: brows.
 ]
 
 { #category : #accessing }
@@ -78,6 +78,25 @@ PSAdjacencyMatrix >> laplaceMatrixWithDiagonalVector:vector [
 	matrix := self class rows: lrows.
 	matrix := matrix - self.
 	^ matrix
+]
+
+{ #category : #calculating }
+PSAdjacencyMatrix >> makeSymetric [
+	|size value|
+	size := self numberOfRows.
+	1 to: size do:[:i| |j|
+		j := i + 1.
+		j to: size do:[:k|
+			value := (self at:i at:k) max: (self at:k at:i).
+			value = 0 ifTrue:[
+				value := (self at:i at:k) min: (self at:k at:i).
+			].
+			self at: i at: k put: value.
+			self at: k at: i put: value.
+		].
+	].
+	^ self
+	
 ]
 
 { #category : #accessing }
@@ -126,7 +145,7 @@ PSAdjacencyMatrix >> trinaryAdjacencyMatrix [
 						e > th ifTrue: [  -1 ] ifFalse:[0]
 					]
 			])].
-	^self class rows: brows.
+	^PSTrinaryAdjacencyMatrix rows: brows.
 ]
 
 { #category : #accessing }

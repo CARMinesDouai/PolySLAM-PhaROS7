@@ -12,13 +12,9 @@ PSMapMergerTest >> testMerge [
 	merger := PSMapMerger new.
 	i := 0.
 	c do:[:chain|
-		i % 3 = 0
-			ifTrue:[
-				merger consume: chain.
-				merger chains asRenderableElement inspect.
-				self halt.
-			].
-		i := i+1
+		merger consume: chain.
+		merger chains asRenderableElement inspect.
+		self halt.
 	].
 	
 ]

@@ -44,17 +44,18 @@ PSPolygonMergingHelper >> adjacentVectorFrom: matrix and: collection [
 			ifNotNil: [
 				(collinearIds collect:[:idx| collection at: idx]) do:[:e|
 					e value pointB: edge value pointA.
-					e nextLink: edge.
-					"adjacentVector at: e id put: edge id."
+					adjacentVector at: e id put: edge id.
 					unvisitedIds remove: e id ifAbsent:[].
+					e nextLink: edge.
 				].
 				adjacentVector at: i put: edge id.
 				
 			].
 	].
-	adjacentVector inspect.
-	(collection select:[:e| (adjacentVector at: e id) ~= 0 ]) asRenderableElement inspect.
-	self halt.
+	"adjacentVector inspect."
+	adjacentVector withIndexDo:[:j :k| j = 0 ifFalse:[ {collection at:k. collection at:j} asRenderableElement inspect. self halt. ] ].
+	(collection select:[:e| (adjacentVector at: e id) ~= 0 ]) 	asRenderableElement inspect.
+		self halt.
 	^ adjacentVector 
 ]
 
@@ -177,18 +178,27 @@ PSPolygonMergingHelper >> merge [
 	matrix := PSAdjacencyMatrix fromLines: collection.
 	"automatic thresholding of this matrix"
 	"matrix th inspect."
-	matrix := matrix trinaryAdjacencyMatrix.
+	matrix := matrix trinaryAdjacencyMatrix makeSymetric.
+	1 to: matrix numberOfRows do:[:j||list|
+		list := OrderedCollection new.
+		 self select: list and: {  } asOrderedCollection  of:j  from: matrix.
+		list size >= 2 ifTrue:[
+			(list collect:[:e| collection at:e]) asRenderableElement inspect.
+			self halt.
+		]
+	].
+	
 	"since we know that each edge will have exactly one next linking edge
 	therefore, we need to find the only edge that is actually linked to that edge"
 	"(PSLinkingProbability from: (collection at: 26) and: (collection at: 57)) probability inspect. 
 	{ collection at: 26. collection at:27. collection at:28. collection at: 57 } asRenderableElement inspect. self halt."
-	adjacentVector := self adjacentVectorFrom: matrix and: collection.
+	"adjacentVector := self adjacentVectorFrom: matrix and: collection."
 	"(adjacentVector withIndexCollect: [ :e :j| { collection at:e. collection at: j } ]) asRenderableElement inspect"	
 	"now find all the chain using the adjacentVector"
 	"adjacentVector inspect. self halt."
 	"adjacentVector withIndexDo: [ :e :i| { collection at:e. collection at:i } asRenderableElement inspect. self halt ]."
-	adjacentVector inspect.
-	^self partition: collection basedOn: adjacentVector 
+	"(collection select:[:e| (adjacentVector at: e id) ~= 0 ]) asRenderableElement inspect."
+	"^self partition: (collection select:[:e| (adjacentVector at: e id) ~= 0 ]) basedOn: adjacentVector "
 	
 ]
 

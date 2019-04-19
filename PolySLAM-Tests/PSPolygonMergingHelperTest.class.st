@@ -8,9 +8,9 @@ Class {
 PSPolygonMergingHelperTest >> testMerge [
 	|c pA pB helper|
 	c := FLMaterializer materializeFromFileNamed: '/home/mrsang/kf-test.fuel'.
-	pA := (VMVectorCollectionSimplifier compute: ((c at:2) polygon) inlierThreshold: 0.01 ) result.
-	pB := (VMVectorCollectionSimplifier compute: ((c at:3) polygon) inlierThreshold: 0.01 ) result.
-	{ pA. pB } asRenderableElement inspect.
+	pA := (VMVectorCollectionSimplifier compute: ((c at:3) polygon) inlierThreshold: 0.01 ) result.
+	pB := (VMVectorCollectionSimplifier compute: ((c at:4) polygon) inlierThreshold: 0.01 ) result.
+	{ pA. pB. pA asDoublyConnectedEdgeList intersectWith: pB } asRenderableElement inspect.
 	helper := PSPolygonMergingHelper merge: pA with: pB.
 	helper merge asRenderableElement inspect.
 ]

@@ -34,7 +34,7 @@ PSVertex class >> intersectionOf: lineA and: lineB [
 	o := intersection intersectionPoint asPSVertex.
 	o vertexType: -1.
 	o segments add: lineA; add: lineB.
-	o intersectionAngle abs > 0.2 ifFalse:[^nil].
+	"o intersectionAngle abs > 0.15 ifFalse:[^nil]."
 	"(lineA value pointA = lineB value pointA) ifTrue: [ o inspect. self halt. ]."
 	^o
 ]

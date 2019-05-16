@@ -13,6 +13,12 @@ Class {
 
 { #category : #'instance creation' }
 PSAdjacencyMatrix class >> fromLines: aCollections [
+	^ self fromLines: aCollections  probabilityHelper: PSLinkingProbability
+	
+]
+
+{ #category : #'instance creation' }
+PSAdjacencyMatrix class >> fromLines: aCollections probabilityHelper: aHelperClass [
 	| matrix len i j p|
 	len := aCollections size.
 	matrix := self zerosRows: len cols: len.
@@ -21,7 +27,7 @@ PSAdjacencyMatrix class >> fromLines: aCollections [
 	aCollections do:[:lineA|
 		j := 1.
 		j to: len do:[:k|
-			p := (PSLinkingProbability from: lineA and: (aCollections at:k) ) probability.
+			p := (aHelperClass from: lineA and: (aCollections at:k) ) probability.
 					"max: (PSLinkingProbability from: (aCollections at:k) and: lineA ) probability."
 			matrix at: i at: k put: p.
 			"((p < 1) & (p > 0)) ifTrue:[
@@ -57,7 +63,7 @@ PSAdjacencyMatrix >> entropy [
 { #category : #initialization }
 PSAdjacencyMatrix >> initialize [
 	super initialize.
-	vanishingTh := 0.25
+	vanishingTh := 0.55
 ]
 
 { #category : #laplace }
@@ -113,7 +119,7 @@ PSAdjacencyMatrix >> mvet [
 	mean :=  (values sum) /  size.
 	variance := (values collect:[:e| (mean - e) squared]) sum / size.
 	entropy := (0 - ((values collect:[:e| e*(e log:2) ]) sum)) / size.
-	th := mean - (variance) + entropy.
+	th := mean - (variance sqrt) + (entropy).
 	"th := 0.55."
 	^ self 
 ]
@@ -132,6 +138,11 @@ PSAdjacencyMatrix >> th [
 	^ th
 ]
 
+{ #category : #accessing }
+PSAdjacencyMatrix >> th: value [
+	^ th := value
+]
+
 { #category : #calculating }
 PSAdjacencyMatrix >> trinaryAdjacencyMatrix [
 	|brows|
@@ -146,6 +157,17 @@ PSAdjacencyMatrix >> trinaryAdjacencyMatrix [
 					]
 			])].
 	^PSTrinaryAdjacencyMatrix rows: brows.
+]
+
+{ #category : #accessing }
+PSAdjacencyMatrix >> vanishingTh [
+	^ vanishingTh
+]
+
+{ #category : #accessing }
+PSAdjacencyMatrix >> vanishingTh: anObject [
+	vanishingTh := anObject.
+	self mvet 
 ]
 
 { #category : #accessing }

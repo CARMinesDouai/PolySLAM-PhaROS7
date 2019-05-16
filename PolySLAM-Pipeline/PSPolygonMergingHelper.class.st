@@ -5,9 +5,11 @@ Class {
 		'isReversal',
 		'helper',
 		'chains'
+
 	],
 	#category : #'PolySLAM-Pipeline-Algo'
 }
+
 
 { #category : #'instance creation' }
 PSPolygonMergingHelper class >> from: a and:b helperClass: aClass [
@@ -16,6 +18,7 @@ PSPolygonMergingHelper class >> from: a and:b helperClass: aClass [
 	o helper: aClass new.
 	^ o
 ]
+
 
 { #category : #'as yet unclassified' }
 PSPolygonMergingHelper class >> merge: pA with:pB [
@@ -83,6 +86,7 @@ PSPolygonMergingHelper >> adjacentVectorFrom: matrix and: collection [
 	"(collection select:[:e| (adjacentVector at: e id) ~= 0 ]) 	asRenderableElement inspect.
 		self halt."
 	^ adjacentVector
+
 ]
 
 { #category : #actions }
@@ -116,6 +120,7 @@ PSPolygonMergingHelper >> approximateEdgeFrom: pivot to: colinearEdges [
 	^ nextLink 
 	
 ]
+
 
 { #category : #accessing }
 PSPolygonMergingHelper >> chains [
@@ -166,6 +171,7 @@ PSPolygonMergingHelper >> getInnerMostOf: list [
 	list do:[:line|
 		point := line centerPoint .
 		"(line value pointA inrangeOf: baseline value pointA) ifTrue:[ point := line value pointB ]. "
+
 		
 		(baseline value isPointOnLeftSide: point)
 					ifTrue:[ baseline := line ]
@@ -180,7 +186,6 @@ PSPolygonMergingHelper >> getOuterMostOf: list [
 	list do:[:line|
 		point := line centerPoint.
 		"(line value pointA inrangeOf: baseline value pointA) ifTrue:[ point := line value pointB ]. "
-		
 		(baseline value isPointOnRightSide: point)
 					ifTrue:[ baseline := line ]
 	].
@@ -196,6 +201,7 @@ PSPolygonMergingHelper >> helper [
 PSPolygonMergingHelper >> helper: anObject [
 	helper := anObject
 ]
+
 
 { #category : #initialization }
 PSPolygonMergingHelper >> initialize [
@@ -282,6 +288,7 @@ PSPolygonMergingHelper >> perform [
 	matrix inspect.
 	matrix := matrix trinaryAdjacencyMatrix makeSymetric.
 	"1 to: matrix numberOfRows do:[:j||list|
+
 		list := OrderedCollection new.
 		 self select: list and: {  } asOrderedCollection  of:j  from: matrix.
 		list size >= 2 ifTrue:[
@@ -294,12 +301,15 @@ PSPolygonMergingHelper >> perform [
 	therefore, we need to find the only edge that is actually linked to that edge"
 	"^ self visit: collection baseOn: matrix."
 	adjacentVector := self adjacentVectorFrom: matrix and: collection.
+
 	"(adjacentVector withIndexCollect: [ :e :j| { collection at:e. collection at: j } ]) asRenderableElement inspect"	
 	"now find all the chain using the adjacentVector"
 	"adjacentVector inspect. self halt."
 	"adjacentVector withIndexDo: [ :e :i| { collection at:e. collection at:i } asRenderableElement inspect. self halt ]."
 	"(collection select:[:e| (adjacentVector at: e id) ~= 0 ]) asRenderableElement inspect."
+
 	self partition: (collection select:[:e| (adjacentVector at: e id) ~= 0 ]) startAt: peak
+
 	
 ]
 
@@ -323,6 +333,7 @@ PSPolygonMergingHelper >> select: collinearIds and: mutualExclusiveIds of: rowId
 { #category : #actions }
 PSPolygonMergingHelper >> visit: collection baseOn: matrix [
 	|unvisitedNodes chains D line visistedNodes collinearIds mutualExclusiveIds edges edge|
+
 	unvisitedNodes := (1 to: collection size) asOrderedCollection.
 	chains := OrderedCollection new.
 	[ unvisitedNodes isEmpty ] whileFalse: [ 
@@ -356,6 +367,7 @@ PSPolygonMergingHelper >> visit: collection baseOn: matrix [
 			D add: (PSLinkedEdge from: line value pointA asPoint to: line value pointB asPoint  type: line value type  chain: D  ).
 			line visited: true.
 			line := edge.
+
 		].
 		(visistedNodes includes: line id) ifTrue:[
 			D relinkAllFrom: line.
@@ -386,7 +398,6 @@ PSPolygonMergingHelper >> voteForNextEdge: mutualExclusiveEdges [
 	l := mutualExclusiveEdges select:[:e| e value isObstacle ].
 	l isEmpty ifTrue:[ ^self voteForFrontier: mutualExclusiveEdges ].
 	^ self voteForObstacle: l
-	
 ]
 
 { #category : #actions }

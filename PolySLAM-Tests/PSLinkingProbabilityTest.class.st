@@ -91,7 +91,6 @@ PSLinkingProbabilityTest >> testProbability [
 	{ l1. l2 } asRenderableElement inspect.
 	p probability inspect.
 ]
-
 { #category : #tests }
 PSLinkingProbabilityTest >> testSpecialCase [
 	|l1 l2 p|

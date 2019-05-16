@@ -23,6 +23,7 @@ PSMapMerger >> consume: polygon [
 	newchains := OrderedCollection new.
 	chains do:[:chain|
 		helper := PSPolygonMergingHelper merge: chain with: polygon.
+
 		helper perform.
 		
 		helper chains do:[:e| 

@@ -88,6 +88,7 @@ PSLinkedEdge >> asPSVertices [
 
 { #category : #converting }
 PSLinkedEdge >> asRenderableElement [
+
 	^ PSLinkedEdgeRenderer new model: self
 ]
 
@@ -100,6 +101,7 @@ PSLinkedEdge >> asString [
 PSLinkedEdge >> bounds [
 	^ self value bounds
 ]
+
 
 { #category : #computing }
 PSLinkedEdge >> centerPoint [

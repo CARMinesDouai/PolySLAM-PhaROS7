@@ -7,3 +7,4 @@ Class {
 	#type : #variable,
 	#category : #'PolySLAM-Core-Offline'
 }
+

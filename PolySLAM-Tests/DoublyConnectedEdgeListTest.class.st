@@ -6,7 +6,7 @@ Class {
 
 { #category : #tests }
 DoublyConnectedEdgeListTest >> testDecomposeAfterIntersectWith [
-	|polygonA polygonB|
+	|polygonA polygonB helper|
 	polygonA := VMPolygon new
 		fromPoints:
 			{(10.0 @ 5.0).
@@ -19,16 +19,19 @@ DoublyConnectedEdgeListTest >> testDecomposeAfterIntersectWith [
 			(6 @ 12).
 			(4 @ 4).
 			}.
-	"{polygonA. polygonB} asRenderableElement inspect."
-	"(polygonA mergeWith:  polygonB)."
+
+	helper := PSPolygonDecompositionHelper from: polygonA and: polygonB.
+	helper perform.
 	"{polygonA. polygonB.
-	( polygonA asDoublyConnectedEdgeList  intersectWith:  polygonB) } asRenderableElement inspect."
-	(polygonA asDoublyConnectedEdgeList decomposeAfterIntersectWith: polygonB) asRenderableElement inspect.
+	helper intersections } asRenderableElement inspect."
+	(helper components) asRenderableElement inspect.
+
 ]
 
 { #category : #tests }
 DoublyConnectedEdgeListTest >> testDecomposeAfterIntersectWith1 [
-	|polygonA polygonB|
+
+	|polygonA polygonB helper|
 	polygonA := VMPolygon new
 		fromPoints:
 			{(5.0 @ 1.0).
@@ -51,12 +54,17 @@ DoublyConnectedEdgeListTest >> testDecomposeAfterIntersectWith1 [
 	"(polygonA mergeWith:  polygonB)."
 	"{polygonA. polygonB.
 	( polygonA asDoublyConnectedEdgeList  intersectWith:  polygonB) } asRenderableElement inspect."
-	{(polygonA asDoublyConnectedEdgeList decomposeAfterIntersectWith: polygonB)} asRenderableElement inspect.
+	helper := PSPolygonDecompositionHelper from: polygonA and: polygonB.
+	helper perform.
+	"{polygonA. polygonB.
+	helper intersections } asRenderableElement inspect."
+	(helper components) asRenderableElement inspect.
+
 ]
 
 { #category : #tests }
 DoublyConnectedEdgeListTest >> testDecomposeAfterIntersectWith2 [
-		|polygonA polygonB|
+		|polygonA polygonB helper|
 	polygonA := VMPolygon new
 		fromPoints:
 			{(10.0 @ 5.0).
@@ -69,11 +77,11 @@ DoublyConnectedEdgeListTest >> testDecomposeAfterIntersectWith2 [
 			(6 @ 12).
 			(4 @ 4).
 			}.
-	{polygonA. polygonB} asRenderableElement inspect.
-	"(polygonA mergeWith:  polygonB)."
+	helper := PSPolygonDecompositionHelper from: polygonA and: polygonB.
+	helper perform.
 	"{polygonA. polygonB.
-	( polygonA asDoublyConnectedEdgeList  intersectWith:  polygonB) } asRenderableElement inspect."
-	(polygonA asDoublyConnectedEdgeList decomposeAfterIntersectWith: polygonB) asRenderableElement inspect.
+	helper intersections } asRenderableElement inspect."
+	(helper components) asRenderableElement inspect.
 ]
 
 { #category : #tests }
@@ -97,7 +105,7 @@ DoublyConnectedEdgeListTest >> testPSVertexKeyY [
 
 { #category : #tests }
 DoublyConnectedEdgeListTest >> testSurgeryAtIntersectionWith [
-	|polygonA polygonB D1 D2|
+	|polygonA polygonB helper|
 	polygonA := VMPolygon new
 		fromPoints:
 			{(10.0 @ 5.0).
@@ -111,9 +119,10 @@ DoublyConnectedEdgeListTest >> testSurgeryAtIntersectionWith [
 			(4 @ 4).
 			}.
 
-	D1 := polygonA asDoublyConnectedEdgeList.
-	
-	D2 := D1 surgeryAtIntersectionWith: polygonB.
-	{ D1. D2.} asRenderableElement inspect 
+	helper := PSPolygonDecompositionHelper from: polygonA and: polygonB.
+	helper perform.
+	"{polygonA. polygonB.
+	helper intersections } asRenderableElement inspect."
+	{ helper polygonA. helper polygonB } asRenderableElement inspect.
 	
 ]

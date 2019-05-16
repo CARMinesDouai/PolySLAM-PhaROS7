@@ -79,15 +79,24 @@ PSLinkingProbabilityTest >> testProbability [
 	self assert: p probability = 1.
 	l2 := PSLinkedEdge from: 6@1 to: 4@3  type:1 chain:2.
 	p := PSLinkingProbability from: l1 and: l2.
-	self assert: p probability = 0.
+	self assert: p probability > 0.
 	l2 := PSLinkedEdge from: -1@1 to: -2@4  type:1 chain:2.
 	p := PSLinkingProbability from: l1 and: l2.
-	self assert: p probability < 0.1.
+	self assert: p probability < 0.2.
 	l2 := PSLinkedEdge from: 4@4 to: 7@7  type:1 chain: 2.
 	p := PSLinkingProbability from: l1 and: l2.
 	self assert: p probability = 0.24659696394160652.
 	l2 := PSLinkedEdge from: 2@1.7 to: 5@4  type:1 chain: 2.
 	p := PSLinkingProbability from: l1 and: l2.
+	{ l1. l2 } asRenderableElement inspect.
+	p probability inspect.
+]
+{ #category : #tests }
+PSLinkingProbabilityTest >> testSpecialCase [
+	|l1 l2 p|
+	l1 := PSLinkedEdge from: 2@1 to: 4@3  type:1 chain:1. 
+	l2 := PSLinkedEdge from: 2@1 to: 7@6  type:1 chain:2.
+	p := PSInflateColinearProbability from: l1 and: l2.
 	{ l1. l2 } asRenderableElement inspect.
 	p probability inspect.
 ]

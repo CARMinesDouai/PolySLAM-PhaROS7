@@ -23,7 +23,12 @@ PSMapMerger >> consume: polygon [
 	newchains := OrderedCollection new.
 	chains do:[:chain|
 		helper := PSPolygonMergingHelper merge: chain with: polygon.
-		helper merge do:[:e| newchains add:e].
+
+		helper perform.
+		
+		helper chains do:[:e| 
+			((e isFrontier) & (e isCCW )) ifFalse:[ 
+				newchains add:e]].
 	].
 	chains := newchains
 ]

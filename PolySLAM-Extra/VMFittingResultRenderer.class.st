@@ -1,16 +1,16 @@
 Class {
-	#name : #VMRansacResultRenderer,
+	#name : #VMFittingResultRenderer,
 	#superclass : #VMBaseRenderer,
 	#category : #'PolySLAM-Extra-GUI-Athens'
 }
 
 { #category : #'as yet unclassified' }
-VMRansacResultRenderer >> bounds [
+VMFittingResultRenderer >> bounds [
 	^ model line bounds merge: (self boundsForCollection: model vectorCollection)
 ]
 
 { #category : #'as yet unclassified' }
-VMRansacResultRenderer >> renderOn: aCanvas [
+VMFittingResultRenderer >> renderOn: aCanvas [
 	
 	"inliers"
 	(VMLineSegCollectionRenderer new model: model vectorCollection) lineWidth: lineWidth ; color: color; renderOn: aCanvas.

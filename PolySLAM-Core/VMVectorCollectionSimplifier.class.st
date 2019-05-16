@@ -45,7 +45,8 @@ Class {
 		'resultTypes',
 		'minAngle',
 		'maxAngle',
-		'maxDistance'
+		'maxDistance',
+		'scoring'
 	],
 	#category : #'PolySLAM-Core-Line- & Vector Approximation'
 }
@@ -75,7 +76,12 @@ VMVectorCollectionSimplifier >> asRenderableElement [
 	^ self class rendererClass new model: self
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #checking }
+VMVectorCollectionSimplifier >> check [
+	[ result isSelfIntersecting ifTrue: [ "1 halt." self error: 'polygon is self-intersecting'. ] ] on: Error do: [ Transcript show: 'failed check, possibly not a polygon' ].
+]
+
+{ #category : #checking }
 VMVectorCollectionSimplifier >> checkChainLoop [
 	"checks if the last chain is actually connected with the first chain. if yes, we
 	merge the two chains into a single one."
@@ -106,11 +112,12 @@ VMVectorCollectionSimplifier >> compute: aVectorCollection [
 	self checkChainLoop.
 	
 	self loop.
+	self check.
 	^ result
 
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'result handling' }
 VMVectorCollectionSimplifier >> computeIntersectionResult: resultA withResult: resultB [
 	"computes the point(s) that result from intersecting two neighboring fitting lines.
 	if the fitting lines are intersecting at a flat angle, we may use two projection points
@@ -124,6 +131,7 @@ VMVectorCollectionSimplifier >> computeIntersectionResult: resultA withResult: r
 		ifTrue: [
 			| projectionPoints |
 			projectionPoints := self projectionPoints: resultB vectorCollection first pointA lineA: lineA lineB: lineB.
+			"1 halt."
 			(projectionPoints first squaredDistanceTo: projectionPoints second) > maxDistance
 				ifTrue: [
 					resultPoints add: projectionPoints first.
@@ -131,7 +139,7 @@ VMVectorCollectionSimplifier >> computeIntersectionResult: resultA withResult: r
 					resultPoints add: projectionPoints second.
 					resultTypes add: type. ]
 				ifFalse: [
-					resultPoints add: (projectionPoints first + projectionPoints second * 0.5).
+					resultPoints add: ((projectionPoints first + projectionPoints second) * 0.5).
 					resultTypes add: type. ]. ]
 		ifFalse: [ "we're adding just the intersection point from the two fitting lines"
 			resultPoints add: (VMIntersection intersectLine: lineA withLine: lineB) intersectionPoint.
@@ -140,7 +148,7 @@ VMVectorCollectionSimplifier >> computeIntersectionResult: resultA withResult: r
 
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'result handling' }
 VMVectorCollectionSimplifier >> createVectorFromFittingResult: resultIndex [
 	"creates a vector for the fitting result at 'resultIndex'. if the delta angle of the
 	previouse fitting result and the current fitting result is less than 'minAngle' then
@@ -222,6 +230,19 @@ VMVectorCollectionSimplifier >> filterChainCollection [
 ]
 
 { #category : #'GT Inspector' }
+VMVectorCollectionSimplifier >> gtInspector2RenderedIn: composite [
+	<gtInspectorPresentationOrder: 51>
+	
+	(composite morph)
+		title: 'Viewer (points)';
+		morph: [
+			(VMViewer openWindowlessOn: { VMFittingCollectionRenderer model: self resultCollection})
+				autozoom.
+		].
+
+]
+
+{ #category : #'GT Inspector' }
 VMVectorCollectionSimplifier >> gtInspectorRenderedIn: composite [
 	<gtInspectorPresentationOrder: 50>
 	
@@ -241,6 +262,7 @@ VMVectorCollectionSimplifier >> initialize [
 	minAngle := Float twoPi * 15 / 360. "15 degree angle"
 	maxAngle := Float twoPi * 170 / 360. "170 degree angle"
 	maxDistance := 0.02 squared. "maximum distance before we create a new vector: 2cm"
+	scoring := VMLFScore new.
 
 ]
 
@@ -287,14 +309,14 @@ VMVectorCollectionSimplifier >> loopOverChain: vectorChain [
 	startIndex := 1.
 	
 	"initial run with full length"
-	fittingResult := (VMLineFitter new) inlierThreshold: inlierThreshold;
+	fittingResult := (VMLineFitter new) scoring: scoring; inlierThreshold: inlierThreshold;
 		compute: vectorChain startVector: vectorChain first.
 	startIndex := startIndex + fittingResult vectorCollection size.
 	resultCollection add: fittingResult.
 	
 	"if the line fitting does not include all vectors from the chain, we continue with the remaining vectors until all are covered"
 	[startIndex <= vectorChain size] whileTrue: [
-		fittingResult := (VMLineFitter new) inlierThreshold: inlierThreshold;
+		fittingResult := (VMLineFitter new) scoring: scoring; inlierThreshold: inlierThreshold;
 			compute: (vectorChain collect: [:v|v] from: startIndex to: vectorChain size) startVector: (vectorChain at: startIndex).
 		startIndex := startIndex + fittingResult vectorCollection size.
 		resultCollection add: fittingResult.
@@ -305,12 +327,15 @@ VMVectorCollectionSimplifier >> loopOverChain: vectorChain [
 { #category : #'basic algorithm' }
 VMVectorCollectionSimplifier >> loopOverFittingResults [
 	resultCollection doWithIndex: [ :r :index |
+		"Transcript show: index printString, ' '.
+		(index \\ 10 = 0) ifTrue: [ Transcript cr. ].
+		index = 59 ifTrue: [ 1 halt ]."
 		self computeIntersectionResult: (resultCollection atWrap: index - 1) withResult: (resultCollection at: index).
 	].
 	result := input species fromPoints: resultPoints withTypes: resultTypes.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #'result handling' }
 VMVectorCollectionSimplifier >> projectionPoints: aPoint lineA: lineA lineB: lineB [
 	"computes the projection point from aPoint to lineA and from aPoint to LineB.
 	both projection points are returned in an array"
@@ -333,4 +358,14 @@ VMVectorCollectionSimplifier >> resultCollection [
 	returns a collection of VMLineFittingResult instances.
 	to receive the simplified vectors, use #result instead."
 	^resultCollection
+]
+
+{ #category : #accessing }
+VMVectorCollectionSimplifier >> scoring [
+	^ scoring
+]
+
+{ #category : #accessing }
+VMVectorCollectionSimplifier >> scoring: aVMLFScore [
+	scoring := aVMLFScore
 ]

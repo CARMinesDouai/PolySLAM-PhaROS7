@@ -69,9 +69,9 @@ PSScanManager >> getLastScanOf: name [
 PSScanManager >> initialize [
 	devices := Dictionary new.
 	streams := Dictionary new.
-	obDist := 0.4."meter"
+	obDist := 0.15."0.4meter"
 	linearDelta := 0.4"meter".
-	maxRange := 10. "meter"
+	maxRange := 10. "10 meter"
 	angularDelta := (Float pi / 180) * 20 "degree".
 ]
 

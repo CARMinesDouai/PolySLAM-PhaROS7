@@ -22,7 +22,9 @@ Class {
 		'resultHistory',
 		'sortedResults',
 		'inlierThreshold',
-		'loopStepFactor'
+		'loopStepFactor',
+		'maxRefinementSteps',
+		'scoring'
 	],
 	#category : #'PolySLAM-Core-Line- & Vector Approximation'
 }
@@ -65,7 +67,7 @@ VMLineFitter >> compute: aVectorCollection startVector: aVector [
 	^ self result.
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #computing }
 VMLineFitter >> computeInlierChain: errorCollection [
 	"returns a collection of chained vectors that have an error less than 'inlierThreshold'"
 	| inlierChain |
@@ -85,16 +87,39 @@ VMLineFitter >> computeInlierChain: errorCollection [
 	^inlierChain
 ]
 
-{ #category : #'as yet unclassified' }
-VMLineFitter >> createResultWithLine: line [
-	| errors inlierChain refinedLine refinedErrors result iterationCounter |
+{ #category : #computing }
+VMLineFitter >> computeInlierChain: errorCollection withChain: vectorChain [
+	"returns a collection of chained vectors that have an error less than 'inlierThreshold'"
+	| inlierChain |
 	
-	iterationCounter := 0.
+	inlierChain := vectorChain species new.
+	
+	errorCollection doWithIndex: [ :e :i |
+		e > inlierThreshold ifTrue: [
+			inlierChain ifEmpty: [ inlierChain add: vectorChain first ].
+			^inlierChain
+		].
+		inlierChain add: (vectorChain at: i).
+	].
+	
+	inlierChain ifEmpty: [ inlierChain add: vectorChain first ].
+
+	^inlierChain
+]
+
+{ #category : #computing }
+VMLineFitter >> createResultWithLine: line [
+	| errors inlierChain refinedLine refinedErrors result refinementCounter lastIterationSize |
+	
+	refinementCounter := 0.
 	inlierChain := sampleChain.
 	refinedLine := line.
+	lastIterationSize := 0.
+	
 	"refinement loop"
-	[ iterationCounter < 2 ] whileTrue: [
-		iterationCounter := iterationCounter + 1.
+	[ (refinementCounter < maxRefinementSteps) and: [lastIterationSize ~= inlierChain size] ] whileTrue: [
+		refinementCounter := refinementCounter + 1.
+		lastIterationSize := inlierChain size.
 		"compute square errors for the current line"
 		errors := (VMLineFittingErrorComputer compute: inlierChain line: refinedLine) errorCollection.
 		inlierChain := self computeInlierChain: errors.
@@ -111,7 +136,7 @@ VMLineFitter >> createResultWithLine: line [
 
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #computing }
 VMLineFitter >> createSampleChain [
 	"creates a vector chain that contains vectors that are connected to the start vector and
 	share the same type (e.g. only obstacles, or only frontiers)"
@@ -130,23 +155,42 @@ VMLineFitter >> createSampleChain [
 	]
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #computing }
 VMLineFitter >> evaluateResults [
+	"computes the score for every result in 'resultCollection' and sorts it. the sorted collection is
+	stored in 'sortedResults'."
 	| index resultCollection |
 	
 	index := 0.
-	resultCollection := resultHistory collect: [ :result | index := index + 1. {index.  result.  result score} ].
+	resultCollection := resultHistory collect: [ :result |
+		index := index + 1. {index.  result.  scoring scoreForResult: result} ].
+	
 	sortedResults := resultCollection copy sort: [ :a :b | a last > b last ].
 	"note: the best result (according to the score) is 'sortedResults first'."
 	
 
 ]
 
+{ #category : #computing }
+VMLineFitter >> fittingResult: line chain: vectorChain [
+	"creates an inlier chain that only contains vectors from 'vectorChain' (instead of 'sampleChain')
+	and creates a VMLineFittingResult instance from that."
+	| errorCollection truncatedChain result |
+	
+	errorCollection := (VMLineFittingErrorComputer compute: vectorChain line: line) errorCollection.
+	truncatedChain := self computeInlierChain: errorCollection withChain: vectorChain.
+	result := VMLineFittingResult vectors: truncatedChain errors: errorCollection line: line.
+	
+	^ result
+]
+
 { #category : #initialization }
 VMLineFitter >> initialize [
 	resultHistory := OrderedCollection new.
-	inlierThreshold := 0.02 squared. "square distgance"
+	inlierThreshold := 0.02 squared. "square distance"
 	loopStepFactor := 0.5.
+	maxRefinementSteps := 12.
+	scoring := VMLFScore new.
 ]
 
 { #category : #accessing }
@@ -160,32 +204,41 @@ VMLineFitter >> inlierThreshold: aNumber [
 ]
 
 { #category : #loop }
-VMLineFitter >> iterateOnce: sampleSize [
-	| line |
-	"Transcript show: self class printString; show: ' iterateOnce'; show: ' sampleSize='; show: sampleSize printString; cr."
-	line := VMLinearRegression compute: (sampleChain collect: [:v|v] from: 1 to: sampleSize).
-	resultHistory add: (self createResultWithLine: line).
+VMLineFitter >> iterateOnce: initialSize [
+	"note: one iteration step of the main loop contains multiple refinement steps"
+	| line activeChain truncatedResult fullResult refinementCounter sampleSize |
+	
+	sampleSize := initialSize.
+	refinementCounter := 0.
+	
+	[ refinementCounter < 4 ] whileTrue: [
+		refinementCounter := refinementCounter + 1.
+		activeChain := sampleChain collect: [:v|v] from: 1 to: sampleSize.
+		line := VMLinearRegression compute: activeChain.
+		truncatedResult := self fittingResult: line chain: activeChain.
+		resultHistory add: truncatedResult.
+		fullResult := self fittingResult: line chain: sampleChain.
+		resultHistory add: fullResult.
+		sampleSize := fullResult vectorCollection size.
+	].
 
 ]
 
 { #category : #loop }
 VMLineFitter >> loop [
-	| size minSize |
+	"loop over the different start sizes of the vector chains"
+	| size |
 	
 	size := sampleChain size.
-	minSize := 3.
 	
-	"one 'loop iteration' outside of the loop to ensure that we always have at least one result
-	in 'resultHistory'."
 	self iterateOnce: size.
 	size := (size * loopStepFactor) floor.
-		
-	[ size > minSize ] whileTrue: [
+	
+	[ size > 1 ] whileTrue: [
 		self iterateOnce: size.
 		size := (size * loopStepFactor) floor.
-	].
-	
-	"1 halt."
+	]
+
 ]
 
 { #category : #accessing }
@@ -209,4 +262,14 @@ VMLineFitter >> result [
 { #category : #accessing }
 VMLineFitter >> resultHistory [
 	^resultHistory
+]
+
+{ #category : #accessing }
+VMLineFitter >> scoring [
+	^ scoring
+]
+
+{ #category : #accessing }
+VMLineFitter >> scoring: aVMLFScore [
+	scoring := aVMLFScore.
 ]

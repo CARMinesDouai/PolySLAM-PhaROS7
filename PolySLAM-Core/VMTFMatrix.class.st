@@ -123,6 +123,11 @@ VMTFMatrix >> applyToPoint: aPoint [
 ]
 
 { #category : #converting }
+VMTFMatrix >> asPoint [
+	^ (self at: 1 at: 3) @ (self at: 2 at: 3)
+]
+
+{ #category : #converting }
 VMTFMatrix >> asRenderableElement [
 	^VMTFRenderer model: self
 ]

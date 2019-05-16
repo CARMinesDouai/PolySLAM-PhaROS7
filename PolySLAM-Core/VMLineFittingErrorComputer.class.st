@@ -20,7 +20,7 @@ VMLineFittingErrorComputer >> compute: aVectorCollection line: aLine [
 	line := aLine asVMLine.
 	errorCollection := aVectorCollection
 		collect: [ :vec | self computeErrorVector: vec line: line ]
-		as: OrderedCollection.
+		as: VMRenderCollection.
 	
 	^errorCollection.
 ]

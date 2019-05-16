@@ -22,14 +22,15 @@ Class {
 		'vectorCollection',
 		'errorCollection',
 		'line',
-		'lineHistory'
+		'lineHistory',
+		'cachedError'
 	],
 	#category : #'PolySLAM-Core-Line- & Vector Approximation'
 }
 
 { #category : #'as yet unclassified' }
 VMLineFittingResult class >> rendererClass [
-	^ VMRansacResultRenderer
+	^ VMFittingResultRenderer
 ]
 
 { #category : #'as yet unclassified' }
@@ -38,12 +39,42 @@ VMLineFittingResult class >> vectors: aVectorCollection errors: anErrorCollectio
 		vectorCollection: aVectorCollection;
 		errorCollection: anErrorCollection;
 		line: aLine;
+		checkLineOrientation;
 		yourself
 ]
 
 { #category : #converting }
 VMLineFittingResult >> asRenderableElement [
 	^ self class rendererClass new model: self
+]
+
+{ #category : #'as yet unclassified' }
+VMLineFittingResult >> averageSquareError [
+	| size ase |
+	cachedError ifNotNil: [ ^cachedError ].
+	size := vectorCollection size.
+	ase := (errorCollection reduce: [ :a :b | a + b ]) / size.
+	cachedError := ase.
+	^ ase
+
+]
+
+{ #category : #accessing }
+VMLineFittingResult >> bounds [
+	^ vectorCollection bounds
+]
+
+{ #category : #'as yet unclassified' }
+VMLineFittingResult >> checkLineOrientation [
+	"if the provided line is orientated against the provided vector collection, we flip the orientation of the line"
+	| baseVector deltaAngle |
+	
+	baseVector := vectorCollection first pointA vectorTo: vectorCollection last pointB.
+	deltaAngle := line asVMLineSegment deltaAngle: baseVector.
+	(deltaAngle between: Float halfPi negated and: Float halfPi) ifTrue: [ ^ self ].
+	
+	line := line reversed.
+	
 ]
 
 { #category : #public }
@@ -88,6 +119,7 @@ VMLineFittingResult >> initialize [
 	vectorCollection := OrderedCollection new.
 	errorCollection := OrderedCollection new.
 	lineHistory := OrderedCollection new.
+	cachedError := nil.
 ]
 
 { #category : #accessing }
@@ -147,21 +179,12 @@ VMLineFittingResult >> score [
 	"computes a score value for the result. the score benefits larger collections of inliers
 	(when the average error stays the same) and lower average error (if the inlier count is
 	the same)."
-	| averageSquareError size |
+	| size |
 	vectorCollection ifEmpty: [ ^ 0 ].
 	
 	size := vectorCollection size.
-	averageSquareError := (errorCollection reduce: [ :a :b | a + b ]) / size.
 	
-	averageSquareError = 0 ifTrue: [ ^ 1 ].
-	
-	"debug message"
-	"Transcript
-		show: self class printString, ' score -- size=';
-		show: size printString, ' avgSquareError=', averageSquareError printString;
-		show: ' score=', ((size / (size + 3)) / averageSquareError) printString; cr.
-	"
-	^ (size / (size + 3)) / averageSquareError
+	^ ((size / (size + 1)) ** 8) / (self averageSquareError + 0.0001)
 ]
 
 { #category : #accessing }

@@ -4,3 +4,4 @@ Class {
 	#type : #variable,
 	#category : #'PolySLAM-Core-LinAlgebra'
 }
+

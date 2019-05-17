@@ -144,7 +144,6 @@ PSAdjacencyMatrix >> th [
 	^ th
 ]
 
-
 { #category : #accessing }
 PSAdjacencyMatrix >> th: value [
 	^ th := value
@@ -167,7 +166,6 @@ PSAdjacencyMatrix >> trinaryAdjacencyMatrix [
 ]
 
 { #category : #accessing }
-
 PSAdjacencyMatrix >> vanishingTh [
 	^ vanishingTh
 ]
@@ -179,7 +177,6 @@ PSAdjacencyMatrix >> vanishingTh: anObject [
 ]
 
 { #category : #accessing }
-
 PSAdjacencyMatrix >> variance [
 	^ variance
 ]

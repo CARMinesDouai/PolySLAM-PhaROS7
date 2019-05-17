@@ -37,7 +37,6 @@ DoublyConnectedEdgeList >> addLast: anEdge [
 	tail chain: self
 ]
 
-
 { #category : #enumerating }
 DoublyConnectedEdgeList >> allButFirstDo:aBLock [
 	|i|
@@ -101,7 +100,6 @@ DoublyConnectedEdgeList >> bounds [
 
 ]
 
-
 { #category : #merging }
 DoublyConnectedEdgeList >> close [
 	"|link|"
@@ -115,7 +113,6 @@ DoublyConnectedEdgeList >> close [
 	tail nextLink: head.	
 
 ]
-
 
 { #category : #'instance creation' }
 DoublyConnectedEdgeList >> fromPoints: aCollectionOfPoints withTypes: aCollectionOfTypes [
@@ -142,7 +139,6 @@ DoublyConnectedEdgeList >> initialize [
 	super initialize.
 	size := 0.
 ]
-
 
 { #category : #testing }
 DoublyConnectedEdgeList >> isCCW [
@@ -322,16 +318,12 @@ DoublyConnectedEdgeList >> preProcess:anEdge [
 	size := size + 1.
 ]
 
-
 { #category : #relink }
-
 DoublyConnectedEdgeList >> relinkAll [
 	^ self relinkAllFrom: nil
 ]
 
-
 { #category : #relink }
-
 DoublyConnectedEdgeList >> relinkAllFrom: aLink [
 	|link|
 	link := aLink.
@@ -346,7 +338,6 @@ DoublyConnectedEdgeList >> relinkAllFrom: aLink [
 	] whileFalse.
 	tail := link previousLink.
 ]
-
 
 { #category : #removing }
 DoublyConnectedEdgeList >> removeAll [

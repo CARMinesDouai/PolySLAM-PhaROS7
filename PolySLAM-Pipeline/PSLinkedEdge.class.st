@@ -102,7 +102,6 @@ PSLinkedEdge >> bounds [
 	^ self value bounds
 ]
 
-
 { #category : #computing }
 PSLinkedEdge >> centerPoint [
 	^(((self value pointA) + (self value pointB)) / 2)

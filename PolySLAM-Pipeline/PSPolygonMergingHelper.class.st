@@ -5,11 +5,9 @@ Class {
 		'isReversal',
 		'helper',
 		'chains'
-
 	],
 	#category : #'PolySLAM-Pipeline-Algo'
 }
-
 
 { #category : #'instance creation' }
 PSPolygonMergingHelper class >> from: a and:b helperClass: aClass [
@@ -18,7 +16,6 @@ PSPolygonMergingHelper class >> from: a and:b helperClass: aClass [
 	o helper: aClass new.
 	^ o
 ]
-
 
 { #category : #'as yet unclassified' }
 PSPolygonMergingHelper class >> merge: pA with:pB [
@@ -121,7 +118,6 @@ PSPolygonMergingHelper >> approximateEdgeFrom: pivot to: colinearEdges [
 	
 ]
 
-
 { #category : #accessing }
 PSPolygonMergingHelper >> chains [
 	^ chains
@@ -201,7 +197,6 @@ PSPolygonMergingHelper >> helper [
 PSPolygonMergingHelper >> helper: anObject [
 	helper := anObject
 ]
-
 
 { #category : #initialization }
 PSPolygonMergingHelper >> initialize [

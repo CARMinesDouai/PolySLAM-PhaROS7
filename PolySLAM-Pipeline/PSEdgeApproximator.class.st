@@ -3,33 +3,122 @@ Class {
 	#superclass : #DoubleLink,
 	#instVars : [
 		'segments',
-		'from',
-		'to',
-		'approxLine',
-		'score'
+		'approxChain',
+		'score',
+		'th'
 	],
 	#category : #'PolySLAM-Pipeline-Algo'
 }
 
+{ #category : #'instance creation' }
+PSEdgeApproximator class >> from: list [
+	^ self new segments: list; yourself
+]
+
 { #category : #accessing }
-PSEdgeApproximator >> approxLine [
-	^ approxLine
+PSEdgeApproximator >> approxChain [
+	^ approxChain
 ]
 
 { #category : #approximation }
 PSEdgeApproximator >> approximate [
-	"calculate the approximate line + its overal error"
+	
+	self approximateChain:(self loopOverChain: self makeChain ).
+	"{chain. approxChain } asRenderableElement inspect."
 ]
 
-{ #category : #accessing }
-PSEdgeApproximator >> from [
-	^ from
+{ #category : #approximation }
+PSEdgeApproximator >> approximateChain: fitterResult [
+	|startPoint endPoint line segment  lastPoint adjacenLine|
+	approxChain := OrderedCollection new.
+	line := fitterResult first line asVMLine.
+	
+	"find start and end point of the  chain"
+	segment := fitterResult last vectorCollection last.
+	endPoint := line projectionPoint: segment pointB.
+	
+	segment := fitterResult first vectorCollection first.
+	startPoint := line projectionPoint: segment pointA.
+	
+	lastPoint := startPoint.
+	
+	"get all intersection point two adjacenLine"
+	fitterResult removeFirst.
+	fitterResult do:[:e|
+		adjacenLine := e line asVMLine.
+		line ifIntersectsWith: adjacenLine  do: [:point :u :t |
+			approxChain add:(VMLineSegment from: lastPoint to: point  type: segment type).
+			lastPoint := point.
+		].
+		segment := e vectorCollection first.
+		line := adjacenLine.
+	].
+	approxChain add:(VMLineSegment from: lastPoint to: endPoint  type: segment type).
 ]
 
 { #category : #initialization }
 PSEdgeApproximator >> initialize [
 	super initialize.
-	segments := OrderedCollection new
+	segments := OrderedCollection new.
+	th := 0.05
+]
+
+{ #category : #'basic algorithm' }
+PSEdgeApproximator >> loopOverChain: vectorChain [
+	| startIndex fittingResult resultCollection scoring|
+	scoring := VMLFScore new.
+	startIndex := 1.
+	resultCollection := OrderedCollection new.
+	"initial run with full length"
+	fittingResult := (VMLineFitter new) scoring: scoring; inlierThreshold: th;
+		compute: vectorChain startVector: vectorChain first.
+	startIndex := startIndex + fittingResult vectorCollection size.
+	resultCollection add: fittingResult.
+	
+	"if the line fitting does not include all vectors from the chain, we continue with the remaining vectors until all are covered"
+	[startIndex <= vectorChain size] whileTrue: [
+		fittingResult := (VMLineFitter new) scoring: scoring; inlierThreshold: th;
+			compute: (vectorChain collect: [:v|v] from: startIndex to: vectorChain size) startVector: (vectorChain at: startIndex).
+		startIndex := startIndex + fittingResult vectorCollection size.
+		resultCollection add: fittingResult.
+	].
+	^ resultCollection 
+]
+
+{ #category : #'basic algorithm' }
+PSEdgeApproximator >> makeChain [
+	| dvector  tree point chain lA lB ltype |
+	dvector := self segments first directionVector.
+
+	tree := BTree order: 4.
+	self segments do:[:l|
+		l asPSVertices do:[:v|
+			tree at: (PSVertexDirectionKey from: v unitVector: dvector) put:v.
+		]	
+	].
+	"now make the chain"
+	chain := VMVectorChainCollection new.
+	point := nil.
+	tree do:[:v|
+		point
+			ifNil: [
+				point := v.
+			]
+			ifNotNil: [
+				lA := point segments first value.
+				lB := v segments first value.
+				lA type = lB type
+					ifTrue:[ ltype := lA type asInteger]
+					ifFalse:[
+						point isEnd
+							ifTrue: [ltype := lB type asInteger ]
+							ifFalse:[ltype := 1]
+					].
+				chain add: (VMLineSegment pointA: point asPoint pointB: v asPoint  type: ltype).
+				point := v
+			] 
+	].
+	^ chain
 ]
 
 { #category : #accessing }
@@ -48,6 +137,11 @@ PSEdgeApproximator >> segments: anObject [
 ]
 
 { #category : #accessing }
-PSEdgeApproximator >> to [
-	^ to
+PSEdgeApproximator >> th [
+	^ th
+]
+
+{ #category : #accessing }
+PSEdgeApproximator >> th: anObject [
+	th := anObject
 ]

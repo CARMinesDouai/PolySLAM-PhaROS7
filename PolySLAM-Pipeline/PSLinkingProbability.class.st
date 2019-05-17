@@ -1,6 +1,5 @@
 Class {
 	#name : #PSLinkingProbability,
-
 	#superclass : #PSColinearProbability,
 	#category : #'PolySLAM-Pipeline-Algo'
 }
@@ -9,7 +8,6 @@ Class {
 PSLinkingProbability class >> from: lineA and: lineB [
 	^ self new lineA: lineA; lineB: lineB; yourself.
 ]
-
 
 { #category : #probability }
 PSLinkingProbability >> probability [

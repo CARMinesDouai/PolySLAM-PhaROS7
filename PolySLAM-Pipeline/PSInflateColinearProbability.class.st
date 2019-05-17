@@ -1,28 +1,8 @@
 Class {
 	#name : #PSInflateColinearProbability,
-	#superclass : #PSProbability,
-	#instVars : [
-		'outlier'
-	],
+	#superclass : #PSInflateProbability,
 	#category : #'PolySLAM-Pipeline-Algo'
 }
-
-{ #category : #initialization }
-PSInflateColinearProbability >> initialize [
-	super initialize.
-	outlier := 0.05. "5mm"
-	
-]
-
-{ #category : #accessing }
-PSInflateColinearProbability >> outlier [
-	^ outlier
-]
-
-{ #category : #accessing }
-PSInflateColinearProbability >> outlier: anObject [
-	outlier := anObject
-]
 
 { #category : #probability }
 PSInflateColinearProbability >> probability [
@@ -33,9 +13,9 @@ PSInflateColinearProbability >> probability [
 	(pair value first dist: pair value second) > (lineA length + (lineB length))
 		ifTrue:[^0].
 	line := lineA value asVMLine.
-	(line distanceToPoint: lineB value pointA) > self outlier
+	(line distanceToPoint: lineB value pointA) > self inlier
 		ifTrue:[^ 0].
-	(line distanceToPoint: lineB value pointB) > self outlier
+	(line distanceToPoint: lineB value pointB) > self inlier
 		ifTrue:[^ 0].
 	^ 1
 ]

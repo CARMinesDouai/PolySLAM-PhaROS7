@@ -41,11 +41,11 @@ PSProbabilistPolygonIntersectionHelper >> calculateProbability [
 	collection := OrderedCollection new.
 	polygonA linksDo:[:e| e id:idx. collection add:e.  idx := idx +1].
 	polygonB linksDo:[:e| e id:idx. collection add:e.  idx := idx +1].
-	matrix := PSAdjacencyMatrix fromLines: collection probabilityHelper: PSMaxJoinProbability.
+	matrix := PSAdjacencyMatrix fromLines: collection probabilityHelper: PSInflateOverlapProbability.
 	"matrix vanishingTh: 0.1."
 	"self halt."
 	"matrix inspect."
-	matrix := matrix trinaryAdjacencyMatrix makeSymetric.
+	matrix := matrix  makeSymetric.
 ]
 
 { #category : #public }

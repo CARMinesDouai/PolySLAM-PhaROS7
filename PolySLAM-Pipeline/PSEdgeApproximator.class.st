@@ -1,11 +1,13 @@
 Class {
 	#name : #PSEdgeApproximator,
-	#superclass : #DoubleLink,
+	#superclass : #Object,
 	#instVars : [
 		'segments',
 		'approxChain',
 		'score',
-		'th'
+		'th',
+		'firstEdge',
+		'lastEdge'
 	],
 	#category : #'PolySLAM-Pipeline-Algo'
 }
@@ -29,31 +31,48 @@ PSEdgeApproximator >> approximate [
 
 { #category : #approximation }
 PSEdgeApproximator >> approximateChain: fitterResult [
-	|startPoint endPoint line segment  lastPoint adjacenLine|
-	approxChain := OrderedCollection new.
+	|startPoint endPoint line segment segmentA segmentB  lastPoint adjacenLine|
+	approxChain := DoublyConnectedEdgeList new.
 	line := fitterResult first line asVMLine.
 	
 	"find start and end point of the  chain"
-	segment := fitterResult last vectorCollection last.
-	endPoint := line projectionPoint: segment pointB.
+	segmentB := fitterResult last vectorCollection last.
+	endPoint := segmentB pointB.
 	
-	segment := fitterResult first vectorCollection first.
-	startPoint := line projectionPoint: segment pointA.
+	segmentA := fitterResult first vectorCollection first.
+	startPoint := "line projectionPoint: "segmentA pointA.
 	
 	lastPoint := startPoint.
-	
+	segment := segmentA.
 	"get all intersection point two adjacenLine"
 	fitterResult removeFirst.
 	fitterResult do:[:e|
 		adjacenLine := e line asVMLine.
 		line ifIntersectsWith: adjacenLine  do: [:point :u :t |
-			approxChain add:(VMLineSegment from: lastPoint to: point  type: segment type).
+			approxChain add:(VMLineSegment from: lastPoint to: point  type: segment type) asPSLinkedEdge.
 			lastPoint := point.
 		].
 		segment := e vectorCollection first.
 		line := adjacenLine.
 	].
-	approxChain add:(VMLineSegment from: lastPoint to: endPoint  type: segment type).
+	approxChain add:(VMLineSegment from: lastPoint to: endPoint  type: segment type) asPSLinkedEdge.
+	"approxChain firstLink previousLink: segmentA previousLink.
+	approxChain lastLink nextLink: segmentB  nextLink"
+]
+
+{ #category : #converting }
+PSEdgeApproximator >> asRenderableElement [
+	^ approxChain  asRenderableElement
+]
+
+{ #category : #accessing }
+PSEdgeApproximator >> firstEdge [
+	^ firstEdge
+]
+
+{ #category : #testing }
+PSEdgeApproximator >> hasId: anId [
+	^(self segments collect:[:e| e id]) includes: anId
 ]
 
 { #category : #initialization }
@@ -61,6 +80,11 @@ PSEdgeApproximator >> initialize [
 	super initialize.
 	segments := OrderedCollection new.
 	th := 0.05
+]
+
+{ #category : #accessing }
+PSEdgeApproximator >> lastEdge [
+	^ lastEdge
 ]
 
 { #category : #'basic algorithm' }
@@ -97,6 +121,8 @@ PSEdgeApproximator >> makeChain [
 		]	
 	].
 	"now make the chain"
+	firstEdge := tree first segments first.
+	lastEdge  := tree last segments first.
 	chain := VMVectorChainCollection new.
 	point := nil.
 	tree do:[:v|
@@ -122,6 +148,16 @@ PSEdgeApproximator >> makeChain [
 ]
 
 { #category : #accessing }
+PSEdgeApproximator >> nextEdge [
+	^ lastEdge nextEdge
+]
+
+{ #category : #accessing }
+PSEdgeApproximator >> previousEdge [
+	^ firstEdge previousEdge 
+]
+
+{ #category : #accessing }
 PSEdgeApproximator >> score [
 	^ score
 ]
@@ -144,4 +180,9 @@ PSEdgeApproximator >> th [
 { #category : #accessing }
 PSEdgeApproximator >> th: anObject [
 	th := anObject
+]
+
+{ #category : #accessing }
+PSEdgeApproximator >> visited: bool [
+	self segments do:[:e| e visited: bool]
 ]

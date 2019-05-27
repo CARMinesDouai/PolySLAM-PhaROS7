@@ -14,7 +14,7 @@ Class {
 PSLinkedEdge class >> from: pointA to:pointB type: type [
 	|line|
 	"the line is collapse to a point"
-	(pointA inrangeOf: pointB) ifTrue:[^nil].
+	"(pointA inrangeOf: pointB) ifTrue:[^nil]."
 	line := self new.
 	line value: (VMLineSegment from: pointA asPSVertex to: pointB asPSVertex type: type).
 	(line value pointA vertexType: 0) segments removeAll; add: line.
@@ -132,6 +132,16 @@ PSLinkedEdge >> directionVector [
 ]
 
 { #category : #accessing }
+PSLinkedEdge >> firstEdge [
+	^ self
+]
+
+{ #category : #testing }
+PSLinkedEdge >> hasId: anId [
+	^ id = anId
+]
+
+{ #category : #accessing }
 PSLinkedEdge >> id [
 	^ id
 ]
@@ -171,6 +181,11 @@ PSLinkedEdge >> isCollinearWithPoint: aPoint [
 ]
 
 { #category : #accessing }
+PSLinkedEdge >> lastEdge [
+	^ self
+]
+
+{ #category : #accessing }
 PSLinkedEdge >> length [
 	^ self value length
 ]
@@ -198,6 +213,11 @@ PSLinkedEdge >> nearestIntersectionPoint [
 	^intersectionPoints first
 ]
 
+{ #category : #accessing }
+PSLinkedEdge >> nextEdge [
+	^ self nextLink
+]
+
 { #category : #adding }
 PSLinkedEdge >> nextIntersectionOf: vertex [
 	"find the next intersection point from a vertex"
@@ -216,6 +236,11 @@ PSLinkedEdge >> normal [
 	^ self value normal 
 ]
 
+{ #category : #accessing }
+PSLinkedEdge >> previousEdge [
+	^ self previousLink 
+]
+
 { #category : #printing }
 PSLinkedEdge >> printString [
 	^ self value asString
@@ -232,6 +257,11 @@ PSLinkedEdge >> project: anotherEdge [
 { #category : #converting }
 PSLinkedEdge >> reversed [
 	^PSLinkedEdge from: self value pointB asPoint to: self value pointA asPoint  type: self value type
+]
+
+{ #category : #accessing }
+PSLinkedEdge >> segments [
+	 ^ { self }
 ]
 
 { #category : #accessing }

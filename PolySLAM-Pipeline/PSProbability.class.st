@@ -20,6 +20,12 @@ PSProbability >> farestVertices [
 	^self verticesDistance  max value
 ]
 
+{ #category : #'instance creation' }
+PSProbability >> from: lA and:lB [
+	lineA := lA.
+	lineB := lB
+]
+
 { #category : #initialization }
 PSProbability >> initialize [
 	super initialize.

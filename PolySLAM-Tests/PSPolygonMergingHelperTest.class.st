@@ -6,15 +6,15 @@ Class {
 
 { #category : #tests }
 PSPolygonMergingHelperTest >> testMerge [
-	|c pA pB helper helper1|
+	|c pA pB helper|
 	c := FLMaterializer materializeFromFileNamed: '/home/mrsang/kf-test.fuel'.
-	pA := (VMVectorCollectionSimplifier compute: ((c at:3) polygon) inlierThreshold: 0.01 ) result.
-	pB := (VMVectorCollectionSimplifier compute: ((c at:4) polygon) inlierThreshold: 0.01 ) result.
+	pA := (VMVectorCollectionSimplifier compute: ((c at:1) polygon) inlierThreshold: 0.01 ) result.
+	pB := (VMVectorCollectionSimplifier compute: ((c at:2) polygon) inlierThreshold: 0.01 ) result.
 	"helper1 :=PSPolygonIntersectionHelper  from: pA and: pB.
 	helper1 perform."
 	{ pA. pB. } asRenderableElement inspect.
 	
-	helper := PSPTMHelper from: pA and: pB.
+	helper := PSLinkedTree from: pA and: pB.
 	helper perform.
 ]
 

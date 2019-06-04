@@ -13,8 +13,10 @@ PSLinkingLeaf >> connectedRoots [
 ]
 
 { #category : #'instance creation' }
-PSLinkingLeaf >> from: aValue with: nodes [
+PSLinkingLeaf >> from: aValue with: list [
+	|nodes|
 	nodeValue := aValue.
+	nodes := list select:[:e| self hasAncestor: e].
 	connectedRoots := nodes.
 	nodes isEmpty
 		ifTrue:[

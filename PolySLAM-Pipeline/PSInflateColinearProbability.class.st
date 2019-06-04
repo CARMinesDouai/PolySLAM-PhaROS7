@@ -5,9 +5,8 @@ Class {
 }
 
 { #category : #probability }
-PSInflateColinearProbability >> probability [
-	| line|
-	lineA chain = lineB chain ifTrue:[^ 0].
+PSInflateColinearProbability >> colinearity [
+	|line|
 	(lineA directionVector dotProduct: (lineB directionVector)) < 0
 		ifTrue:[^0].
 	line := lineA value asVMLine.
@@ -16,4 +15,10 @@ PSInflateColinearProbability >> probability [
 	(line distanceToPoint: lineB value pointB) > self inlier
 		ifTrue:[^ 0].
 	^ 1
+]
+
+{ #category : #probability }
+PSInflateColinearProbability >> probability [
+	lineA chain = lineB chain ifTrue:[^ 0].
+	^self colinearity
 ]

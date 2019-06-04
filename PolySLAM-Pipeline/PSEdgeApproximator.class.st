@@ -49,13 +49,19 @@ PSEdgeApproximator >> approximateChain: fitterResult [
 	fitterResult do:[:e|
 		adjacenLine := e line asVMLine.
 		line ifIntersectsWith: adjacenLine  do: [:point :u :t |
-			approxChain add:(VMLineSegment from: lastPoint to: point  type: segment type) asPSLinkedEdge.
+			(lastPoint dist: point) > 1e-6
+				ifTrue:[
+				approxChain add:(VMLineSegment from: lastPoint to: point  type: segment type) asPSLinkedEdge.
+				].
 			lastPoint := point.
 		].
 		segment := e vectorCollection first.
 		line := adjacenLine.
 	].
-	approxChain add:(VMLineSegment from: lastPoint to: endPoint  type: segment type) asPSLinkedEdge.
+	(lastPoint dist:endPoint) > 1e-6
+		ifTrue:[
+		approxChain add:(VMLineSegment from: lastPoint to: endPoint  type: segment type) asPSLinkedEdge.
+		]
 	"approxChain firstLink previousLink: segmentA previousLink.
 	approxChain lastLink nextLink: segmentB  nextLink"
 ]
@@ -63,6 +69,11 @@ PSEdgeApproximator >> approximateChain: fitterResult [
 { #category : #converting }
 PSEdgeApproximator >> asRenderableElement [
 	^ approxChain  asRenderableElement
+]
+
+{ #category : #accessing }
+PSEdgeApproximator >> bounds [
+	^ approxChain bounds 
 ]
 
 { #category : #accessing }
@@ -138,7 +149,7 @@ PSEdgeApproximator >> makeChain [
 					ifFalse:[
 						point isEnd
 							ifTrue: [ltype := lB type asInteger ]
-							ifFalse:[ltype := 1]
+							ifFalse:[ltype := lA type asInteger]
 					].
 				chain add: (VMLineSegment pointA: point asPoint pointB: v asPoint  type: ltype).
 				point := v

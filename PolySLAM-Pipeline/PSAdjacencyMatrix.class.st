@@ -6,7 +6,8 @@ Class {
 		'variance',
 		'entropy',
 		'th',
-		'vanishingTh'
+		'vanishingTh',
+		'zeros'
 	],
 	#category : #'PolySLAM-Pipeline-Algo'
 }
@@ -48,6 +49,12 @@ PSAdjacencyMatrix class >> fromLines: aCollections probabilityHelper: aHelperCla
 	
 ]
 
+{ #category : #accessing }
+PSAdjacencyMatrix >> at: r at: c put: v [
+	v ~= 0 ifTrue:[zeros := false].
+	super at: r at: c  put: v 
+]
+
 { #category : #calculating }
 PSAdjacencyMatrix >> binaryAdjacencyMatrix [
 	|brows|
@@ -66,9 +73,14 @@ PSAdjacencyMatrix >> entropy [
 { #category : #initialization }
 PSAdjacencyMatrix >> initialize [
 	super initialize.
-
+	zeros := true.
 	vanishingTh := 0.55
 
+]
+
+{ #category : #testing }
+PSAdjacencyMatrix >> isZeros [
+	^ zeros 
 ]
 
 { #category : #laplace }
@@ -121,9 +133,11 @@ PSAdjacencyMatrix >> mvet [
 	"mean variance entroy and automatic threshold"
 	values := self nonVaninshingElements.
 	size := values size.
+
 	mean :=  (values sum) /  size.
 	variance := (values collect:[:e| (mean - e) squared]) sum / size.
 	entropy := (0 - ((values collect:[:e| e*(e log:2) ]) sum)) / size.
+
 
 	th := mean - (variance sqrt) + (entropy).
 	"th := 0.55."

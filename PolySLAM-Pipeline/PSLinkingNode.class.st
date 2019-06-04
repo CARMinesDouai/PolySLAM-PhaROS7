@@ -24,19 +24,27 @@ PSLinkingNode >> allConnectedComponents [
 		leaf isConnected ifTrue: [
 			leaf connectedRoots do:[:rootIdx|
 				currentNode := leaf.
-				chain := OrderedCollection new.
+				chain := VMPolygon new.
 				[
-					currentNode ifNotNil: [  
-						chain addFirst: currentNode nodeValue.
+					currentNode ifNotNil: [
+						currentNode nodeValue class = PSEdgeApproximator
+							ifTrue:[
+								currentNode nodeValue approxChain reverseLinksDo:  [:e|
+									chain addFirst: e value]						
+							]
+							ifFalse:[
+								chain addFirst: currentNode nodeValue value  ] .
 						currentNode nodeValue hasId: rootIdx
 					]
 					ifNil: [ true ] 
 				] whileFalse: [currentNode := currentNode parent].
 				currentNode ifNotNil:[
-					components add: chain]
+					chain size > 2 ifTrue:[
+						components add: (self relink:chain)]]
 			]
 		]
 	].
+	
 	^ components 
 ]
 
@@ -56,25 +64,37 @@ PSLinkingNode >> from: anObject with: decisionHelper [
 	|colinearEdges linkedEdges child|
 	connected := false.
 	colinearEdges := decisionHelper colinearTo: anObject.
+	colinearEdges ifNil: [ ^nil ].
 	nodeValue := colinearEdges.
 	"find all possible child"
 	linkedEdges := (decisionHelper linkedTo: nodeValue lastEdge).
-	children := BTree order: 4.
+	children := OrderedCollection new.
 	nodeValue visited: true.
-	linkedEdges  do:[:e| e visited = false ifTrue:[
-		child := (PSLinkingNode from: e parent: self  with: decisionHelper ).
-		child isConnected
-			ifTrue:[
-				children at: (PSEdgePriorityKey from: e)  put:  child.
-				connected := true.
-			]
-	]].
+	"linkedEdges asRenderableElement inspect.
+	self halt."
+	linkedEdges  do:[:e| e visited ifFalse:[
+		"(children isEmpty ) ifTrue: [ " 
+			child := (PSLinkingNode from: e parent: self  with: decisionHelper).
+			child ifNotNil: [  
+				(child isConnected)
+					ifTrue:[
+						children add:  child.
+						connected := true.
+				]]]]"]".
 	nodeValue visited: connected.
 	children isEmpty
 		ifTrue:[
-			^ PSLinkingLeaf from: nodeValue parent: self parent with: (linkedEdges  collect:[:e| e id])]
+			^ PSLinkingLeaf from: nodeValue parent: self parent with: (linkedEdges asOrderedCollection collect:[:e| e id])]
 	
 	
+]
+
+{ #category : #testing }
+PSLinkingNode >> hasAncestor: id [
+	"nodeValue ifNil: [ ^false ]."
+	(nodeValue hasId: id) ifTrue:[^ true].
+	parent ifNil: [ ^false ].
+	^ parent hasAncestor: id
 ]
 
 { #category : #initialization }
@@ -152,4 +172,40 @@ PSLinkingNode >> parent [
 { #category : #accessing }
 PSLinkingNode >> parent: anObject [
 	parent := anObject
+]
+
+{ #category : #'as yet unclassified' }
+PSLinkingNode >> relink: list [
+	|polygon  newSeg seg prevSeg nextSeg pointA pointB aChain|
+	aChain := list asDoublyConnectedEdgeList.
+	polygon := VMPolygon new.
+	aChain close.
+	aChain linksDo:[:link|
+		newSeg := VMLineSegment new.
+		seg := link value value.
+		prevSeg := link previousLink value value.
+		nextSeg := link nextLink value value.
+		newSeg type: seg type.
+		prevSeg isObstacle
+			ifTrue:[
+				pointA := prevSeg pointB asPoint]
+			ifFalse:[
+				pointA := seg pointA asPoint].
+		seg isObstacle
+			ifTrue:[
+				pointB := seg pointB asPoint]
+			ifFalse:[
+				pointB := nextSeg pointA asPoint].
+		(pointA dist: pointB) > 0.000001 ifTrue:[
+			newSeg pointA: pointA; pointB: pointB.
+			polygon add: newSeg
+		]
+	].
+	^ polygon 
+]
+
+{ #category : #accessing }
+PSLinkingNode >> reset [
+	nodeValue visited: false.
+	children do:[:e| e reset]
 ]

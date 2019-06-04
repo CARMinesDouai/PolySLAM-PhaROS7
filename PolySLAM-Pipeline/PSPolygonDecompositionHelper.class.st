@@ -3,7 +3,8 @@ Class {
 	#superclass : #PSPolygonOperationHelper,
 	#instVars : [
 		'helper',
-		'vertices'
+		'vertices',
+		'disjoint'
 	],
 	#category : #'PolySLAM-Pipeline-Algo'
 }
@@ -65,7 +66,12 @@ PSPolygonDecompositionHelper >> helper: anObject [
 { #category : #initialization }
 PSPolygonDecompositionHelper >> initialize [
 	super initialize.
-	helper := PSProbabilistPolygonIntersectionHelper  new.
+	helper := PSProbabilistPolygonIntersectionHelper new.
+]
+
+{ #category : #testing }
+PSPolygonDecompositionHelper >> isDisjoint [
+	^ disjoint
 ]
 
 { #category : #public }
@@ -76,6 +82,11 @@ PSPolygonDecompositionHelper >> perform [
 	helper perform.
 	list := Set new.
 	vertices := Dictionary new.
+	helper intersections isEmpty ifTrue:[
+		disjoint := true.
+		^self
+	].
+	disjoint := false.
 	helper intersections do:[:vx|
 		vertices at: vx asPoint put: Set new.
 		vx segments do:[:l | list add: l] ].

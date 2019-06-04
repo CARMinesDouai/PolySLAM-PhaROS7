@@ -26,9 +26,11 @@ PSInflateDecisionHelper >> colinearTo: anEdge [
 		exclude: vset
 		baseline: anEdge id.
 	
-	result size = 1
-		ifTrue:[ ^ anEdge ].
 	result := result asOrderedCollection  select: [:e| e visited  = false  ].
+	result size = 1
+		ifTrue:[ ^ result first ].
+	result size = 0
+		ifTrue:[ ^ nil ].
 	^ (PSEdgeApproximator from: result asOrderedCollection) approximate; yourself
 ]
 
@@ -45,7 +47,7 @@ PSInflateDecisionHelper >> collectColinearEdgesAt: idx  to: segs exclude: visite
 		((row at: i) = 1) 
 			ifTrue:[
 				prob from: (collection at:base) and:(collection at:i).
-				prob probability = 1 ifTrue:[ 
+				prob colinearity = 1 ifTrue:[ 
 					self collectColinearEdgesAt: i
 						to: segs
 						exclude: visitedSet  	
@@ -66,7 +68,6 @@ PSInflateDecisionHelper >> from: anEdgeCollection [
 	cmatrix := cmatrix makeSymetric.
 	lmatrix := PSAdjacencyMatrix fromLines: anEdgeCollection probabilityHelper: lhelper.
 	collection := anEdgeCollection.
-	
 ]
 
 { #category : #initialization }
@@ -85,15 +86,21 @@ PSInflateDecisionHelper >> inlier: anObject [
 	inlier := anObject
 ]
 
+{ #category : #testing }
+PSInflateDecisionHelper >> isDisjoint [
+	^cmatrix isZeros 
+]
+
 { #category : #querying }
 PSInflateDecisionHelper >> linkedTo: anEdge [
-	|result|
-	result := OrderedCollection new.
-	
-	(lmatrix rowAt: anEdge id) withIndexDo: [ :v :i|
-		v = 1 ifTrue:[
-			result add: (collection at:i)
-		]].
+	|result edge|
+	result := BTree order:4.
+	"anEdge segments do:[:e|"
+		(lmatrix rowAt: anEdge id) withIndexDo: [ :v :i|
+			v = 1 ifTrue:[
+				edge := collection at:i.
+				result at: (PSEdgePriorityKey from: edge)  put: edge
+			]]"]".
 	"result := result  select: [:e| e visited  = false  ]."
 	^ result
 ]

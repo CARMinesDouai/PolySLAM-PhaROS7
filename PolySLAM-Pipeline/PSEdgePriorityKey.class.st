@@ -28,7 +28,9 @@ PSEdgePriorityKey >> compare: anotherKey [
 
 { #category : #accessing }
 PSEdgePriorityKey >> compareFrontier: anotherKey [
-	(edge value isPointOnRightSide: anotherKey edge value pointB)
+	|point|
+	point := anotherKey edge centerPoint.
+	(edge value isPointOnRightSide: point)
 					ifTrue:[ ^ 1 ]
 					ifFalse: [ ^ -1 ]
 ]
@@ -43,7 +45,9 @@ PSEdgePriorityKey >> compareMixed: anotherKey [
 
 { #category : #accessing }
 PSEdgePriorityKey >> compareObstacles: anotherKey [
-	(edge value isPointOnLeftSide: anotherKey edge value pointB)
+	|point|
+	point := anotherKey edge centerPoint.
+	(edge value isPointOnLeftSide: point)
 					ifTrue:[ ^ 1 ]
 					ifFalse: [ ^ -1 ]
 ]

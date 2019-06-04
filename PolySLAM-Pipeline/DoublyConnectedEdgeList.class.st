@@ -104,13 +104,11 @@ DoublyConnectedEdgeList >> bounds [
 DoublyConnectedEdgeList >> close [
 	"|link|"
 	head ifNil: [ ^self ].
-	head previousLink ifNotNil: [ ^self ].
-	tail nextLink ifNotNil: [ ^self ].
+	head previousLink ifNil: [ 	head previousLink: tail ].
+	tail nextLink ifNil: [ tail nextLink: head. ].
 	"link := (VMLineSegment from: tail value pointB to: head value pointA  type: (VMLineType fromInteger: 2)) asPSLinkedEdge. 
 	link previousLink: tail.
 	link nextLink: head."
-	head previousLink: tail.
-	tail nextLink: head.	
 
 ]
 

@@ -24,9 +24,15 @@ PSEdgeApproximator >> approxChain [
 
 { #category : #approximation }
 PSEdgeApproximator >> approximate [
+	|chain result|
+	chain := self makeChain.
+	[  
+		result:= self loopOverChain: chain.
+		self approximateChain: result.
+	] on: Error do:[
+		approxChain := chain asDoublyConnectedEdgeList
+	]. 
 	
-	self approximateChain:(self loopOverChain: self makeChain ).
-	"{chain. approxChain } asRenderableElement inspect."
 ]
 
 { #category : #approximation }
@@ -98,6 +104,11 @@ PSEdgeApproximator >> lastEdge [
 	^ lastEdge
 ]
 
+{ #category : #accessing }
+PSEdgeApproximator >> linkedEdges [
+	^ segments collect: [ :e| e nextLink ]
+]
+
 { #category : #'basic algorithm' }
 PSEdgeApproximator >> loopOverChain: vectorChain [
 	| startIndex fittingResult resultCollection scoring|
@@ -127,9 +138,10 @@ PSEdgeApproximator >> makeChain [
 
 	tree := BTree order: 4.
 	self segments do:[:l|
-		l asPSVertices do:[:v|
-			tree at: (PSVertexDirectionKey from: v unitVector: dvector) put:v.
-		]	
+		l value length > 1e-6 ifTrue:[
+			l asPSVertices do:[:v|
+				tree at: (PSVertexDirectionKey from: v unitVector: dvector) put:v.
+		]]	
 	].
 	"now make the chain"
 	firstEdge := tree first segments first.

@@ -8,23 +8,25 @@ Class {
 PSPolygonMergingHelperTest >> testMerge [
 	|c helper polygon collections pA pB |
 	c := FLMaterializer materializeFromFileNamed: '/home/mrsang/kf-test.fuel'.
-	"pA := (VMVectorCollectionSimplifier compute: ((c at:1) polygon) inlierThreshold: 0.01 ) result.
-	pB := (VMVectorCollectionSimplifier compute: ((c at:2) polygon) inlierThreshold: 0.01 ) result.
+	pA := (VMVectorCollectionSimplifier compute: ((c at:2) polygon) inlierThreshold: 0.01 ) result.
+	pB := (VMVectorCollectionSimplifier compute: ((c at:15) polygon) inlierThreshold: 0.01 ) result.
 	{ pA. pB. } asRenderableElement inspect.
 	
-	helper := PSLinkedTree from: pA and: pB.
+	helper := PSLinkingTreeQuery from: pA and: pB.
 	helper perform.
-	((helper tree collect:[:e| e allConnectedComponents ] thenSelect:[:e| (e isNotEmpty)  ]) asRenderableElement )  inspect."
-	helper := PSMapMerger new.
+	(helper chains asRenderableElement )  inspect.
+	"helper := PSMapMerger new.
 	collections := OrderedCollection new.
 	
 	1 to: 20 do:[:i|
-		polygon := (VMVectorCollectionSimplifier compute: ((c at:i) polygon) inlierThreshold: 0.01 ) result.
+		
+		polygon := ((c at:i) polygon) .
 		helper consume: polygon.
-		collections add: polygon 
+		collections add: polygon.
+		Transcript show: 'processed ', i asString; cr.
 	].
 	collections asRenderableElement inspect.
-	helper chains asRenderableElement inspect.
+	helper chains asRenderableElement inspect."
 ]
 
 { #category : #tests }

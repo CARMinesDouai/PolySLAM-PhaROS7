@@ -14,42 +14,40 @@ PSMapMerger >> chains [
 
 { #category : #'as yet unclassified' }
 PSMapMerger >> consume: polygon [
-	|helper newchains components|
-	chains ifNil: [ 
-		chains := OrderedCollection new.
-		chains add: polygon.
-		^ self.	
-	].
-	newchains := OrderedCollection new.
-	chains do:[:chain|
-		helper := PSLinkedTree from: chain and: polygon.
-
-		helper perform.
-		components := (helper tree collect:[:e| e allConnectedComponents ] thenSelect:[:e| (e isNotEmpty)  ]).
-		
-		components isEmpty
-			ifTrue:[ newchains add: chain]
-			ifFalse:[
-				components do:[:e| |comp|
-					comp := self selectComponent: e.
-					comp ifNotNil: [ newchains add: comp ]
-				]]
-		
-	].
-	chains := newchains
+	chains add: polygon.
+	self merge
 ]
 
-{ #category : #'as yet unclassified' }
-PSMapMerger >> selectComponent: aCollection [
-	|comp maxarea a|
-	comp := aCollection first.
-	maxarea := comp area.
-	aCollection removeFirst.
-	aCollection do:[:e|
-		a := e area.
-		a > maxarea ifTrue: [ 
-			maxarea := a.
-			comp := e.
-		]].
-	^ comp
+{ #category : #initialization }
+PSMapMerger >> initialize [
+	super initialize.
+	chains := OrderedCollection new.
+]
+
+{ #category : #actions }
+PSMapMerger >> makeMatrix [
+	^PSPolygonOverlapMatrix from: chains
+]
+
+{ #category : #actions }
+PSMapMerger >> merge [
+	|matrix pair pA pB helper exclusive|
+	matrix := self makeMatrix.
+	[
+		pair := matrix nextPair.
+		pair isNil
+	] whileFalse: [ 
+		pA := chains at: pair x.
+		pB := chains at: pair y.
+		chains remove: pA.
+		chains remove: pB.
+		helper := PSLinkingTreeQuery from:pA and: pB.
+		helper perform
+			ifTrue:[
+				helper chains do:[:c| chains add:c]]
+			"ifFalse:[
+				chains add: pA; add: pB	
+			]".
+		matrix := self makeMatrix 
+	]
 ]

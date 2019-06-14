@@ -133,7 +133,10 @@ PSAdjacencyMatrix >> mvet [
 	"mean variance entroy and automatic threshold"
 	values := self nonVaninshingElements.
 	size := values size.
-
+	size = 0 ifTrue:[
+		th := 0.
+		^ self	
+	].
 	mean :=  (values sum) /  size.
 	variance := (values collect:[:e| (mean - e) squared]) sum / size.
 	entropy := (0 - ((values collect:[:e| e*(e log:2) ]) sum)) / size.

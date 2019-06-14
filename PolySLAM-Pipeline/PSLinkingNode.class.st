@@ -5,7 +5,8 @@ Class {
 		'parent',
 		'children',
 		'nodeValue',
-		'connected'
+		'connected',
+		'root'
 	],
 	#category : #'PolySLAM-Pipeline-Algo'
 }
@@ -16,36 +17,109 @@ PSLinkingNode class >> from: anEdge parent: aNode with: helper [
 ]
 
 { #category : #querying }
+PSLinkingNode >> addNodeValue: currentNode to: comp [
+		currentNode nodeValue segments do:[:e| comp indices add: e id].
+		currentNode nodeValue class = PSEdgeApproximator
+			ifTrue:[
+				currentNode nodeValue approxChain reverseLinksDo:  [:e|
+					comp chain addFirst: e value]						
+			]
+			ifFalse:[
+				comp chain addFirst: currentNode nodeValue value  ] .
+]
+
+{ #category : #querying }
+PSLinkingNode >> allChains [
+	"brute force to get all chains starting from this node"
+	|chains currentNode chain joinchains|
+	chains := OrderedCollection new.
+	self leave do:[:e|
+		e isLeaf
+			ifTrue:[
+				chain := OrderedCollection new.
+				currentNode := e.
+				[
+					currentNode ifNotNil: [  
+						chain addFirst: currentNode].
+					(currentNode = self) or: (currentNode isNil)
+				] whileFalse:[ currentNode := currentNode parent ].
+				chains add: chain.
+			]
+			ifFalse:[
+				joinchains := e allChains.
+				currentNode := e.
+				[ 
+					(currentNode = self) or: (currentNode isNil) .
+				] whileFalse: [
+					currentNode := currentNode parent.
+					currentNode ifNotNil: [  
+						joinchains do:[:c| c addFirst: currentNode]]].
+				joinchains do:[:c| chains add: c].
+			].
+				
+		].
+	^ chains
+]
+
+{ #category : #querying }
 PSLinkingNode >> allConnectedComponents [
-	|components chain currentNode|
+	|components chains|
 	"search for all connected component given my leaves"
 	components := OrderedCollection new.
 	self leave do:[:leaf|
-		leaf isConnected ifTrue: [
-			leaf connectedRoots do:[:rootIdx|
-				currentNode := leaf.
-				chain := VMPolygon new.
-				[
-					currentNode ifNotNil: [
-						currentNode nodeValue class = PSEdgeApproximator
-							ifTrue:[
-								currentNode nodeValue approxChain reverseLinksDo:  [:e|
-									chain addFirst: e value]						
-							]
-							ifFalse:[
-								chain addFirst: currentNode nodeValue value  ] .
-						currentNode nodeValue hasId: rootIdx
-					]
-					ifNil: [ true ] 
-				] whileFalse: [currentNode := currentNode parent].
-				currentNode ifNotNil:[
-					chain size > 2 ifTrue:[
-						components add: (self relink:chain)]]
-			]
+		(leaf isConnected)  ifTrue: [
+			chains := (leaf isLeaf)
+				ifTrue:[self componentsFromLeaf: leaf]
+				ifFalse:[self componentsFromJoin: leaf].
+			chains do:[:e| components add:e ].
 		]
 	].
 	
 	^ components 
+]
+
+{ #category : #'instance creation' }
+PSLinkingNode >> buildLeave: linkedEdges [
+	|jList lList leaf join|
+	jList := OrderedCollection new.
+	lList := OrderedCollection new.
+	linkedEdges do:[:e|
+		(self hasAncestor: e id)
+			ifTrue: [ lList add: e id ]
+			ifFalse: [ jList add: e id ]
+	].
+	leaf := PSLinkingLeaf from: nodeValue parent: self parent  with:  lList.
+	^ leaf
+	"join := PSLinkingJoin from: nodeValue parent: self parent with: jList.
+	((jList isEmpty) or: (join isConnected not) ) ifTrue: [ ^leaf ].
+	((lList isEmpty ) or: (leaf isConnected not)) ifTrue: [ ^ join].
+	children add: join; add: leaf.
+	connected := true.
+	nodeValue visited: connected.
+	^ self"
+	
+]
+
+{ #category : #'instance creation' }
+PSLinkingNode >> buildTree: linkedEdges helper: decisionHelper [
+	|child |
+	linkedEdges  do:[:e|
+		e visited ifFalse:[
+			child := (PSLinkingNode from: e parent: self  with: decisionHelper).
+			child ifNotNil: [  
+				(child isConnected)
+					ifTrue:[
+						children add:  child.
+						connected := true.
+					]
+				]
+		]].
+	nodeValue visited: connected.
+	children isEmpty
+		ifTrue:[
+			^ self buildLeave: linkedEdges
+		].
+	^self	
 ]
 
 { #category : #accessing }
@@ -58,34 +132,82 @@ PSLinkingNode >> children: anObject [
 	children := anObject
 ]
 
+{ #category : #querying }
+PSLinkingNode >> componentsFromJoin: join [
+	"a join connects a chain to another connected component,
+	it forms a new connected component that shares a vector chain
+	with the component it connects to"
+	| components joinchains comp currentNode|
+	"self halt."
+	components := OrderedCollection new.
+	"first collect all chains of the join node"
+	joinchains := join allChains "select:[]".
+	joinchains do:[:jchain|
+		|leaf|
+		leaf := jchain last.
+		self assert: leaf isLeaf.
+		jchain removeFirst.
+		leaf joins do:[:rootNode|
+			comp := PSLinkingComponent new.
+			jchain do:[:c| self addNodeValue: c to: comp ].
+			"chain removeFirst."
+			currentNode := join.
+			[
+				currentNode ifNotNil: [
+					self addNodeValue: currentNode to: comp.
+					currentNode = rootNode
+				]
+				ifNil: [ true ]
+			] whileFalse: [currentNode := currentNode parent].
+			currentNode ifNotNil:[
+				comp chain size > 2 ifTrue:[
+					comp chain: (self relink: comp chain).
+				components add: comp]]].
+	].
+	^ components 
+]
+
+{ #category : #querying }
+PSLinkingNode >> componentsFromLeaf: leaf [
+|currentNode comp components|
+components := OrderedCollection new.
+leaf joins do:[:rootNode|
+	currentNode := leaf.
+	comp := PSLinkingComponent new.
+	[
+		currentNode ifNotNil: [
+			self addNodeValue: currentNode  to: comp.
+				currentNode = rootNode
+		]
+		ifNil: [ true ]
+	] whileFalse: [currentNode := currentNode parent].
+	currentNode ifNotNil:[
+		comp chain size > 2 ifTrue:[
+			comp chain: (self relink: comp chain).
+			components add: comp]]].
+	^ components 
+]
+
 { #category : #'instance creation' }
 PSLinkingNode >> from: anObject with: decisionHelper [
 	"anObject could be an edge or and edge approximator"
-	|colinearEdges linkedEdges child|
+	|colinearEdges linkedEdges|
 	connected := false.
 	colinearEdges := decisionHelper colinearTo: anObject.
 	colinearEdges ifNil: [ ^nil ].
 	nodeValue := colinearEdges.
 	"find all possible child"
-	linkedEdges := (decisionHelper linkedTo: nodeValue lastEdge).
+	linkedEdges := BTree order: 4.
+	
+	nodeValue segments do:[:seg|
+		(decisionHelper linkedTo: seg) do:[:e|
+			linkedEdges at: (PSEdgePriorityKey from: e baseline: nodeValue firstEdge )   put:e ]].
+	
 	children := OrderedCollection new.
 	nodeValue visited: true.
 	"linkedEdges asRenderableElement inspect.
 	self halt."
-	linkedEdges  do:[:e| e visited ifFalse:[
-		"(children isEmpty ) ifTrue: [ " 
-			child := (PSLinkingNode from: e parent: self  with: decisionHelper).
-			child ifNotNil: [  
-				(child isConnected)
-					ifTrue:[
-						children add:  child.
-						connected := true.
-				]]]]"]".
-	nodeValue visited: connected.
-	children isEmpty
-		ifTrue:[
-			^ PSLinkingLeaf from: nodeValue parent: self parent with: (linkedEdges asOrderedCollection collect:[:e| e id])]
-	
+	^ self buildTree: linkedEdges helper: decisionHelper 
 	
 ]
 
@@ -113,8 +235,36 @@ PSLinkingNode >> isConnected [
 ]
 
 { #category : #testing }
+PSLinkingNode >> isJoin [
+	^ false
+]
+
+{ #category : #testing }
 PSLinkingNode >> isLeaf [
 	^ false
+]
+
+{ #category : #testing }
+PSLinkingNode >> isRoot [
+	^ parent = nil
+]
+
+{ #category : #querying }
+PSLinkingNode >> largestConnectedComponent [
+	|components maxv comp|
+	components := self allConnectedComponents.
+	components ifEmpty: [ ^nil ].
+	comp := components removeFirst.
+	maxv := comp chain area.
+	
+	components do:[:e| |v|
+		v := e chain area.
+		 v > maxv ifTrue:[
+			maxv := v.
+			comp := e
+		]
+	].
+	^ comp
 ]
 
 { #category : #querying }
@@ -122,7 +272,7 @@ PSLinkingNode >> leave [
 	|collection|
 	collection := OrderedCollection new.
 	self children do:[ :c|
-		c isLeaf
+		((c isLeaf) or: (c isJoin ))
 			ifTrue:[
 				collection add: c]
 			ifFalse:[
@@ -131,6 +281,32 @@ PSLinkingNode >> leave [
 	].
 	^ collection 
 	
+]
+
+{ #category : #search }
+PSLinkingNode >> lookDown:anId [
+	|el|
+	(nodeValue hasId: anId) ifTrue: [ ^self ].
+	children do:[:e|
+		el := e lookDown:anId.
+		el ifNotNil: [ ^ el ]
+	].
+	^ nil
+]
+
+{ #category : #search }
+PSLinkingNode >> lookFor: anId [
+	|node|
+	node := self lookDown: anId.
+	node ifNotNil: [ ^self ].
+	^ self lookUp: anId
+]
+
+{ #category : #search }
+PSLinkingNode >> lookUp: anId [
+	(nodeValue hasId: anId) ifTrue:[^self].
+	parent ifNil: [ ^nil ].
+	^parent lookUp: anId
 ]
 
 { #category : #querying }
@@ -171,7 +347,11 @@ PSLinkingNode >> parent [
 
 { #category : #accessing }
 PSLinkingNode >> parent: anObject [
-	parent := anObject
+	parent := anObject.
+	parent
+		ifNil: [ root := self ]
+		ifNotNil: [ root := parent root  ]
+	
 ]
 
 { #category : #'as yet unclassified' }
@@ -208,4 +388,9 @@ PSLinkingNode >> relink: list [
 PSLinkingNode >> reset [
 	nodeValue visited: false.
 	children do:[:e| e reset]
+]
+
+{ #category : #querying }
+PSLinkingNode >> root [
+	^root
 ]

@@ -63,7 +63,7 @@ PSInflateDecisionHelper >> from: anEdgeCollection [
 	chelper := PSInflateOverlapProbability new.
 	chelper inlier: self inlier.
 	lhelper := PSInflateLinkingProbability new.
-	lhelper inlier: self inlier.
+	lhelper inlier: 1e-6"self inlier".
 	cmatrix := PSAdjacencyMatrix fromLines: anEdgeCollection probabilityHelper: chelper.
 	cmatrix := cmatrix makeSymetric.
 	lmatrix := PSAdjacencyMatrix fromLines: anEdgeCollection probabilityHelper: lhelper.
@@ -93,13 +93,13 @@ PSInflateDecisionHelper >> isDisjoint [
 
 { #category : #querying }
 PSInflateDecisionHelper >> linkedTo: anEdge [
-	|result edge|
+	|result   edge|
 	result := BTree order:4.
 	"anEdge segments do:[:e|"
 		(lmatrix rowAt: anEdge id) withIndexDo: [ :v :i|
 			v = 1 ifTrue:[
 				edge := collection at:i.
-				result at: (PSEdgePriorityKey from: edge)  put: edge
+				result at: (PSEdgePriorityKey from: edge baseline:anEdge)  put: edge
 			]]"]".
 	"result := result  select: [:e| e visited  = false  ]."
 	^ result

@@ -66,7 +66,8 @@ PSPolygonDecompositionHelper >> helper: anObject [
 { #category : #initialization }
 PSPolygonDecompositionHelper >> initialize [
 	super initialize.
-	helper := PSProbabilistPolygonIntersectionHelper new.
+	"helper := PSProbabilistPolygonIntersectionHelper new."
+	helper := PSPolygonIntersectionHelper new.
 ]
 
 { #category : #testing }

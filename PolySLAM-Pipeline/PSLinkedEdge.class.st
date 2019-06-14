@@ -125,6 +125,8 @@ PSLinkedEdge >> directionLine [
 { #category : #computing }
 PSLinkedEdge >> directionVector [
 	|delta|
+"	(self value pointA asPoint = self value pointB asPoint)
+		ifTrue:[^ 0@0]."
 	delta := self value pointB - self value pointA.
 	"normalize it"
 	delta := delta / ( ((delta x squared) + (delta y squared)) sqrt ).

@@ -1,35 +1,39 @@
 Class {
 	#name : #PSLinkingLeaf,
-	#superclass : #PSLinkingNode,
+	#superclass : #PSLinkingJoin,
 	#instVars : [
 		'connectedRoots'
 	],
 	#category : #'PolySLAM-Pipeline-Algo'
 }
 
-{ #category : #accessing }
-PSLinkingLeaf >> connectedRoots [
-	^ connectedRoots
+{ #category : #querying }
+PSLinkingLeaf >> allChains [
+	^ {  } asOrderedCollection
+]
+
+{ #category : #'as yet unclassified' }
+PSLinkingLeaf >> connectedRootIds [
+	^ connectedRoots 
 ]
 
 { #category : #'instance creation' }
 PSLinkingLeaf >> from: aValue with: list [
-	|nodes|
+	|node|
+	joins := OrderedCollection new.
+	connectedRoots := list.
 	nodeValue := aValue.
-	nodes := list select:[:e| self hasAncestor: e].
-	connectedRoots := nodes.
-	nodes isEmpty
+	connectedRoots do:[:id|
+		node := self lookUp: id.
+		node ifNotNil: [joins add: node] ifNil: [self halt].
+	].
+	joins isEmpty
 		ifTrue:[
 			connected := false]
 		ifFalse:[
 			connected := true].
 	nodeValue visited: connected.
 	^ self
-]
-
-{ #category : #testing }
-PSLinkingLeaf >> isConnected [
-	^ connected
 ]
 
 { #category : #testing }
@@ -44,11 +48,11 @@ PSLinkingLeaf >> isConnectedTo: aCollectionOfEdges [
 ]
 
 { #category : #testing }
-PSLinkingLeaf >> isLeaf [
-	^ true
+PSLinkingLeaf >> isJoin [
+	^ false
 ]
 
-{ #category : #querying }
-PSLinkingLeaf >> leave [
-	^ {self} asOrderedCollection 
+{ #category : #testing }
+PSLinkingLeaf >> isLeaf [
+	^ true
 ]

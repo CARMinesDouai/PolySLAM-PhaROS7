@@ -154,17 +154,19 @@ PSEdgeApproximator >> makeChain [
 				point := v.
 			]
 			ifNotNil: [
-				lA := point segments first value.
-				lB := v segments first value.
-				lA type = lB type
-					ifTrue:[ ltype := lA type asInteger]
-					ifFalse:[
-						point isEnd
-							ifTrue: [ltype := lB type asInteger ]
-							ifFalse:[ltype := lA type asInteger]
-					].
-				chain add: (VMLineSegment pointA: point asPoint pointB: v asPoint  type: ltype).
-				point := v
+				(point dist: v) > 1e-6 ifTrue:[
+					lA := point segments first value.
+					lB := v segments first value.
+					lA type = lB type
+						ifTrue:[ ltype := lA type asInteger]
+						ifFalse:[
+							point isEnd
+								ifTrue: [ltype := lB type asInteger ]
+								ifFalse:[ltype := lA type asInteger]
+						].
+					chain add: (VMLineSegment pointA: point asPoint pointB: v asPoint  type: ltype).
+					point := v
+				]
 			] 
 	].
 	^ chain

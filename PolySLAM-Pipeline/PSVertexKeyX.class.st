@@ -34,19 +34,3 @@ PSVertexKeyX >> compare: anotherKey [
 	primary x < anotherKey primary x ifTrue: [ ^ -1 ].
 	^ 1
 ]
-
-{ #category : #accessing }
-PSVertexKeyX >> point: v [
-	point := v.
-	origin ifNil: [ origin := point ]
-]
-
-{ #category : #accessing }
-PSVertexKeyX >> reset [
-	point := origin.
-]
-
-{ #category : #accessing }
-PSVertexKeyX >> switchTo: p [
-	point setX: p x setY:p y.
-]

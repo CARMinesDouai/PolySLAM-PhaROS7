@@ -35,14 +35,13 @@ PSLinkingTreeQuery >> perform [
 	"collection asRenderableElement inspect."
 	"tree add: (PSLinkingNode from: polygonB peak segments first parent: nil with: helper)."
 	visitedIds := Set new.
+	"collection asRenderableElement inspect."
 	collection do:[:e|
 		(visitedIds includes: e id)
 			ifFalse:[
 				node := PSLinkingNode from: e parent: nil  with: helper.
 				node
 					ifNotNil: [ 
-						"node allConnectedComponents inspect.
-						self halt."
 						comp := node largestConnectedComponent.
 						comp ifNil: [ 
 							visitedIds add: e id
@@ -52,13 +51,14 @@ PSLinkingTreeQuery >> perform [
 							chains add: comp chain.
 						]
 					]
-					ifNil: [ visitedIds add: e id]
-			
+					ifNil: [ visitedIds add: e id].
+			""
+			self reset: collection  with: visitedIds.
+			"(collection select:[:ed| ed visited = false]) asRenderableElement inspect.
+			self halt"
 		].
-		self reset: collection  with: visitedIds 
 	].
-	chains ifEmpty: [ ^ false ].
-	^ true
+	^chains isNotEmpty 
 	
 ]
 

@@ -182,8 +182,8 @@ leaf joins do:[:rootNode|
 		ifNil: [ true ]
 	] whileFalse: [currentNode := currentNode parent].
 	currentNode ifNotNil:[
+		comp chain: (self relink: comp chain).
 		comp chain size > 2 ifTrue:[
-			comp chain: (self relink: comp chain).
 			components add: comp]]].
 	^ components 
 ]
@@ -199,10 +199,24 @@ PSLinkingNode >> from: anObject with: decisionHelper [
 	"find all possible child"
 	linkedEdges := BTree order: 4.
 	
-	nodeValue segments do:[:seg|
-		(decisionHelper linkedTo: seg) do:[:e|
-			linkedEdges at: (PSEdgePriorityKey from: e baseline: nodeValue firstEdge )   put:e ]].
+		(decisionHelper linkedTo: nodeValue lastEdge ) do:[:e|
+			(nodeValue hasId: e id)ifFalse:[
+				linkedEdges at: (PSEdgePriorityKey from: e baseline: nodeValue firstEdge )   put:e.
+				]
+			 ].
 	
+	"nodeValue segments do:[:seg|
+		(decisionHelper linkedTo: seg) do:[:e|
+			(nodeValue hasId: e id)ifFalse:[
+				linkedEdges at: (PSEdgePriorityKey from: e baseline: nodeValue firstEdge )   put:e.
+				]
+			 ].
+		]."
+	"linkedEdges size >= 2 ifTrue:[
+			linkedEdges asOrderedCollection asRenderableElement  inspect.
+			self halt.
+			]."
+		
 	children := OrderedCollection new.
 	nodeValue visited: true.
 	"linkedEdges asRenderableElement inspect.
@@ -354,7 +368,7 @@ PSLinkingNode >> parent: anObject [
 	
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #refactory }
 PSLinkingNode >> relink: list [
 	|polygon  newSeg seg prevSeg nextSeg pointA pointB aChain|
 	aChain := list asDoublyConnectedEdgeList.

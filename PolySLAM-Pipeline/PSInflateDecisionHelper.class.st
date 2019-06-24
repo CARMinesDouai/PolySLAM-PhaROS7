@@ -63,7 +63,7 @@ PSInflateDecisionHelper >> from: anEdgeCollection [
 	chelper := PSInflateOverlapProbability new.
 	chelper inlier: self inlier.
 	lhelper := PSInflateLinkingProbability new.
-	lhelper inlier: 1e-6"self inlier".
+	lhelper inlier: self inlier / 2.
 	cmatrix := PSAdjacencyMatrix fromLines: anEdgeCollection probabilityHelper: chelper.
 	cmatrix := cmatrix makeSymetric.
 	lmatrix := PSAdjacencyMatrix fromLines: anEdgeCollection probabilityHelper: lhelper.

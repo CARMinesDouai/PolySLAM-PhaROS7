@@ -54,11 +54,12 @@ PSLinkingTreeQuery >> perform [
 					ifNil: [ visitedIds add: e id].
 			""
 			self reset: collection  with: visitedIds.
-			"(collection select:[:ed| ed visited = false]) asRenderableElement inspect.
-			self halt"
+			(collection select:[:ed| ed visited = false]) asRenderableElement inspect.
+			self halt
 		].
 	].
-	^chains isNotEmpty 
+	chains ifEmpty: [ ^ false ].
+	^ true
 	
 ]
 

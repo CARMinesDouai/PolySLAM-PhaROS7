@@ -13,44 +13,15 @@ PSMapMerger >> chains [
 ]
 
 { #category : #'as yet unclassified' }
-PSMapMerger >> consume1: polygon [
+PSMapMerger >> consume: polygon [
 	chains add: polygon.
 	self merge
-]
-
-{ #category : #'as yet unclassified' }
-PSMapMerger >> consume: polygon [
-	|helper newchains components merged|
-	chains ifNil: [ 
-		chains := OrderedCollection new.
-		chains add: polygon.
-		^ self.	
-	].
-	merged := false.
-	newchains := OrderedCollection new.
-	chains do:[:chain|
-		helper := PSLinkingTreeQuery from: chain and: polygon.
-
-		helper perform.
-		components := helper chains.
-		
-		components isEmpty
-			ifTrue:[ newchains add: chain]
-			ifFalse:[
-				components do:[:comp|
-					comp ifNotNil: [ newchains add: comp.
-						merged := true ]]]
-		
-	].
-	merged ifFalse: [ newchains add: polygon  ].
-	"self merge."
-	chains := newchains
 ]
 
 { #category : #initialization }
 PSMapMerger >> initialize [
 	super initialize.
-	chains := nil.
+	chains := OrderedCollection new.
 ]
 
 { #category : #actions }
@@ -73,9 +44,7 @@ PSMapMerger >> merge [
 		helper := PSLinkingTreeQuery from:pA and: pB.
 		helper perform
 			ifTrue:[
-				helper chains do:[:c|
-					c area > 5e-4 ifTrue:[
-						chains add:c]]]
+				helper chains do:[:c| chains add:c]]
 			ifFalse:[
 				chains add: pA; add: pB	
 			].

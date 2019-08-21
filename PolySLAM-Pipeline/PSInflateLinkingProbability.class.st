@@ -6,7 +6,6 @@ Class {
 
 { #category : #probability }
 PSInflateLinkingProbability >> probability [
-	lineA = lineB ifTrue:[^ 0].
 	lineA nextLink = lineB ifTrue:[^ 1].
 	(lineA value pointB dist: (lineB value pointA)) <= inlier
 		ifTrue: [ ^ 1 ]

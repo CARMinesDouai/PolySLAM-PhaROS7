@@ -182,6 +182,12 @@ PSLinkedEdge >> isCollinearWithPoint: aPoint [
 	^ ((v1 abs) < tolerance).
 ]
 
+{ #category : #testing }
+PSLinkedEdge >> isPointInside: aPoint [
+	(self isCollinearWithPoint: aPoint) ifFalse:[^false].
+	^ ((aPoint dist: self value pointA) <= self length) and: ( (aPoint dist: self value pointB) <= self length )
+]
+
 { #category : #accessing }
 PSLinkedEdge >> lastEdge [
 	^ self

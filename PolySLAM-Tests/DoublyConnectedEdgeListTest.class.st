@@ -85,6 +85,34 @@ DoublyConnectedEdgeListTest >> testDecomposeAfterIntersectWith2 [
 ]
 
 { #category : #tests }
+DoublyConnectedEdgeListTest >> testIsPointInside [
+	| points polygon point|
+	
+	points := {
+	1@1. 5@3. 2@5
+	}.
+	polygon := (VMPolygon new fromPoints: points) asDoublyConnectedEdgeList .
+	point := 3@3.
+
+	self assert: (polygon isPointInside: point) = true.
+	
+	point := 3@2.
+"	{ polygon. point } asRenderableElement inspect."
+	self assert:(polygon isPointOnChain: point) = true.
+	self assert: (polygon isPointInside: point) = true.
+	
+		point := 7@4.
+	"{ polygon. point } asRenderableElement inspect."
+	self assert:(polygon isPointOnChain: point) = false.
+	self assert: (polygon isPointInside: point) = false.
+	
+	point := 3@1.
+	self assert: (polygon isPointInside: point) = false.
+
+
+]
+
+{ #category : #tests }
 DoublyConnectedEdgeListTest >> testPSVertexKeyY [
 	|lines tree|
 	lines := { 
@@ -125,4 +153,45 @@ DoublyConnectedEdgeListTest >> testSurgeryAtIntersectionWith [
 	helper intersections } asRenderableElement inspect."
 	{ helper polygonA. helper polygonB } asRenderableElement inspect.
 	
+]
+
+{ #category : #tests }
+DoublyConnectedEdgeListTest >> testWindingNumber [
+	| points expectedResults |
+	
+	points := {
+		{ -2 @ 2.  2 @ 2.  2 @ -2.  -2 @ -2. }.
+		{ 0.2 @ 3.  3 @ -1.  -2 @ -1.6. }.
+		{ -3@ 2.  1 @ 2.  1 @ 1.  -1 @ 1. -2 @ -1.  1 @ -1.  1 @ -2.  -3 @ -2. }.
+	}.
+	"results (columns):
+	  1) original polygon, tested with 0@0
+	  2) original polygon, tested with 20@20
+	  3) inverted polygon, tested with 0@0
+	  4) inveretd polygon, tested with 20@20
+	"
+	expectedResults := {
+		{ 1.  0.  -1.  0 }.
+		{ 1.  0.  -1.  0 }.
+		{ 0.  0.  0.  0 }.
+	}.
+	
+	points doWithIndex: [ :pointCollection :index |
+		| polygon wn results |
+		
+		results := expectedResults at: index.
+		
+		polygon := (VMPolygon new fromPoints: pointCollection) asDoublyConnectedEdgeList .
+		wn := polygon windingNumber: 0@0.
+		self assert: wn equals: results first.
+		wn := polygon windingNumber: 20@20.
+		self assert: wn equals: results second.
+		
+		polygon := VMPolygon new fromPoints: pointCollection reversed.
+		wn := polygon windingNumber: 0@0.
+		self assert: wn equals: results third.
+		wn := polygon windingNumber: 20@20.
+		self assert: wn equals: results fourth.
+	].
+
 ]

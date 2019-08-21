@@ -159,8 +159,47 @@ DoublyConnectedEdgeList >> isFrontier [
 ]
 
 { #category : #testing }
+DoublyConnectedEdgeList >> isLeft: p a: a b: b [
+	"returns True if the point p is left of the line which is defined by the two points a and b.
+	the line must not be parallel to the x axis, i.e. a.y and b.y must not be identical."
+	
+	| u v w z |
+	
+	u := (a y) - (p y).
+	v := (a y) - (b y).
+	w := (b x) - (a x).
+	
+	z := (a x) + (w * u / v).
+	
+	(p x) < z ifTrue: [
+		^true.
+	].
+
+	^false.
+]
+
+{ #category : #testing }
+DoublyConnectedEdgeList >> isLineInside: anEdge [
+		"special case where the two points of the edge are on or inside of the polygon, but the edge is completely or partly outside of the polygon"
+	^ (self isPointInside: anEdge value pointA) and: (self isPointInside: anEdge value pointB).
+]
+
+{ #category : #testing }
 DoublyConnectedEdgeList >> isObstacle [
 	^ self type = 1
+]
+
+{ #category : #testing }
+DoublyConnectedEdgeList >> isPointInside: aPoint [
+	((self windingNumber: aPoint) ~= 0) ifTrue:[^ true].
+	^ self isPointOnChain: aPoint 
+]
+
+{ #category : #testing }
+DoublyConnectedEdgeList >> isPointOnChain: aPoint [
+	self linksDo: [ :link|
+		(link isPointInside:  aPoint) ifTrue:[^ true]].
+	^ false.
 ]
 
 { #category : #testing }
@@ -372,4 +411,46 @@ DoublyConnectedEdgeList >> size [
 { #category : #accessing }
 DoublyConnectedEdgeList >> type [
 	^ type
+]
+
+{ #category : #querying }
+DoublyConnectedEdgeList >> windingNumber: p [
+	"computes the winding number for a point with respect to the connected chain. does only make sense if we have a closed polygon."
+	| wn length fun |
+	
+	wn := 0.
+	length := self size.
+	
+	fun := [ :a :b |
+		(a y) > (p y) ifTrue: [
+			"a is located above p"
+			(b y) > (p y) ifTrue: [
+				"a and b are both located above p. the winding number does not change"
+			] ifFalse: [
+				"a is above p and b is below. the winding number changes if p lies to the left of the line a->b."
+				(self isLeft: p a: a b: b) ifTrue: [
+					wn := wn + 1.
+				]
+			]
+		] ifFalse: [
+			"a is located below p"
+			(b y) > (p y) ifTrue: [
+				"a is below p and b is above p. the winding number changes if p lies to the left of the line a->b."
+				(self isLeft: p a: a b: b) ifTrue: [
+					wn := wn - 1.
+				].
+			] ifFalse: [
+				"a and b are both located below p. the winding number does not change"
+			].
+		].
+	].
+
+	"iterate over all but the last vertex. the last vertex is treated seperatly because it is connected with the first one"
+	self linksDo: [ :link|
+		link nextLink ifNotNil:[
+		fun value: link value pointA value: link nextLink value pointA.]].
+	
+	"fun value: (self last) pointA value: (self first) pointA."
+	
+	^wn.
 ]

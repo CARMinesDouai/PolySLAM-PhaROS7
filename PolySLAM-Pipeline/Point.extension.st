@@ -12,7 +12,7 @@ Point >> asPoint [
 
 { #category : #'*PolySLAM-Pipeline-Algo' }
 Point >> inrangeOf:aPoint [
-	^ self inrangeOf: aPoint radius: 0.002 
+	^ self inrangeOf: aPoint radius: 0.002
 ]
 
 { #category : #'*PolySLAM-Pipeline-Algo' }

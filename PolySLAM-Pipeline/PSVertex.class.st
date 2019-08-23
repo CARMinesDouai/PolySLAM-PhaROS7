@@ -67,6 +67,11 @@ PSVertex >> asPoint [
 	^ (self x) @ (self y)
 ]
 
+{ #category : #converting }
+PSVertex >> fromPoint: p [
+	self setX: p x setY: p y
+]
+
 { #category : #utilities }
 PSVertex >> getInnerPivotLine [
 	^ self getPivotLine: true 

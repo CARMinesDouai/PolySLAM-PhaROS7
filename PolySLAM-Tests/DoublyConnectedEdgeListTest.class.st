@@ -85,6 +85,38 @@ DoublyConnectedEdgeListTest >> testDecomposeAfterIntersectWith2 [
 ]
 
 { #category : #tests }
+DoublyConnectedEdgeListTest >> testIsLineInside [
+	| points polygon lines result|
+	
+	points := {
+	4@1. 9@4. 7@9. 2@7. 2@3. 6@5
+	}.
+	polygon := (VMPolygon new fromPoints: points) asDoublyConnectedEdgeList .
+	
+	lines := { 
+		PSLinkedEdge from: 6@3 to: 8@1 type: 1.
+		PSLinkedEdge from: 9@7 to: 10@9 type: 1.
+		PSLinkedEdge from: 6@7 to: 7@5 type: 1.
+		PSLinkedEdge from: 3@4 to: 5@2 type: 1.
+		PSLinkedEdge from: 4@4 to: 5@3 type: 1.
+		PSLinkedEdge from: 2@5 to: 4@4 type: 1.
+		PSLinkedEdge from: 2@7 to: 6@5 type: 1.
+		PSLinkedEdge from: 2@3 to: 4@1 type:1
+	}.
+	
+	result := { false. false. true. false. false. true. true. false}.
+	{ polygon. lines } asRenderableElement inspect.
+	1 to: lines size do:[:i|
+		self assert: (polygon isLineInside: (lines at:i)) = (result at:i)	
+	]
+	
+	
+	
+
+
+]
+
+{ #category : #tests }
 DoublyConnectedEdgeListTest >> testIsPointInside [
 	| points polygon point|
 	
@@ -97,7 +129,6 @@ DoublyConnectedEdgeListTest >> testIsPointInside [
 	self assert: (polygon isPointInside: point) = true.
 	
 	point := 3@2.
-"	{ polygon. point } asRenderableElement inspect."
 	self assert:(polygon isPointOnChain: point) = true.
 	self assert: (polygon isPointInside: point) = true.
 	
@@ -108,6 +139,10 @@ DoublyConnectedEdgeListTest >> testIsPointInside [
 	
 	point := 3@1.
 	self assert: (polygon isPointInside: point) = false.
+	
+	point := 2@5.
+	{ polygon. point } asRenderableElement inspect.
+	self assert: (polygon isPointInside: point) = true.
 
 
 ]

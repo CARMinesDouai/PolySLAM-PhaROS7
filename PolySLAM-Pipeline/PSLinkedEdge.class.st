@@ -60,7 +60,7 @@ PSLinkedEdge >> angle [
 { #category : #computing }
 PSLinkedEdge >> angleWith: anotherLine [
 	|alpha beta|
-	"angle with other line, use this line as base line"
+	"angle with other line, use this line as baseline, ignore the edge direction"
 	alpha := (self upperVertex - self lowerVertex) angle.
 	beta := (anotherLine upperVertex - anotherLine lowerVertex) angle.
 	^ beta - alpha
@@ -133,9 +133,21 @@ PSLinkedEdge >> directionVector [
 	^ delta
 ]
 
+{ #category : #computing }
+PSLinkedEdge >> exteriorAngleWith: anotherLine [
+	self shouldBeImplemented 
+]
+
 { #category : #accessing }
 PSLinkedEdge >> firstEdge [
 	^ self
+]
+
+{ #category : #testing }
+PSLinkedEdge >> hasCollinearIn: aCollection [
+	aCollection do:[:e|
+		(self isCollinearWith: e) ifTrue:[^ true]].
+	^ false
 ]
 
 { #category : #testing }
@@ -163,6 +175,11 @@ PSLinkedEdge >> initialize [
 	
 ]
 
+{ #category : #computing }
+PSLinkedEdge >> interiorAngleWith: anotherLine [
+		self shouldBeImplemented 
+]
+
 { #category : #accessing }
 PSLinkedEdge >> intersectionPoints [
 	^ intersectionPoints
@@ -177,9 +194,35 @@ PSLinkedEdge >> isCollinearWith: aLine [
 PSLinkedEdge >> isCollinearWithPoint: aPoint [
 	|tolerance v1 |
 	"tolerance to 5mm"
-	tolerance := 0.0005.
+	tolerance := 0.005.
 	v1 := self areaWith: aPoint.
 	^ ((v1 abs) < tolerance).
+]
+
+{ #category : #testing }
+PSLinkedEdge >> isLineOnLeftSide: aLine [
+	(self isCollinearWith: aLine ) ifTrue:[^ false].
+	"test if a line is on my leftside based on my direction"
+	(self isCollinearWithPoint: aLine pointA) ifFalse:[
+		(self value isPointOnRightSide: aLine pointA) ifTrue:[^ false]].
+	
+	(self isCollinearWithPoint:  aLine pointB) ifFalse:[
+		(self value isPointOnRightSide: aLine pointB) ifTrue:[^ false]].
+	
+	^ true
+]
+
+{ #category : #testing }
+PSLinkedEdge >> isLineOnRightSide: aLine [
+	(self isCollinearWith: aLine ) ifTrue:[^ false].
+	"test if a line is on my leftside based on my direction"
+	(self isCollinearWithPoint:  aLine value pointA) ifFalse:[
+		(self value isPointOnLeftSide: aLine value pointA) ifTrue:[^ false]].
+	
+	(self isCollinearWithPoint:  aLine value pointB) ifFalse:[
+		(self value isPointOnLeftSide: aLine value pointB) ifTrue:[^ false]].
+	
+	^ true
 ]
 
 { #category : #testing }

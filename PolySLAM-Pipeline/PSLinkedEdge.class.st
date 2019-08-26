@@ -151,6 +151,12 @@ PSLinkedEdge >> hasCollinearIn: aCollection [
 ]
 
 { #category : #testing }
+PSLinkedEdge >> hasContactWith: anEdge [
+	((self isPointInside: anEdge value pointA)  or: (self isPointInside: anEdge value pointB)) ifTrue: [ ^ true ].	
+	^ ((anEdge isPointInside: self value pointA)  or: (anEdge  isPointInside: self value pointB)).
+]
+
+{ #category : #testing }
 PSLinkedEdge >> hasId: anId [
 	^ id = anId
 ]
@@ -192,22 +198,26 @@ PSLinkedEdge >> isCollinearWith: aLine [
 
 { #category : #testing }
 PSLinkedEdge >> isCollinearWithPoint: aPoint [
-	|tolerance v1 |
+	|tolerance |
 	"tolerance to 5mm"
-	tolerance := 0.005.
-	v1 := self areaWith: aPoint.
-	^ ((v1 abs) < tolerance).
+	" 0.000001."
+	tolerance := 0.0005.
+	
+	^ (self value distanceToPoint: aPoint) < tolerance 
+	
+	"v1 := self areaWith: aPoint.
+	^ ((v1 abs) < tolerance)."
 ]
 
 { #category : #testing }
 PSLinkedEdge >> isLineOnLeftSide: aLine [
 	(self isCollinearWith: aLine ) ifTrue:[^ false].
 	"test if a line is on my leftside based on my direction"
-	(self isCollinearWithPoint: aLine pointA) ifFalse:[
-		(self value isPointOnRightSide: aLine pointA) ifTrue:[^ false]].
+	(self isCollinearWithPoint: aLine value pointA) ifFalse:[
+		(self value isPointOnRightSide: aLine value pointA) ifTrue:[^ false]].
 	
-	(self isCollinearWithPoint:  aLine pointB) ifFalse:[
-		(self value isPointOnRightSide: aLine pointB) ifTrue:[^ false]].
+	(self isCollinearWithPoint:  aLine value pointB) ifFalse:[
+		(self value isPointOnRightSide: aLine value pointB) ifTrue:[^ false]].
 	
 	^ true
 ]
@@ -223,6 +233,11 @@ PSLinkedEdge >> isLineOnRightSide: aLine [
 		(self value isPointOnLeftSide: aLine value pointB) ifTrue:[^ false]].
 	
 	^ true
+]
+
+{ #category : #testing }
+PSLinkedEdge >> isLineSegmentInside: anEdge [
+	^ (self isPointInside: anEdge value pointA) and: (self isPointInside: anEdge value pointB)
 ]
 
 { #category : #testing }

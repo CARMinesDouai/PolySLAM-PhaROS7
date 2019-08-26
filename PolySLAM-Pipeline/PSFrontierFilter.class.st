@@ -1,67 +1,64 @@
 Class {
-	#name : #PSIntersectionFilter,
+	#name : #PSFrontierFilter,
 	#superclass : #PSPolygonOperationHelper,
 	#instVars : [
-		'resolution'
+		'resolution',
+		'edges'
 	],
 	#category : #'PolySLAM-Pipeline-Algo'
 }
 
 { #category : #public }
-PSIntersectionFilter >> collapseSmallVectors [
+PSFrontierFilter >> collapseSmallVectors [
 	polygonA collapseEdges: resolution.
 	polygonB collapseEdges: resolution.
 ]
 
+{ #category : #accessing }
+PSFrontierFilter >> edges [
+	^ edges
+]
+
 { #category : #public }
-PSIntersectionFilter >> filterFrontier [
-	|collection ignore|
+PSFrontierFilter >> filterFrontier [
 	"Replace all frontier which is inside another polygon as sector"
-	collection := OrderedCollection new.
+	edges := OrderedCollection new.
 	
 	polygonA linksDo: [ :link|
-		ignore := false.
 		link value isFrontier ifTrue:[
 			(polygonB isLineInside: link) ifTrue: [
 				link value type: 3.
-				ignore := true
+			] ifFalse:[
+				edges add: link .	
 			].
-		].
-	ignore ifFalse:[ 
-	collection add: link value.]].
+		]].
 	polygonB linksDo: [ :link|
-		ignore := false.
 		link value isFrontier ifTrue:[
 			(polygonA isLineInside: link) ifTrue: [
-				link value type: 3.
-				ignore := true.
-			].
-		].
-		ignore ifFalse: [  
-		collection add: link value]].
-	
-	collection asRenderableElement inspect.
-	"self halt"
-	
+				link value type: 3
+			] ifFalse:[
+				edges add: link 
+			]
+		]].
 
 ]
 
 { #category : #initialization }
-PSIntersectionFilter >> initialize [
+PSFrontierFilter >> initialize [
 	super initialize.
-	resolution := 0.05 "5cm"
+	resolution := 0.1 "5cm"
 ]
 
 { #category : #public }
-PSIntersectionFilter >> perform [
+PSFrontierFilter >> perform [
 	| helper|
 	((polygonA isNil ) | (polygonB isNil )) ifTrue:[^self error: 'Please set the two input polygons'].
-	self collapseSmallVectors.
+	"self collapseSmallVectors."
 	helper := PSPolygonDecompositionHelper new.
 	helper polygonA: polygonA.
 	helper polygonB: polygonB.
-	self collapseSmallVectors.
 	helper perform.
+	"self collapseSmallVectors."
 	"now we need to remove all frontier that is inside another polygon"
 	self filterFrontier
 ]

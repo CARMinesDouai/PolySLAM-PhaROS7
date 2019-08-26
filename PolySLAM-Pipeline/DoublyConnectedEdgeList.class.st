@@ -114,16 +114,19 @@ DoublyConnectedEdgeList >> close [
 
 { #category : #'as yet unclassified' }
 DoublyConnectedEdgeList >> collapseEdges: th [
-	|point|
+	|point cnt|
 	"collapse all vectors whose length smaller than th"
+	cnt := 0.
 	self linksDo: [ :link|
 		link length < th ifTrue:[
 			point := link centerPoint.
 			link previousLink value pointB fromPoint: point.
 			link nextLink value pointA fromPoint: point.
-			self preProcess: link.
-			self removeLink: link
+			self removeLink: link.
+			cnt := cnt + 1.
 			]].
+	
+	cnt > 0 ifTrue:[ self collapseEdges: th ].
 ]
 
 { #category : #'instance creation' }
@@ -194,23 +197,34 @@ DoublyConnectedEdgeList >> isLeft: p a: a b: b [
 
 { #category : #testing }
 DoublyConnectedEdgeList >> isLineInside: anEdge [
-	|intersections intersectedPointA intersectedPointB intersectEdgeA intersectEdgeB |
+	|intersections intersectEdgeA intersectEdgeB ck|
 	"special case where the two points of the edge are on or inside of the polygon, but the edge is completely or partly outside of the polygon"
 	 ((self isPointInside: anEdge value pointA) and: (self isPointInside: anEdge value pointB)) ifFalse:[^false].
 	"the two points are inside, let see whether they intersect with any line segment"
 	intersections := OrderedCollection new.
 	
 	self linksDo: [ :link|
-		link value ifIntersectsWithLineSegment: anEdge value do: [ :l|
+		ck := link value ifIntersectsWithLineSegment: anEdge value do: [ :l|
 			(link isCollinearWith: anEdge) ifFalse:[
 				(self verifyIntersectionOn:link
 					at: l intersectionPoint
-					from: (intersections collect: [:e| e at: 1])) ifTrue:[
-						intersections add: { link. l }]]]].
+					from: (intersections)) ifTrue:[
+						intersections add: link]]].
+		"ck ifFalse:[
+			(link isCollinearWith: anEdge) ifFalse:[
+			(link hasContactWith: anEdge) ifTrue:[ intersections add: link ]]]"].
 	"no or only one intersection means that the line is completely inside the polygon"
-	intersections size <=1 ifTrue:[^ true]. 
-	"verify if they are colinear"
+	intersections size = 0 ifTrue:[^ true].
 	(intersections size > 2) ifTrue:[^ false].
+	
+	intersections size = 1 ifTrue:[
+		"{ anEdge. intersections  } asRenderableElement  inspect."
+		"((intersections at:1) value isSector)
+			ifTrue:[^ false]	
+			ifFalse:[^ true]"
+		^true
+	]. 
+	"verify if they are colinear"
 	
 	"{ anEdge. intersections collect: [ :e| (e at:2) intersectionPoint ]. intersections collect: [ :e| e at:1 ]  } asRenderableElement  inspect.
 	self halt."
@@ -218,10 +232,10 @@ DoublyConnectedEdgeList >> isLineInside: anEdge [
 	"there are certainly two intersections at this point, since the two points of the edge now inside the polygon"
 	"if these endpoints of the edge lay on two edges of the polygon, the edge in question may be inside of the polygon, otherwise
 	it is partly outside"
-	intersectEdgeA := (intersections at:1) at:1.
-	intersectedPointA := ((intersections at:1) at:2) intersectionPoint.
-	intersectEdgeB := (intersections at:2) at:1.
-	intersectedPointB := ((intersections at:2) at:2) intersectionPoint.
+	intersectEdgeA := (intersections at:1).
+	"intersectedPointA := ((intersections at:1) at:2) intersectionPoint."
+	intersectEdgeB := (intersections at:2) .
+	"intersectedPointB := ((intersections at:2) at:2) intersectionPoint."
 	
 	(( intersectEdgeA isPointInside: anEdge value pointA ) or: ( intersectEdgeB isPointInside: anEdge value pointA )) ifFalse:[^false].
 	(( intersectEdgeA isPointInside: anEdge value pointB ) or: ( intersectEdgeB isPointInside: anEdge value pointB )) ifFalse:[^false].
